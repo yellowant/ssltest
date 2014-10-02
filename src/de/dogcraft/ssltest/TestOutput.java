@@ -56,7 +56,8 @@ public class TestOutput {
 		output(message, 0);
 	}
 	public void output(String message, int points) {
-		ps.println("data: " + message + " (" + points + ")");
+		ps.println("data: " + message
+				+ (points == 0 ? "" : " (" + points + ")"));
 		ps.println();
 	}
 	public void finest(String message) {

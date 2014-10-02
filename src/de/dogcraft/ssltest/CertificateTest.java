@@ -18,9 +18,11 @@ import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.asn1.x509.DistributionPoint;
+import org.bouncycastle.asn1.x509.DistributionPointName;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.TBSCertificate;
@@ -97,6 +99,23 @@ public class CertificateTest {
 				pw.output("CRL-name: "
 						+ distributionPoint.getDistributionPoint().toString()
 								.replace("\n", "\ndata: "));
+				DistributionPointName point = distributionPoint
+						.getDistributionPoint();
+				if (point.getType() == DistributionPointName.FULL_NAME) {
+					GeneralName[] gns = GeneralNames.getInstance(
+							point.getName()).getNames();
+					for (GeneralName gn : gns) {
+						if (gn.getTagNo() == GeneralName.uniformResourceIdentifier) {
+							String url = ((ASN1String) gn.getName())
+									.getString();
+							pw.output("CRL: " + url);
+						} else {
+							pw.output("Strange CRL Name Type: " + gn.getTagNo());
+						}
+					}
+				} else {
+					pw.output("Strange CRL Type: " + point.getType());
+				}
 				pw.output("CRL-issuer: " + distributionPoint.getCRLIssuer());
 				crlCount++;
 			}
@@ -128,8 +147,11 @@ public class CertificateTest {
 		pw.output("Start: " + sdf.format(start));
 		pw.output("End: " + sdf.format(end));
 		Date now = new Date();
+		if (start.before(now) && end.after(now)) {
+			pw.output("Certificate is currently valid.");
+		}
 		if (!start.before(now)) {
-			pw.output("Not jet valid", -1);
+			pw.output("Not yet valid", -1);
 		} else if (!end.after(now)) {
 			pw.output("Expired", -1);
 			long expiry = now.getTime() - end.getTime();
@@ -143,26 +165,38 @@ public class CertificateTest {
 		} else {
 			long validity = end.getTime() - now.getTime();
 			if (validity > 90 * MILLISECONDS_PER_DAY) {
-				pw.output("Still validity for more than 3 months (max)", 2);
+				pw.output("Still valid for more than 3 months (max)", 2);
 			} else if (validity > 30 * MILLISECONDS_PER_DAY) {
-				pw.output("Still valitidy for more than 1 month", 1);
+				pw.output("Still valid for more than 1 month", 1);
 			} else {
-				pw.output("Still valitidy for more less than 1 month", 0);
+				pw.output("Still valid for more less than 1 month", 0);
 			}
-			pw.output("Dates Match.");
+
+			long validFor = now.getTime() - start.getTime();
+			if (validFor > 3 * 30 * MILLISECONDS_PER_DAY) {
+				pw.output(
+						"Certificate has been valid for at least 3 months (max)",
+						2);
+			} else if (validFor > 24 * 30 * MILLISECONDS_PER_DAY) {
+				pw.output("Certificate has been valid for at least 1 month", 1);
+			} else {
+				pw.output("Certificate has been valid for less than 1 month", 0);
+			}
+
+			long period = end.getTime() - start.getTime();
+			if (period > 37 * 30 * MILLISECONDS_PER_DAY) {
+				pw.output("Total validity for more than 3 years", -2);
+			} else if (period > 24 * 30 * MILLISECONDS_PER_DAY) {
+				pw.output("Total validity for more than 2 years (max)", 3);
+			} else if (period > 12 * 30 * MILLISECONDS_PER_DAY) {
+				pw.output("Total validity for more than 1 years", 2);
+			} else if (period > 6 * 30 * MILLISECONDS_PER_DAY) {
+				pw.output("Total validity for more than 6 months ", 1);
+			} else {
+				pw.output("Total validity for less 6 months", 0);
+			}
 		}
-		long period = end.getTime() - start.getTime();
-		if (period > 37 * 30 * MILLISECONDS_PER_DAY) {
-			pw.output("Total validity for more than 3 years", -2);
-		} else if (period > 24 * 30 * MILLISECONDS_PER_DAY) {
-			pw.output("Total validity for more than 2 years (max)", 3);
-		} else if (period > 12 * 30 * MILLISECONDS_PER_DAY) {
-			pw.output("Total validity for more than 1 years", 2);
-		} else if (period > 30 * MILLISECONDS_PER_DAY) {
-			pw.output("Total validity for morethan 6 months ", 1);
-		} else {
-			pw.output("Total validity for less 6 months", 0);
-		}
+
 		pw.exitTest("Validity Period", TestResult.IGNORE);
 	}
 	private static void testAIA(TestOutput pw, TBSCertificate tbs) {
@@ -310,21 +344,19 @@ public class CertificateTest {
 
 		pw.enterTest("BasicConstraints");
 		if (ext == null) {
-			pw.output("Basic constraints missing.");
-			pw.exitTest("BasicConstraints", new TestResult(0.2f));
+			pw.output("Basic constraints missing.", 0);
+			pw.exitTest("BasicConstraints", TestResult.IGNORE);
 			return;
 		}
-		outputCritical(pw, ext);
 
 		BasicConstraints bc = BasicConstraints
 				.getInstance(ext.getParsedValue());
-		float mult = testCrit(true, pw, "basicContraints", ext);
 		if (bc.isCA()) {
-			pw.output("Your server certificate is a CA!!!");
+			pw.output("Your server certificate is a CA!!!", -15);
 			pw.exitTest("BasicConstraints", TestResult.FAILED);
-		} else {
-			pw.output("Your server certificate not a CA.");
-			pw.exitTest("BasicConstraints", new TestResult(mult));
+		} else if (ext.isCritical()) {
+			pw.output("Your server certificate not a CA.", 15);
+			pw.exitTest("BasicConstraints", TestResult.IGNORE);
 		}
 	}
 	private static Extension extractCertExtension(TBSCertificate tbs,
