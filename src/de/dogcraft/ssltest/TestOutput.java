@@ -53,7 +53,10 @@ public class TestOutput {
 
 	}
 	public void output(String message) {
-		ps.println("data: " + message);
+		output(message, 0);
+	}
+	public void output(String message, int points) {
+		ps.println("data: " + message + " (" + points + ")");
 		ps.println();
 	}
 	public void finest(String message) {

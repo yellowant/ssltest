@@ -2,6 +2,7 @@ package de.dogcraft.ssltest;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
@@ -47,24 +48,19 @@ public class CertificateTest {
 			}
 		}
 	}
+	private static final BigInteger TWO = new BigInteger("2");
+	private static final BigInteger THREE = new BigInteger("3");
+
 	public static void testCerts(TestOutput pw, Bouncy b) throws IOException {
-		pw.enterTest("Looking at certificate");
+		pw.enterTest("Certificate");
 
 		Certificate[] c = b.getCert().getCertificateList();
 		Certificate primary = c[0];
+		checkCertEncoding(pw, primary);
 		TBSCertificate tbs = primary.getTBSCertificate();
-		Date start = tbs.getStartDate().getDate();
-		Date end = tbs.getEndDate().getDate();
-		SimpleDateFormat sdf = new SimpleDateFormat(
-				"EEE, d MMM yyyy HH:mm:ss 'UTC'");
-		pw.output("Start: " + sdf.format(start));
-		pw.output("End: " + sdf.format(end));
-		Date now = new Date();
-		if (start.before(now) && end.after(now)) {
-			pw.output("Dates match.");
-		} else {
-			pw.output("Out of dates.");
-		}
+		checkValidity(pw, tbs.getStartDate().getDate(), tbs.getEndDate()
+				.getDate());
+		checkRevocation(pw, tbs);
 		for (int i = 0; i < c.length; i++) {
 			pw.output((i == 0 ? "Subject " : "Additional Subject ")
 					+ c[i].getSubject().toString());
@@ -85,8 +81,89 @@ public class CertificateTest {
 		val /= tr.size();
 		pw.exitTest("Verifying extensions", new TestResult(val));
 
-		pw.exitTest("Looking at certificate", TestResult.IGNORE);
+		pw.exitTest("Certificate", TestResult.IGNORE);
 
+	}
+	private static void checkRevocation(TestOutput pw, TBSCertificate tbs) {
+		Extension ext = extractCertExtension(tbs,
+				Extension.cRLDistributionPoints);
+		pw.enterTest("Revocation");
+		int crlCount = 0;
+		if (ext != null) {
+			testCrit(false, pw, "CRLDistPoints", ext);
+			DistributionPoint[] points = CRLDistPoint.getInstance(
+					ext.getParsedValue()).getDistributionPoints();
+			for (DistributionPoint distributionPoint : points) {
+				pw.output("CRL-name: "
+						+ distributionPoint.getDistributionPoint().toString()
+								.replace("\n", "\ndata: "));
+				pw.output("CRL-issuer: " + distributionPoint.getCRLIssuer());
+				crlCount++;
+			}
+		}
+		if (crlCount != 0) {
+			pw.output("Your certificate contains CRL info", 2);
+		} else {
+			pw.output("Your certificate does not contain CRL info");
+		}
+		pw.exitTest("Revocation", TestResult.FAILED);
+	}
+	private static void checkCertEncoding(TestOutput pw, Certificate primary) {
+		pw.enterTest("Encoding");
+		BigInteger v = primary.getVersion().getValue();
+		if (v.equals(BigInteger.ZERO)) {
+			pw.output("v1-Certificate", -3);
+		} else if (v.equals(BigInteger.ONE)) {
+			pw.output("v2-Certificate", -1);
+		} else if (v.equals(TWO)) {
+			pw.output("v3-Certificate", 1);
+		}
+		pw.exitTest("Encoding", TestResult.IGNORE);
+	}
+	private static final long MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+	private static void checkValidity(TestOutput pw, Date start, Date end) {
+		pw.enterTest("Validity Period");
+		SimpleDateFormat sdf = new SimpleDateFormat(
+				"EEE, d MMM yyyy HH:mm:ss 'UTC'");
+		pw.output("Start: " + sdf.format(start));
+		pw.output("End: " + sdf.format(end));
+		Date now = new Date();
+		if (!start.before(now)) {
+			pw.output("Not jet valid", -1);
+		} else if (!end.after(now)) {
+			pw.output("Expired", -1);
+			long expiry = now.getTime() - end.getTime();
+			if (expiry > 90 * MILLISECONDS_PER_DAY) {
+				pw.output("Expired for 3 months", -10);
+			} else if (expiry > 30 * MILLISECONDS_PER_DAY) {
+				pw.output("Expired for 1 month", -5);
+			} else if (expiry > 7 * MILLISECONDS_PER_DAY) {
+				pw.output("Expired for 1 week", -1);
+			}
+		} else {
+			long validity = end.getTime() - now.getTime();
+			if (validity > 90 * MILLISECONDS_PER_DAY) {
+				pw.output("Still validity for more than 3 months (max)", 2);
+			} else if (validity > 30 * MILLISECONDS_PER_DAY) {
+				pw.output("Still valitidy for more than 1 month", 1);
+			} else {
+				pw.output("Still valitidy for more less than 1 month", 0);
+			}
+			pw.output("Dates Match.");
+		}
+		long period = end.getTime() - start.getTime();
+		if (period > 37 * 30 * MILLISECONDS_PER_DAY) {
+			pw.output("Total validity for more than 3 years", -2);
+		} else if (period > 24 * 30 * MILLISECONDS_PER_DAY) {
+			pw.output("Total validity for more than 2 years (max)", 3);
+		} else if (period > 12 * 30 * MILLISECONDS_PER_DAY) {
+			pw.output("Total validity for more than 1 years", 2);
+		} else if (period > 30 * MILLISECONDS_PER_DAY) {
+			pw.output("Total validity for morethan 6 months ", 1);
+		} else {
+			pw.output("Total validity for less 6 months", 0);
+		}
+		pw.exitTest("Validity Period", TestResult.IGNORE);
 	}
 	private static void testAIA(TestOutput pw, TBSCertificate tbs) {
 		Extension ext = extractCertExtension(tbs, Extension.authorityInfoAccess);
