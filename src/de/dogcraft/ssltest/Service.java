@@ -3,6 +3,7 @@ package de.dogcraft.ssltest;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.HashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -63,6 +64,7 @@ public class Service extends HttpServlet {
 		pw.println("}");
 		pw.println("</script><div id='output'></div></body></html>");
 	}
+	HashMap<String, TestingSession> cache = new HashMap<>();
 	private void stream(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		if (req.getParameter("event") != null) {
@@ -70,20 +72,31 @@ public class Service extends HttpServlet {
 		} else {
 			resp.setContentType("text/plain");
 		}
-		TestOutput to;
+		String domain = req.getParameter("domain");
+		String port = req.getParameter("port");
+		if (domain == null || port == null) {
+			resp.sendError(500, "error params missing");
+			return;
+		}
+		TestingSession to;
 		{
 			PrintStream ps = new PrintStream(resp.getOutputStream(), true);
 			ps.println("retry: 10000");
 			ps.println();
-			to = new TestOutput(ps);
+
+			String host = domain + ":" + port;
+			to = cache.get(host);
+			if (to == null) {
+				to = new TestingSession();
+				cache.put(host, to);
+				to.attach(ps);
+			} else {
+				to.attach(ps);
+				to.waitForCompletion();
+			}
 		}
 		try {
-			String domain = req.getParameter("domain");
-			String port = req.getParameter("port");
-			if (domain == null || port == null) {
-				to.output("error params missing");
-				return;
-			}
+			System.out.println("Testing " + domain + ":" + port);
 			to.output("Testing " + domain + ":" + port);
 			try {
 				int por = Integer.parseInt(port);

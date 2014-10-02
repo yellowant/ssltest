@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.bouncycastle.asn1.x509.Certificate;
 
+import de.dogcraft.ssltest.PrintstreamTestOutput;
 import de.dogcraft.ssltest.TestOutput;
 
 public class Bouncy {
@@ -79,7 +80,7 @@ public class Bouncy {
 	}
 	SecureRandom sr = new SecureRandom();
 	public static void main(String[] args) throws IOException {
-		TestOutput to = new TestOutput(System.out);
+		TestOutput to = new PrintstreamTestOutput(System.out);
 		Bouncy b = new Bouncy("www.openssl.org", 443);
 		String[] ciph = b.determineCiphers(to);
 		for (String string : ciph) {
