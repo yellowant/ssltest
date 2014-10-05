@@ -104,6 +104,12 @@ public class Service extends HttpServlet {
 				testBugs(b, to);
 				CertificateTest.testCerts(to, b);
 
+				boolean testCompression = b.testDeflate(to);
+				if (testCompression) {
+					to.output("Does support tls compression. ", -10);
+				} else {
+					to.output("Does not support tls compression.");
+				}
 				to.enterTest("Determining cipher suites");
 				determineCiphers(to, b);
 				to.exitTest("Determining cipher suites", TestResult.IGNORE);

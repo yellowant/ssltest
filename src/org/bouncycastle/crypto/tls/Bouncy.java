@@ -25,8 +25,11 @@ public class Bouncy {
 	}
 	private final class CipherProbingClient extends DefaultTlsClient {
 		private final int[] ciphers;
-		private CipherProbingClient(int[] ciphers) {
+		private final short[] comp;
+		private CipherProbingClient(int[] ciphers, short[] comp) {
 			this.ciphers = ciphers;
+			this.comp = comp;
+
 		}
 		@Override
 		public int[] getCipherSuites() {
@@ -34,9 +37,9 @@ public class Bouncy {
 		}
 		@Override
 		public short[] getCompressionMethods() {
-			return new short[]{CompressionMethod._null,
-					CompressionMethod.DEFLATE};
+			return comp;
 		}
+
 		@Override
 		public Hashtable getClientExtensions() throws IOException {
 			Hashtable clientExtensions = super.getClientExtensions();
@@ -152,6 +155,23 @@ public class Bouncy {
 		serverPref = choice != worst;
 		return chosen.toArray(new String[chosen.size()]);
 	}
+	public boolean testDeflate(TestOutput pw) throws IOException {
+		Socket sock = new Socket(host, port);
+		TestingTLSClient tcp = new TestingTLSClient(this,
+				sock.getInputStream(), sock.getOutputStream(), sr);
+		CipherProbingClient tc = new CipherProbingClient(getAllCiphers(),
+				new short[]{CompressionMethod.DEFLATE});
+		try {
+			tcp.connect(tc);
+			sock.getOutputStream().flush();
+			tcp.close();
+			sock.close();
+		} catch (Throwable t) {
+
+		}
+		return tcp.isFailedLocaly() || tc.isFailed();
+	}
+
 	boolean serverPref = false;
 	public boolean hasServerPref() {
 		return serverPref;
@@ -160,7 +180,8 @@ public class Bouncy {
 		Socket sock = new Socket(host, port);
 		BugTestingTLSClient tcp = new BugTestingTLSClient(this,
 				sock.getInputStream(), sock.getOutputStream(), sr);
-		CipherProbingClient tc = new CipherProbingClient(getAllCiphers());
+		CipherProbingClient tc = new CipherProbingClient(getAllCiphers(),
+				new short[]{CompressionMethod._null});
 		tcp.connect(tc);
 		HeartbeatMessage hbm = new HeartbeatMessage(
 				HeartbeatMessageType.heartbeat_request, new byte[]{1, 2, 3, 4,
@@ -200,28 +221,12 @@ public class Bouncy {
 	}
 	Hashtable ext;
 	private String cipherInfo;
-	boolean failedLocaly = false;
 	private int choose(final int[] ciphers, SecureRandom sr) throws IOException {
 		Socket sock = new Socket(host, port);
-		failedLocaly = false;
 		TestingTLSClient tcp = new TestingTLSClient(this,
-				sock.getInputStream(), sock.getOutputStream(), sr) {
-			@Override
-			protected void raiseAlert(short alertLevel, short alertDescription,
-					String message, Exception cause) throws IOException {
-				if (cause != null) {
-					failedLocaly = true;
-					// cause.printStackTrace();
-				}
-				super.raiseAlert(alertLevel, alertDescription, message, cause);
-			}
-			@Override
-			protected void processRecord(short protocol, byte[] buf,
-					int offset, int len) throws IOException {
-				super.processRecord(protocol, buf, offset, len);
-			}
-		};
-		CipherProbingClient tc = new CipherProbingClient(ciphers);
+				sock.getInputStream(), sock.getOutputStream(), sr);
+		CipherProbingClient tc = new CipherProbingClient(ciphers,
+				new short[]{CompressionMethod._null});
 		try {
 			tcp.connect(tc);
 			sock.getOutputStream().flush();
@@ -234,7 +239,7 @@ public class Bouncy {
 		if (selectedCipherSuite == 0) {
 			throw new IOException();
 		}
-		if (tc.isFailed() || failedLocaly) {
+		if (tc.isFailed() || tcp.isFailedLocaly()) {
 			System.out.println("--- failed ---: "
 					+ cipherNames.get(selectedCipherSuite));
 		}

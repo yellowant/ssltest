@@ -10,6 +10,7 @@ public class TestingTLSClient extends TlsClientProtocol {
 	 * 
 	 */
 	private final Bouncy bouncy;
+	private boolean failedLocaly;
 	public TestingTLSClient(Bouncy bouncy, InputStream input,
 			OutputStream output, SecureRandom secureRandom) {
 		super(input, output, secureRandom);
@@ -43,5 +44,16 @@ public class TestingTLSClient extends TlsClientProtocol {
 
 		super.cleanupHandshake();
 	}
-
+	@Override
+	protected void raiseAlert(short alertLevel, short alertDescription,
+			String message, Exception cause) throws IOException {
+		if (cause != null) {
+			failedLocaly = true;
+			// cause.printStackTrace();
+		}
+		super.raiseAlert(alertLevel, alertDescription, message, cause);
+	}
+	public boolean isFailedLocaly() {
+		return failedLocaly;
+	}
 }
