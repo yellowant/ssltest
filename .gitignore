@@ -1,1 +1,4 @@
-bin 
+/bin
+/libs/
+*.jar
+/build-files/
