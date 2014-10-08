@@ -2,7 +2,7 @@ function events(){
 	var domain = document.getElementById('domain').value;
 	var port = document.getElementById('port').value;
 
-	var url = '/?event=a&domain='+encodeURIComponent(domain)+'&port='+encodeURIComponent(port);
+	var url = '/test.event?domain='+encodeURIComponent(domain)+'&port='+encodeURIComponent(port);
 
 	var jsonStream = new EventSource(url);
 

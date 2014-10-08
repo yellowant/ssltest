@@ -64,9 +64,13 @@ public class Service extends HttpServlet {
             resp.setContentType("text/css");
             resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
             copyStream(getClass().getResourceAsStream("res/client.css"), resp.getOutputStream());
-        } else if (path.equals("/test")) {
+        } else if (path.equals("/test.event")) {
             if (req.getParameter("domain") != null) {
-                stream(req, resp);
+                stream(req, resp, true);
+            }
+        } else if (path.equals("/test.txt")) {
+            if (req.getParameter("domain") != null) {
+                stream(req, resp, false);
             }
         } else {
             resp.setStatus(404, "Fuck off");
@@ -75,18 +79,29 @@ public class Service extends HttpServlet {
 
     private HashMap<String, TestingSession> cache = new HashMap<>();
 
-    private void stream(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (req.getParameter("event") != null) {
+    private void stream(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
+        if (useEventStream) {
             resp.setContentType("text/event-stream");
         } else {
             resp.setContentType("text/plain");
         }
         String domain = req.getParameter("domain");
-        String port = req.getParameter("port");
-        if (domain == null || port == null) {
+        if (null == domain) {
             resp.sendError(500, "error params missing");
             return;
         }
+        String port = req.getParameter("port");
+        if (port == null) {
+            port = "443";
+            return;
+        }
+        try {
+            Integer.parseInt(port);
+        } catch (NumberFormatException nfe) {
+            resp.sendError(401, "Fuck off");
+            return;
+        }
+
         TestingSession to;
         {
             PrintStream ps = new PrintStream(resp.getOutputStream(), true);
@@ -94,14 +109,16 @@ public class Service extends HttpServlet {
             ps.println();
 
             String host = domain + ":" + port;
-            to = cache.get(host);
-            if (to == null) {
-                to = new TestingSession();
-                cache.put(host, to);
-                to.attach(ps);
-            } else {
-                to.attach(ps);
-                to.waitForCompletion();
+            synchronized (cache) {
+                to = cache.get(host);
+                if (to == null) {
+                    to = new TestingSession();
+                    cache.put(host, to);
+                    to.attach(ps);
+                } else {
+                    to.attach(ps);
+                    to.waitForCompletion();
+                }
             }
         }
 
