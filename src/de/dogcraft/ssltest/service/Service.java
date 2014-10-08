@@ -46,7 +46,6 @@ public class Service extends HttpServlet {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setCharacterEncoding("UTF-8");
@@ -73,7 +72,7 @@ public class Service extends HttpServlet {
                 stream(req, resp, false);
             }
         } else {
-            resp.setStatus(404, "Fuck off");
+            resp.sendError(404, "Fuck off");
         }
     }
 
