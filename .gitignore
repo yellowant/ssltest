@@ -1,4 +1,10 @@
 /bin
+//build-files/
 /libs/
+
+.*
+*~
+
+*.bak
+*.class
 *.jar
-/build-files/

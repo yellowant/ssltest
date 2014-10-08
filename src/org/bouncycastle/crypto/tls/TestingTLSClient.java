@@ -7,7 +7,7 @@ import java.util.Hashtable;
 
 public class TestingTLSClient extends TlsClientProtocol {
 	/**
-	 * 
+	 *
 	 */
 	private final Bouncy bouncy;
 	public TestingTLSClient(Bouncy bouncy, InputStream input,
