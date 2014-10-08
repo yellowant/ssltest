@@ -65,7 +65,7 @@
         <jar destfile="ssltest.jar" basedir="bin" />
     </target>
     <target depends="pack" name="run">
-        <java classname="Standalone" fork="true">
+        <java classname="de.dogcraft.ssltest.Standalone" fork="true">
             <classpath refid="cacert-ssltest.classpath" />
         </java>
     </target>
