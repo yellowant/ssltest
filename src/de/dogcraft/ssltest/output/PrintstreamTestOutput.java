@@ -1,6 +1,8 @@
-package de.dogcraft.ssltest;
+package de.dogcraft.ssltest.output;
 
 import java.io.PrintStream;
+
+import de.dogcraft.ssltest.tests.TestOutput;
 
 public class PrintstreamTestOutput extends TestOutput {
 

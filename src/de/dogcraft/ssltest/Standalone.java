@@ -1,8 +1,10 @@
+package de.dogcraft.ssltest;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import de.dogcraft.ssltest.Service;
+import de.dogcraft.ssltest.service.Service;
 
 public class Standalone {
 

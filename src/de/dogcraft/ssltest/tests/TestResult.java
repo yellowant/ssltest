@@ -1,4 +1,4 @@
-package de.dogcraft.ssltest;
+package de.dogcraft.ssltest.tests;
 
 public class TestResult {
 

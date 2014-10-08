@@ -1,4 +1,4 @@
-package de.dogcraft.ssltest;
+package de.dogcraft.ssltest.tests;
 
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingDeque;

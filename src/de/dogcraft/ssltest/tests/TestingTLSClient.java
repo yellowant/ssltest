@@ -1,10 +1,19 @@
-package org.bouncycastle.crypto.tls;
+package de.dogcraft.ssltest.tests;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Hashtable;
+
+import org.bouncycastle.crypto.tls.DHParameterInspector;
+import org.bouncycastle.crypto.tls.SessionParameters;
+import org.bouncycastle.crypto.tls.TlsClientProtocol;
+import org.bouncycastle.crypto.tls.TlsDHKeyExchange;
+import org.bouncycastle.crypto.tls.TlsECDHKeyExchange;
+import org.bouncycastle.crypto.tls.TlsRSAKeyExchange;
+
+import de.dogcraft.ssltest.Bouncy;
 
 public class TestingTLSClient extends TlsClientProtocol {
 

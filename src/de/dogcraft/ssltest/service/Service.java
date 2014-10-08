@@ -1,4 +1,4 @@
-package de.dogcraft.ssltest;
+package de.dogcraft.ssltest.service;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -10,8 +10,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.bouncycastle.crypto.tls.Bouncy;
 import org.bouncycastle.crypto.tls.ExtensionType;
+
+import de.dogcraft.ssltest.Bouncy;
+import de.dogcraft.ssltest.tests.CertificateTest;
+import de.dogcraft.ssltest.tests.TestOutput;
+import de.dogcraft.ssltest.tests.TestResult;
 
 public class Service extends HttpServlet {
 

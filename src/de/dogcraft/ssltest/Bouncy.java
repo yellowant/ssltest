@@ -1,4 +1,4 @@
-package org.bouncycastle.crypto.tls;
+package de.dogcraft.ssltest;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -11,9 +11,27 @@ import java.util.LinkedList;
 import java.util.Vector;
 
 import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.crypto.tls.AlertDescription;
+import org.bouncycastle.crypto.tls.AlertLevel;
+import org.bouncycastle.crypto.tls.BugTestingTLSClient;
+import org.bouncycastle.crypto.tls.CipherSuite;
+import org.bouncycastle.crypto.tls.CompressionMethod;
+import org.bouncycastle.crypto.tls.DefaultTlsClient;
+import org.bouncycastle.crypto.tls.ExtensionType;
+import org.bouncycastle.crypto.tls.HeartbeatExtension;
+import org.bouncycastle.crypto.tls.HeartbeatMessage;
+import org.bouncycastle.crypto.tls.HeartbeatMessageType;
+import org.bouncycastle.crypto.tls.HeartbeatMode;
+import org.bouncycastle.crypto.tls.NameType;
+import org.bouncycastle.crypto.tls.ServerName;
+import org.bouncycastle.crypto.tls.ServerNameList;
+import org.bouncycastle.crypto.tls.ServerOnlyTlsAuthentication;
+import org.bouncycastle.crypto.tls.TlsAuthentication;
+import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 
-import de.dogcraft.ssltest.PrintstreamTestOutput;
-import de.dogcraft.ssltest.TestOutput;
+import de.dogcraft.ssltest.output.PrintstreamTestOutput;
+import de.dogcraft.ssltest.tests.TestOutput;
+import de.dogcraft.ssltest.tests.TestingTLSClient;
 
 public class Bouncy {
 

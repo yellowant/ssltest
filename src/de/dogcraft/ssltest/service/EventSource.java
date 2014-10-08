@@ -1,4 +1,4 @@
-package de.dogcraft.ssltest;
+package de.dogcraft.ssltest.service;
 
 import java.io.IOException;
 import java.io.PrintWriter;

@@ -1,8 +1,10 @@
-package de.dogcraft.ssltest;
+package de.dogcraft.ssltest.service;
 
 import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.ListIterator;
+
+import de.dogcraft.ssltest.tests.TestOutput;
 
 public class TestingSession extends TestOutput {
 
@@ -30,6 +32,7 @@ public class TestingSession extends TestOutput {
     public synchronized void println(String s) {
         strb.append(s);
         strb.append('\n');
+
         ListIterator<PrintStream> it = interestedParties.listIterator();
         while (it.hasNext()) {
             PrintStream ps = it.next();

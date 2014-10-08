@@ -1,4 +1,4 @@
-package de.dogcraft.ssltest;
+package de.dogcraft.ssltest.tests;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -26,7 +26,8 @@ import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.TBSCertificate;
-import org.bouncycastle.crypto.tls.Bouncy;
+
+import de.dogcraft.ssltest.Bouncy;
 
 public class CertificateTest {
 

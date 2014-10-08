@@ -1,4 +1,4 @@
-package de.dogcraft.ssltest;
+package de.dogcraft.ssltest.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
