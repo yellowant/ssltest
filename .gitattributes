@@ -1,0 +1,14 @@
+*	text=auto
+
+*.java	text
+
+*.html	text
+*.css	text
+*.js	text
+
+*.crt	text
+*.csr	text
+*.key	text
+*.pem	text
+
+*.xml	text
