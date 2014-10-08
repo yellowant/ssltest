@@ -1,8 +1,10 @@
 package de.dogcraft.ssltest.service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 
 import javax.servlet.ServletException;
@@ -24,64 +26,82 @@ public class Service extends HttpServlet {
         doGet(req, resp);
     }
 
+    private static void copyStream(InputStream in, OutputStream out) {
+        try {
+            try {
+                try {
+                    int len;
+                    byte[] buf = new byte[65536];
+
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+                } finally {
+                    out.close();
+                }
+            } finally {
+                in.close();
+            }
+        } catch (IOException e) {
+        }
+    }
+
+    @SuppressWarnings("deprecation")
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (req.getParameter("domain") != null) {
-            stream(req, resp);
-            return;
+        resp.setCharacterEncoding("UTF-8");
+
+        String path = req.getPathInfo();
+        if (path == null || path.equals("/")) {
+            resp.setContentType("text/html");
+            resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
+            copyStream(getClass().getResourceAsStream("res/index.htm"), resp.getOutputStream());
+        } else if (path.equals("/client.js")) {
+            resp.setContentType("text/javascript");
+            resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
+            copyStream(getClass().getResourceAsStream("res/client.js"), resp.getOutputStream());
+        } else if (path.equals("/client.css")) {
+            resp.setContentType("text/css");
+            resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
+            copyStream(getClass().getResourceAsStream("res/client.css"), resp.getOutputStream());
+        } else if (path.equals("/test.event")) {
+            if (req.getParameter("domain") != null) {
+                stream(req, resp, true);
+            }
+        } else if (path.equals("/test.txt")) {
+            if (req.getParameter("domain") != null) {
+                stream(req, resp, false);
+            }
+        } else {
+            resp.setStatus(404, "Fuck off");
         }
-        PrintWriter pw = resp.getWriter();
-        pw.println("<!DOCTYPE html><html><head><title>SSL-Test</title></head><body onLoad='events()'>");
-        pw.println("<form method='POST'>");
-        pw.println("<input type='text' name='domain' id='domain' value='dogcraft.de'/>:<input value='443' type='text' name='port' id='port'/><input type='submit' style='display: none'></form>");
-        pw.println("<script type='text/javascript'>");
-        pw.println("function events(){");
-        pw.println("var url = '/?event=a&domain='+encodeURIComponent(document.getElementById('domain').value)+'&port='+encodeURIComponent(document.getElementById('port').value);");
-        pw.println("var jsonStream = new EventSource(url);");
-        pw.println("jsonStream.onmessage = function (e) {");
-        pw.println("   //var message = JSON.parse(e.data);");
-        pw.println("  var text = document.createTextNode(e.data);");
-        pw.println("  var ele = document.createElement(\"div\");");
-        pw.println("  ele.appendChild(text)");
-        pw.println("  current.appendChild(ele);");
-        pw.println("};");
-        pw.println("jsonStream.addEventListener(\"end\", function (e) {");
-        pw.println("   jsonStream.close();jsonStream.onmessage({data:\"finished\"});");
-        pw.println("});");
-        pw.println("var stack = new Array();");
-        pw.println("var current = document.getElementById('output'); stack.push({fs: current});");
-        pw.println("jsonStream.addEventListener(\"enter\", function (e) {");
-        pw.println("   var fs = document.createElement(\"fieldset\");");
-        pw.println("   var legend = document.createElement(\"legend\");");
-        pw.println("   var legendT = document.createTextNode(e.data);");
-        pw.println("   legend.appendChild(legendT); fs.appendChild(legend);current.appendChild(fs);");
-        pw.println("   stack.push({fs:fs,leg:legend, legT: legendT}); current = fs;");
-        pw.println("});");
-        pw.println("jsonStream.addEventListener(\"exit\", function (e) {");
-        pw.println("   var frame = stack.pop(); current = stack[stack.length-1].fs;");
-        pw.println("   var legT = document.createTextNode(e.data);");
-        pw.println("   frame.leg.removeChild(frame.legT);");
-        pw.println("   frame.leg.appendChild(legT);");
-        pw.println("});");
-        pw.println("jsonStream.onerror = function (){jsonStream.close();jsonStream.onmessage({data:\"error\"});}");
-        pw.println("}");
-        pw.println("</script><div id='output'></div></body></html>");
     }
 
     HashMap<String, TestingSession> cache = new HashMap<>();
 
-    private void stream(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (req.getParameter("event") != null) {
+    private void stream(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
+        if (useEventStream) {
             resp.setContentType("text/event-stream");
         } else {
             resp.setContentType("text/plain");
         }
         String domain = req.getParameter("domain");
-        String port = req.getParameter("port");
-        if (domain == null || port == null) {
+        if (null == domain) {
             resp.sendError(500, "error params missing");
             return;
         }
+        String port = req.getParameter("port");
+        if (port == null) {
+            port = "443";
+            return;
+        }
+        try {
+            Integer.parseInt(port);
+        } catch (NumberFormatException nfe) {
+            resp.sendError(401, "Fuck off");
+            return;
+        }
+
         TestingSession to;
         {
             PrintStream ps = new PrintStream(resp.getOutputStream(), true);
@@ -89,14 +109,16 @@ public class Service extends HttpServlet {
             ps.println();
 
             String host = domain + ":" + port;
-            to = cache.get(host);
-            if (to == null) {
-                to = new TestingSession();
-                cache.put(host, to);
-                to.attach(ps);
-            } else {
-                to.attach(ps);
-                to.waitForCompletion();
+            synchronized (cache) {
+                to = cache.get(host);
+                if (to == null) {
+                    to = new TestingSession();
+                    cache.put(host, to);
+                    to.attach(ps);
+                } else {
+                    to.attach(ps);
+                    to.waitForCompletion();
+                }
             }
         }
         try {
