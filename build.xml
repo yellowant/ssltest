@@ -12,6 +12,7 @@
     <property name="source" value="1.8" />
     <target name="dependencies">
         <mkdir dir="build-files/" />
+        <mkdir dir="libs/" />
         <get skipexisting="true"
             src="http://eclipse.org/downloads/download.php?file=/jetty/9.2.3.v20140905/dist/jetty-distribution-9.2.3.v20140905.zip&amp;r=1"
             dest="build-files/jetty.zip" />
