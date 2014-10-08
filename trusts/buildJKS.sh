@@ -6,6 +6,6 @@ for i in *; do
     echo $i
     rm -f "$i.jks"
     for c in $i/*; do
-	keytool -importcert -keystore "$i.jks" -storepass changeit -alias "$c" -file "$c" -noprompt
+        keytool -importcert -keystore "$i.jks" -storepass changeit -alias "$c" -file "$c" -noprompt
     done
 done
