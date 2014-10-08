@@ -11,7 +11,7 @@ public class Standalone {
     public static void main(String[] args) throws Exception {
         Server s = new Server(8080);
         ServletContextHandler sh = new ServletContextHandler();
-        sh.addServlet(new ServletHolder(new Service()), "/");
+        sh.addServlet(new ServletHolder(new Service()), "/*");
         s.setHandler(sh);
         s.start();
     }

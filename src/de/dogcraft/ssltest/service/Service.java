@@ -54,15 +54,15 @@ public class Service extends HttpServlet {
         if (path == null || path.equals("/")) {
             resp.setContentType("text/html");
             resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
-            copyStream(getClass().getResourceAsStream("res/index.htm"), resp.getOutputStream());
+            copyStream(Service.class.getResourceAsStream("../res/index.htm"), resp.getOutputStream());
         } else if (path.equals("/client.js")) {
             resp.setContentType("text/javascript");
             resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
-            copyStream(getClass().getResourceAsStream("res/client.js"), resp.getOutputStream());
+            copyStream(Service.class.getResourceAsStream("../res/client.js"), resp.getOutputStream());
         } else if (path.equals("/client.css")) {
             resp.setContentType("text/css");
             resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
-            copyStream(getClass().getResourceAsStream("res/client.css"), resp.getOutputStream());
+            copyStream(Service.class.getResourceAsStream("../res/client.css"), resp.getOutputStream());
         } else if (path.equals("/test.event")) {
             if (req.getParameter("domain") != null) {
                 stream(req, resp, true);
