@@ -9,19 +9,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class EventSource extends HttpServlet {
-	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse res)
-			throws ServletException, IOException {
 
-		// set content type
-		res.setContentType("text/event-stream");
-		res.setCharacterEncoding("UTF-8");
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-		String msg = req.getParameter("msg");
+        // set content type
+        res.setContentType("text/event-stream");
+        res.setCharacterEncoding("UTF-8");
 
-		PrintWriter writer = res.getWriter();
+        String msg = req.getParameter("msg");
 
-		// send SSE
-		writer.write("data: " + msg + "\n\n");
-	}
+        PrintWriter writer = res.getWriter();
+
+        // send SSE
+        writer.write("data: " + msg + "\n\n");
+
+    }
+
 }
