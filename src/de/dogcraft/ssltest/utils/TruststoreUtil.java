@@ -36,7 +36,9 @@ public class TruststoreUtil {
 
             if (cert) {
                 if (out == null) {
-                    keytool = Runtime.getRuntime().exec(new String[] { "keytool", "-importcert", "-keystore", store, "-storepass", "changeit", "-noprompt", "-alias", "cert-" + (c++) });
+                    keytool = Runtime.getRuntime().exec(new String[] {
+                            "keytool", "-importcert", "-keystore", store, "-storepass", "changeit", "-noprompt", "-alias", "cert-" + (c++)
+                    });
                     out = new PrintStream(keytool.getOutputStream());
                 }
                 out.println(s);
@@ -104,21 +106,22 @@ public class TruststoreUtil {
         }
     }
 
-    private static void outputFingerprint(Certificate c) throws NoSuchAlgorithmException, CertificateEncodingException {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        byte[] der = c.getEncoded();
+    public static String outputFingerprint(Certificate c, MessageDigest md) throws NoSuchAlgorithmException, CertificateEncodingException {
+        return outputFingerprint(c.getEncoded(), md);
+    }
+
+    public static String outputFingerprint(byte[] der, MessageDigest md) throws NoSuchAlgorithmException, CertificateEncodingException {
         md.update(der);
         byte[] digest = md.digest();
-
+        StringBuffer res = new StringBuffer(64);
         for (byte b : digest) {
             String s = Integer.toHexString(b & 0xFF);
             if (s.length() == 1) {
                 s = "0" + s;
             }
-            System.out.print(s + ":");
+            res.append(s);
         }
-
-        System.out.println();
+        return res.toString();
     }
 
     public static void main(String[] args) throws GeneralSecurityException, IOException, InterruptedException {
