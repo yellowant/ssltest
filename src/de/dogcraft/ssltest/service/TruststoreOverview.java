@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
@@ -150,7 +151,7 @@ public class TruststoreOverview extends HttpServlet {
         PrintWriter pw = resp.getWriter();
         pw.println("<table border='1'>");
         TreeMap<String, Truststore> store = new TreeMap<>();
-        pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th>");
+        pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
         for (Entry<String, Truststore> truststore : Truststore.getStores().entrySet()) {
             if (truststore.getKey().equals("any"))
                 continue;
@@ -179,12 +180,20 @@ public class TruststoreOverview extends HttpServlet {
                 certs.put(gname, c);
             }
             for (Entry<CertificateIdentifier, Certificate> e : certs.entrySet()) {
+                X509Certificate cert = (X509Certificate) e.getValue();
                 pw.print("<tr>");
                 e.getKey().print(pw, TruststoreUtil.outputFingerprint(e.getValue(), MessageDigest.getInstance("SHA-512")));
                 pw.print("<td>");
-                outputDate(pw, ((X509Certificate) e.getValue()).getNotBefore());
+                outputDate(pw, cert.getNotBefore());
                 pw.print("</td><td>");
-                outputDate(pw, ((X509Certificate) e.getValue()).getNotAfter());
+                outputDate(pw, cert.getNotAfter());
+                pw.print("</td><td>");
+                try {
+                    cert.verify(cert.getPublicKey());
+                    pw.print("S");
+                } catch (SignatureException ex) {
+
+                }
                 pw.print("</td>");
                 for (Entry<String, Truststore> truststore : store.entrySet()) {
                     pw.print("<td>");
