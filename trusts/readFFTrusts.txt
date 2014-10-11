@@ -1,0 +1,14 @@
+scripts commands used for extracting ff-certs
+
+on "mozilla-release"-hg repo:
+for i in {5..32}; do echo $i; hg checkout "FIREFOX_${i}_0_RELEASE"; cp security/nss/lib/ckfw/builtins/certdata.txt ../firefox_${i}.txt; done
+
+#move up and the ff*-file to their own directory
+
+for i in {5..32}; do hash=$(md5sum firefox_${i}.txt | cut -d " " -f1); if [ $hash == "$lhash" ]; then rm "firefox_${i}.txt"; else echo keep $hash; lhash=$hash; fi; done
+# patch ff python so it reads sys.argv[1]
+for i in firefox_*;do echo $i; f=$(echo $i | sed "s/.txt//"); echo $f; mkdir -p $f ;pushd $f; python ../certdata2pem.py ../$i; popd; done
+
+
+
+for i in firefox_*; do pushd $i; bash ../hash.sh; popd ; done
