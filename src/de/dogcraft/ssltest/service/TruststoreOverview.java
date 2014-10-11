@@ -149,6 +149,11 @@ public class TruststoreOverview extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         PrintWriter pw = resp.getWriter();
+        pw.println("<style type='text/css'>");
+        pw.println(".firefox{ background-color: #FFAA33;}");
+        pw.println(".debian{ background-color: #BB8888;}");
+        pw.println(".osx{ background-color: #DDDDFF;}");
+        pw.println("</style>");
         pw.println("<table border='1'>");
         TreeMap<String, Truststore> store = new TreeMap<>();
         pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
@@ -196,7 +201,7 @@ public class TruststoreOverview extends HttpServlet {
                 }
                 pw.print("</td>");
                 for (Entry<String, Truststore> truststore : store.entrySet()) {
-                    pw.print("<td>");
+                    pw.print("<td class='" + truststore.getKey().split("_")[0] + "'>");
                     pw.print("<span title='" + truststore.getKey() + "' style='color: ");
                     if (truststore.getValue().contains(e.getValue())) {
                         pw.print("green'>&#x2714;</span>");
