@@ -14,8 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.bouncycastle.crypto.tls.ExtensionType;
 
-import de.dogcraft.ssltest.Bouncy;
 import de.dogcraft.ssltest.tests.CertificateTest;
+import de.dogcraft.ssltest.tests.TestCipherList;
+import de.dogcraft.ssltest.tests.TestImplementationBugs;
 import de.dogcraft.ssltest.tests.TestOutput;
 import de.dogcraft.ssltest.tests.TestResult;
 
@@ -84,11 +85,13 @@ public class Service extends HttpServlet {
         } else {
             resp.setContentType("text/plain");
         }
+
         String domain = req.getParameter("domain");
         if (null == domain) {
             resp.sendError(500, "error params missing");
             return;
         }
+
         String port = req.getParameter("port");
         if (port == null) {
             port = "443";
@@ -120,12 +123,13 @@ public class Service extends HttpServlet {
                 }
             }
         }
+
         try {
             System.out.println("Testing " + domain + ":" + port);
             to.output("Testing " + domain + ":" + port);
             try {
                 int por = Integer.parseInt(port);
-                Bouncy b = new Bouncy(domain, por);
+                TestImplementationBugs b = new TestImplementationBugs(domain, por);
                 testBugs(b, to);
                 CertificateTest.testCerts(to, b);
 
@@ -135,8 +139,10 @@ public class Service extends HttpServlet {
                 } else {
                     to.output("Does not support tls compression.");
                 }
+
+                TestCipherList c = new TestCipherList(domain, por);
                 to.enterTest("Determining cipher suites");
-                determineCiphers(to, b);
+                determineCiphers(to, c);
                 to.exitTest("Determining cipher suites", TestResult.IGNORE);
 
             } catch (NumberFormatException e) {
@@ -148,7 +154,7 @@ public class Service extends HttpServlet {
         }
     }
 
-    private void testBugs(Bouncy b, TestOutput ps) throws IOException {
+    private void testBugs(TestImplementationBugs b, TestOutput ps) throws IOException {
         b.testBug(ps);
         byte[] sn = (byte[]) b.getExt().get(ExtensionType.server_name);
         byte[] hb = (byte[]) b.getExt().get(ExtensionType.heartbeat);
@@ -157,12 +163,13 @@ public class Service extends HttpServlet {
         ps.output("heartbeat: " + (hb == null ? "off" : "on"));
     }
 
-    private void determineCiphers(TestOutput ps, Bouncy b) throws IOException {
-        String[] ciph = b.determineCiphers(ps);
-        if (b.hasServerPref()) {
+    private void determineCiphers(TestOutput ps, TestCipherList c) throws IOException {
+        String[] ciph = c.determineCiphers(ps);
+        if (c.hasServerPref()) {
             ps.output("Server has cipher preference.");
         } else {
             ps.output("Server has no cipher preference.");
         }
     }
+
 }

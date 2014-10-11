@@ -35,7 +35,12 @@ public class DHParameterInspector {
         System.out.println(ephermal.getSignatureAndHashAlgorithm());
     }
 
-    public static String inspectRSA(TlsRSAKeyExchange ex) {
+    public static int inspectRSA(TlsRSAKeyExchange ex) {
+        RSAKeyParameters params = ex.rsaServerPublicKey;
+        return params.getModulus().bitLength();
+    }
+
+    public static String inspectRSAPublicExp(TlsRSAKeyExchange ex) {
         RSAKeyParameters params = ex.rsaServerPublicKey;
         return params.getModulus().bitLength() + " (" + params.getExponent() + ")";
     }

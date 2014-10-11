@@ -27,8 +27,6 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.TBSCertificate;
 
-import de.dogcraft.ssltest.Bouncy;
-
 public class CertificateTest {
 
     private static HashMap<String, Integer> kusMap = new HashMap<>();
@@ -61,7 +59,7 @@ public class CertificateTest {
 
     private static final BigInteger THREE = new BigInteger("3");
 
-    public static void testCerts(TestOutput pw, Bouncy b) throws IOException {
+    public static void testCerts(TestOutput pw, TestImplementationBugs b) throws IOException {
         pw.enterTest("Certificate");
 
         Certificate[] c = b.getCert().getCertificateList();

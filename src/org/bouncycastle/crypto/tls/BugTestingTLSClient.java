@@ -7,19 +7,16 @@ import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Hashtable;
 
-import org.bouncycastle.crypto.tls.ContentType;
-import org.bouncycastle.crypto.tls.HeartbeatMessage;
-import org.bouncycastle.crypto.tls.SessionParameters;
-import org.bouncycastle.crypto.tls.TlsClientProtocol;
-
-import de.dogcraft.ssltest.Bouncy;
+import de.dogcraft.ssltest.tests.TestImplementationBugs;
 
 public class BugTestingTLSClient extends TlsClientProtocol {
 
-    private Bouncy bouncy;
+    private static SecureRandom random = new SecureRandom();
 
-    public BugTestingTLSClient(Bouncy bouncy, InputStream input, OutputStream output, SecureRandom secureRandom) {
-        super(input, output, secureRandom);
+    private TestImplementationBugs bouncy;
+
+    public BugTestingTLSClient(TestImplementationBugs bouncy, InputStream input, OutputStream output) {
+        super(input, output, random);
         this.bouncy = bouncy;
     }
 

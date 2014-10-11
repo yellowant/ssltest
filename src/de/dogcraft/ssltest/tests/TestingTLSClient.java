@@ -11,22 +11,23 @@ import org.bouncycastle.crypto.tls.SessionParameters;
 import org.bouncycastle.crypto.tls.TlsClientProtocol;
 import org.bouncycastle.crypto.tls.TlsDHKeyExchange;
 import org.bouncycastle.crypto.tls.TlsECDHKeyExchange;
+import org.bouncycastle.crypto.tls.TlsKeyExchange;
 import org.bouncycastle.crypto.tls.TlsRSAKeyExchange;
-
-import de.dogcraft.ssltest.Bouncy;
 
 public class TestingTLSClient extends TlsClientProtocol {
 
-    /**
-	 * 
-	 */
-    private final Bouncy bouncy;
+    private static SecureRandom random = new SecureRandom();
+
+    private Hashtable extensions;
+
+    private TLSCipherInfo cipherInfo;
 
     private boolean failedLocaly;
 
-    public TestingTLSClient(Bouncy bouncy, InputStream input, OutputStream output, SecureRandom secureRandom) {
-        super(input, output, secureRandom);
-        this.bouncy = bouncy;
+    public TestingTLSClient(InputStream input, OutputStream output) {
+        super(input, output, random);
+        extensions = null;
+        cipherInfo = null;
     }
 
     @Override
@@ -34,23 +35,36 @@ public class TestingTLSClient extends TlsClientProtocol {
         if (tlsSession != null) {
             SessionParameters sp = tlsSession.exportSessionParameters();
             try {
-                Hashtable data = sp.readServerExtensions();
-                this.bouncy.setExt(data);
+                extensions = sp.readServerExtensions();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        String cipherInfo = "";
+        cipherInfo = new TLSCipherInfo();
+        cipherInfo.raw = keyExchange;
         if (keyExchange instanceof TlsDHKeyExchange) {
-            int bitLength = DHParameterInspector.inspectDH((TlsDHKeyExchange) keyExchange);
-            cipherInfo = "DH: " + bitLength;
+            cipherInfo.kexType = "DH";
+            cipherInfo.kexSize = DHParameterInspector.inspectDH((TlsDHKeyExchange) keyExchange);
         } else if (keyExchange instanceof TlsECDHKeyExchange) {
-            TlsECDHKeyExchange teke = (TlsECDHKeyExchange) keyExchange;
-            cipherInfo = "ECDH: " + DHParameterInspector.inspectECDH(teke);
+            cipherInfo.kexType = "ECDH";
+            cipherInfo.kexSize = DHParameterInspector.inspectECDH((TlsECDHKeyExchange) keyExchange);
         } else if (keyExchange instanceof TlsRSAKeyExchange) {
-            cipherInfo = "RSA: " + DHParameterInspector.inspectRSA((TlsRSAKeyExchange) keyExchange);
+            cipherInfo.kexType = "RSA";
+            cipherInfo.kexSize = DHParameterInspector.inspectRSA((TlsRSAKeyExchange) keyExchange);
+            cipherInfo.authKeyType = "RSA";
+            cipherInfo.authKeySize = cipherInfo.kexSize;
+            // } else if (keyExchange instanceof TlsPSKKeyExchange) {
+            // cipherInfo.kexType = "PSK";
+            // cipherInfo.kexSize =
+            // DHParameterInspector.inspectPSK((TlsPSKKeyExchange) keyExchange);
+            // } else if (keyExchange instanceof TlsSRPKeyExchange) {
+            // cipherInfo.kexType = "SRP";
+            // cipherInfo.kexSize =
+            // DHParameterInspector.inspectSRP((TlsSRPKeyExchange) keyExchange);
+        } else {
+            cipherInfo.kexType = "Unknown";
+            cipherInfo.kexSize = 0;
         }
-        bouncy.setCiperInfo(cipherInfo);
 
         super.cleanupHandshake();
     }
@@ -64,7 +78,31 @@ public class TestingTLSClient extends TlsClientProtocol {
         super.raiseAlert(alertLevel, alertDescription, message, cause);
     }
 
-    public boolean isFailedLocaly() {
+    public boolean hasFailedLocaly() {
         return failedLocaly;
     }
+
+    protected Hashtable getExtensions() {
+        return extensions;
+    }
+
+    public class TLSCipherInfo {
+
+        /** Key Exchange format: DH, DHE, ECDH, ECDHE, RSA, CK, PSK, SRP, NULL */
+        private String kexType;
+
+        /** Key Exchange key size */
+        private Integer kexSize;
+
+        /** Authentication Key Format: RSA, DSA, ECDSA */
+        private String authKeyType;
+
+        /** Authentication Key Size */
+        private int authKeySize;
+
+        /** Raw information on this particular Key Exchange */
+        private TlsKeyExchange raw;
+
+    }
+
 }
