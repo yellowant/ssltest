@@ -1,5 +1,3 @@
-subject=/L=Internet/O=VeriSign, Inc./OU=VeriSign Commercial Software Publishers CA
-issuer=/L=Internet/O=VeriSign, Inc./OU=VeriSign Commercial Software Publishers CA
 -----BEGIN CERTIFICATE-----
 MIICNTCCAZ4CBQK0AAABMA0GCSqGSIb3DQEBAgUAMGExETAPBgNVBAcTCEludGVy
 bmV0MRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjEzMDEGA1UECxMqVmVyaVNpZ24g
@@ -14,4 +12,3 @@ AQECBQADgYEAMbswxW+nviMmbaWZdmjFKgMoS/OJsJkDMluUoXvByBnX9JVsrHMk
 CstEBX147vr2p5+HpH/o80tPMjAwFQgXAbKA/KHZJIelAF/N3SnIoaXKWHU5YEUf
 3o3WVwjTwBuBwtniAIzsCpECxp02dJqDa+98jNKlKmrJftupvSsi/xw=
 -----END CERTIFICATE-----
-

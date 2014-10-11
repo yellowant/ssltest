@@ -1,5 +1,3 @@
-subject=/C=be/O=Belgacom/OU=MTM/CN=Belgacom E-Trust Primary CA/mail=info@e-trust.be
-issuer=/C=be/O=Belgacom/OU=MTM/CN=Belgacom E-Trust Primary CA/mail=info@e-trust.be
 -----BEGIN CERTIFICATE-----
 MIICiTCCAfKgAwIBAgIEN4dnrDANBgkqhkiG9w0BAQUFADB1MQswCQYDVQQGEwJi
 ZTERMA8GA1UEChMIQmVsZ2Fjb20xDDAKBgNVBAsTA01UTTEkMCIGA1UEAxMbQmVs
@@ -16,4 +14,3 @@ pbF9M+nC4RvO05OMfwH9Gx1amq6rB1Ev7Ymr3VBCux//SrWknLFhKQpM6oNZSY2v
 hmnXgaxHqqRxblnvynxqblSK2qiSyfVms3lf1IsBniFjRjWTpcJfImIDcB1jI+hr
 SB0jECfY9t9HorrsgFBKbMRwpnrkdCJ/9oRiMn8=
 -----END CERTIFICATE-----
-

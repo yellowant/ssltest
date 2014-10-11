@@ -1,5 +1,3 @@
-subject=/C=US/O=The Go Daddy Group, Inc./OU=Go Daddy Class 2 Certification Authority
-issuer=/C=US/O=The Go Daddy Group, Inc./OU=Go Daddy Class 2 Certification Authority
 -----BEGIN CERTIFICATE-----
 MIIEADCCAuigAwIBAgIBADANBgkqhkiG9w0BAQUFADBjMQswCQYDVQQGEwJVUzEh
 MB8GA1UEChMYVGhlIEdvIERhZGR5IEdyb3VwLCBJbmMuMTEwLwYDVQQLEyhHbyBE
@@ -24,4 +22,3 @@ HmyW74cNxA9hi63ugyuV+I6ShHI56yDqg+2DzZduCLzrTia2cyvk0/ZM/iZx4mER
 dEr/VxqHD3VILs9RaRegAhJhldXRQLIQTO7ErBBDpqWeCtWVYpoNz4iCxTIM5Cuf
 ReYNnyicsbkqWletNw+vHX/bvZ8=
 -----END CERTIFICATE-----
-

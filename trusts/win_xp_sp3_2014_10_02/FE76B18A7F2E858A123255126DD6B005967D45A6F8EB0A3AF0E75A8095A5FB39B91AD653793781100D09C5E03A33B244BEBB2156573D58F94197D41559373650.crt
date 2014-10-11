@@ -1,5 +1,3 @@
-subject=/C=MX/CN=Autoridad Certificadora del Colegio Nacional de Correduria Publica Mexicana, A.C./O=Colegio Nacional de Correduria Publica Mexicana, A.C.
-issuer=/C=MX/CN=Autoridad Certificadora del Colegio Nacional de Correduria Publica Mexicana, A.C./O=Colegio Nacional de Correduria Publica Mexicana, A.C.
 -----BEGIN CERTIFICATE-----
 MIIEUTCCAzmgAwIBAgIBATANBgkqhkiG9w0BAQUFADCBqTELMAkGA1UEBhMCTVgx
 WjBYBgNVBAMTUUF1dG9yaWRhZCBDZXJ0aWZpY2Fkb3JhIGRlbCBDb2xlZ2lvIE5h
@@ -26,4 +24,3 @@ t34Aet9iml3f7VS+O9QITevk+Gun92ohquRidcm11z3mbiSc/ZUDoWN0HC9fkJVH
 Gyr0tz0ZHLVhj9c7TbfsNsatp3qccK4tNsAwn+JVe+8CY64rPeRClElhUCDC1qgd
 pVNtgmQ=
 -----END CERTIFICATE-----
-

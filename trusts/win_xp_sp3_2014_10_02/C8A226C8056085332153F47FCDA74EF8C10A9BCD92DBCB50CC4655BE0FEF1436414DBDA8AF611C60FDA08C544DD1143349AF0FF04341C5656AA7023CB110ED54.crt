@@ -1,5 +1,3 @@
-subject=/C=US/O=GTE Corporation/OU=GTE CyberTrust Solutions, Inc./CN=GTE CyberTrust Root
-issuer=/C=US/O=GTE Corporation/OU=GTE CyberTrust Solutions, Inc./CN=GTE CyberTrust Root
 -----BEGIN CERTIFICATE-----
 MIICTDCCAbUCAgD9MA0GCSqGSIb3DQEBBAUAMG4xCzAJBgNVBAYTAlVTMRgwFgYD
 VQQKEw9HVEUgQ29ycG9yYXRpb24xJzAlBgNVBAsTHkdURSBDeWJlclRydXN0IFNv
@@ -15,4 +13,3 @@ i7/QjTFbOWXT8dGPWB5SIsM9hvLCmvbdSF5xw0UcfEyiWe6hUZY999U0JDqq/YIm
 ZcVMQg8Mj2lgfOfW1RpLefruWrVMpsyja0bW0cgyVKAwZ9JdhhGRvMO6KpzVeFEa
 1F3ddpEiRWsxWT75hVlOyw==
 -----END CERTIFICATE-----
-

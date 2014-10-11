@@ -1,5 +1,3 @@
-subject=/DC=com/DC=microsoft/CN=Microsoft Root Certificate Authority
-issuer=/DC=com/DC=microsoft/CN=Microsoft Root Certificate Authority
 -----BEGIN CERTIFICATE-----
 MIIFmTCCA4GgAwIBAgIQea0WoUqgpa1Mc1j0BxMuZTANBgkqhkiG9w0BAQUFADBf
 MRMwEQYKCZImiZPyLGQBGRYDY29tMRkwFwYKCZImiZPyLGQBGRYJbWljcm9zb2Z0
@@ -32,4 +30,3 @@ laBC+ZdY4dcxItNfWeY+biIA6kOEtiXb2fMIVmjAZGsdfOy2k6JiV24u2OdYj8Qx
 SSbd3ik1h/UwcXBbFDxpvYkSfesuo/7Yf56CWlIKK8FDK9kwiJ/IEPuJjeahhXUz
 fmye23MTZGJppS99ypZtn/gETTCSPW4hFCHJPeDD/YprnUr90aGdmUN3P7Da
 -----END CERTIFICATE-----
-

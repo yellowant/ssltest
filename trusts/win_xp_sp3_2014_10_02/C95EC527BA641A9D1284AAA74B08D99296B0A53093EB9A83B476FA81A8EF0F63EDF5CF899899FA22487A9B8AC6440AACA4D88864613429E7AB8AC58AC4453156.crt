@@ -1,5 +1,3 @@
-subject=/C=US/O=RSA Data Security, Inc./OU=Secure Server Certification Authority
-issuer=/C=US/O=RSA Data Security, Inc./OU=Secure Server Certification Authority
 -----BEGIN CERTIFICATE-----
 MIICNDCCAaECEAKtZn5ORf5eV288mBle3cAwDQYJKoZIhvcNAQECBQAwXzELMAkG
 A1UEBhMCVVMxIDAeBgNVBAoTF1JTQSBEYXRhIFNlY3VyaXR5LCBJbmMuMS4wLAYD
@@ -14,4 +12,3 @@ hvcNAQECBQADfgBl3X7hsuyw4jrg7HFGmhkRuNPHoLQDQCYCPgmc4RKz0Vr2N6W3
 YQO2WxZpO8ZECAyIUwxrl0nHPjXcbLm7qt9cuzovk2C2qUtN8iD3zV9/ZHuO3ABc
 1/p3yjkWWW8O6tO1g39NTUJWdrTJXwT4OPjr0l91X817/OWOgHz8UA==
 -----END CERTIFICATE-----
-

@@ -1,5 +1,3 @@
-subject=/C=US/ST=Arizona/L=Scottsdale/O=Starfield Technologies, Inc./OU=http://certificates.starfieldtech.com/repository//CN=Starfield Services Root Certificate Authority
-issuer=/C=US/ST=Arizona/L=Scottsdale/O=Starfield Technologies, Inc./OU=http://certificates.starfieldtech.com/repository//CN=Starfield Services Root Certificate Authority
 -----BEGIN CERTIFICATE-----
 MIIEfjCCA2agAwIBAgIBADANBgkqhkiG9w0BAQUFADCBzzELMAkGA1UEBhMCVVMx
 EDAOBgNVBAgTB0FyaXpvbmExEzARBgNVBAcTClNjb3R0c2RhbGUxJTAjBgNVBAoT
@@ -27,4 +25,3 @@ vmkbdLCo9uqwnLIpdIFMaDqaf3MlOfUT4GaRadRXS7furUXgLMOI076USYkf/3DV
 W205E7Ady5jmZ2MNY/b7w9dhcoOIP3B+U8meiVTWT399cbmu8WCLd2Ds+L/6aqOc
 ASI=
 -----END CERTIFICATE-----
-

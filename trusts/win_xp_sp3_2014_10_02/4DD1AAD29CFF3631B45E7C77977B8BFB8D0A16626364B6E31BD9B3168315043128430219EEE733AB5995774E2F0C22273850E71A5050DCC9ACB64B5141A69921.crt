@@ -1,5 +1,3 @@
-subject=/C=DE/O=Deutsche Telekom AG/OU=T-TeleSec Trust Center/CN=Deutsche Telekom Root CA 1
-issuer=/C=DE/O=Deutsche Telekom AG/OU=T-TeleSec Trust Center/CN=Deutsche Telekom Root CA 1
 -----BEGIN CERTIFICATE-----
 MIICmjCCAgOgAwIBAgIBJDANBgkqhkiG9w0BAQQFADBxMQswCQYDVQQGEwJERTEc
 MBoGA1UEChMTRGV1dHNjaGUgVGVsZWtvbSBBRzEfMB0GA1UECxMWVC1UZWxlU2Vj
@@ -16,4 +14,3 @@ hkiG9w0BAQQFAAOBgQCdHRD6k8gdZCBFXpxvBW2jUn+nqIdls2eaNoZ4chYV/9dF
 cygBhoidkere1ikLDD6jmXRADMzsEOBk/HC2ujkSJ/JeAFC1C9ZK36lv9LMJKID8
 0h7E7HBGhUzeRbABlTisFp9GSu4ty73LZbE65aZLBEsOM/8ce8iEhEfhWmRGSg==
 -----END CERTIFICATE-----
-

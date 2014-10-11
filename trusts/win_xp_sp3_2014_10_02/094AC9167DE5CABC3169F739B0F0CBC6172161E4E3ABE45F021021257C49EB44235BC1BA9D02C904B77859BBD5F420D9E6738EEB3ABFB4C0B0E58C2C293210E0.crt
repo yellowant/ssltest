@@ -1,5 +1,3 @@
-subject=/C=au/O=SecureNet CA Root
-issuer=/C=au/O=SecureNet CA Root
 -----BEGIN CERTIFICATE-----
 MIIDETCCAfmgAwIBAgIBADANBgkqhkiG9w0BAQQFADApMQswCQYDVQQGEwJhdTEa
 MBgGA1UEChMRU2VjdXJlTmV0IENBIFJvb3QwJhcROTkwNjMwMDAwMDAwKzEwMDAX
@@ -19,4 +17,3 @@ mg5Myzqtl4weqt2iUpdUB9E+yALbM8wHv3rxXoAr9r3vcAyJeMl7gNfZ8W0Rk53q
 jZcC9l4DLXLcOplp/L5JeS5R5dcxD44BBIeEksmmYlIZhueGmrLLYu22xCln/RMU
 PDCBC5nFDqG+sBr7jVC6+MemssBp
 -----END CERTIFICATE-----
-

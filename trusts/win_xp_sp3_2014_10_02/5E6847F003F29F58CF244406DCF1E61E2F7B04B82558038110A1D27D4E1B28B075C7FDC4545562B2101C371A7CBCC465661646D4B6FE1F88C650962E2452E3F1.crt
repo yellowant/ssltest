@@ -1,5 +1,3 @@
-subject=/O=EUnet International/CN=EUnet International Root CA
-issuer=/O=EUnet International/CN=EUnet International Root CA
 -----BEGIN CERTIFICATE-----
 MIICqjCCAhOgAwIBAgIBADANBgkqhkiG9w0BAQUFADBEMRwwGgYDVQQKExNFVW5l
 dCBJbnRlcm5hdGlvbmFsMSQwIgYDVQQDExtFVW5ldCBJbnRlcm5hdGlvbmFsIFJv
@@ -17,4 +15,3 @@ sWDElw2lMJtfOwnfTXSsMhZ2C9PcIZ8iDwl2B8ulk0L4tG5cEo8Ur46QG2oD/ykx
 HjNKFxz3N40fgMCDZsQAplYV+qAyVROqS/5J8Nqa09a+pahKzWjs/3O2qwuj22FE
 mmRjCbEnB7VAjxcALlA=
 -----END CERTIFICATE-----
-

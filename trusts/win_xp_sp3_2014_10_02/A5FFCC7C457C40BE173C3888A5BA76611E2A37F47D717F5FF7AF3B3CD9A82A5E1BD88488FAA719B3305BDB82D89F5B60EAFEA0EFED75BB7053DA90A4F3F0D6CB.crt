@@ -1,5 +1,3 @@
-subject=/C=US/O=VeriSign, Inc./OU=Class 1 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
-issuer=/C=US/O=VeriSign, Inc./OU=Class 1 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
 -----BEGIN CERTIFICATE-----
 MIIDAjCCAmsCEDnKVIn+UCIy/jLZ2/sbhBkwDQYJKoZIhvcNAQEFBQAwgcExCzAJ
 BgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xh
@@ -19,4 +17,3 @@ e0ApuXiIukzFo2penm574/ICQQxmvq37rqIUzpLzojSLtLK2JPLl1eDI5WJthHvL
 vrsDi3xXyvA3qZCviu4Dvh0onNkmdqDNxJ1O8K4HFtW+r1cIatCgQkJCHvQgzKV4
 gpUmOIpH
 -----END CERTIFICATE-----
-

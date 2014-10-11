@@ -1,5 +1,3 @@
-subject=/C=BE/O=GlobalSign nv-sa/OU=Root CA/CN=GlobalSign Root CA
-issuer=/C=BE/O=GlobalSign nv-sa/OU=Root CA/CN=GlobalSign Root CA
 -----BEGIN CERTIFICATE-----
 MIIDdTCCAl2gAwIBAgILAgAAAAAA1ni3lAUwDQYJKoZIhvcNAQEEBQAwVzELMAkG
 A1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jv
@@ -21,4 +19,3 @@ rH5Jokvmw2dZL7OKDrssvamqQnw1wdh/1acxOk5jQzmvCLBhNIzTmKlDNPYPhyk7
 ncJWWJh3w/cbrPad+D6qp1RF8PX51TFl/mtYnHGzHtdS6jIX/EBgHcl5JLL2bP2o
 Zg6C3ZjL2sJETy6ge/L3ayx2EYRGinij4w==
 -----END CERTIFICATE-----
-

@@ -1,5 +1,3 @@
-subject=/C=FI/L=Helsinki/O=Saunalahden Serveri Oy/CN=Saunalahden Serveri CA/emailAddress=gold-certs@saunalahti.fi
-issuer=/C=FI/L=Helsinki/O=Saunalahden Serveri Oy/CN=Saunalahden Serveri CA/emailAddress=gold-certs@saunalahti.fi
 -----BEGIN CERTIFICATE-----
 MIIEfzCCA2egAwIBAgIBADANBgkqhkiG9w0BAQQFADCBizELMAkGA1UEBhMCRkkx
 ETAPBgNVBAcTCEhlbHNpbmtpMR8wHQYDVQQKExZTYXVuYWxhaGRlbiBTZXJ2ZXJp
@@ -27,4 +25,3 @@ zeiiaOjNg7fROje/sIgMTKVGHuXkdDC4ELIN1+CjsfS2XAL56UZqdIkmpwT9kJ1+
 1NhaT27CuOYmWojl8yaFSLvwyW92aLns0LlG3F02T7BEH6NexNciIXbskjS/yNkf
 aHki
 -----END CERTIFICATE-----
-

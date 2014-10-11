@@ -1,5 +1,3 @@
-subject=/C=US/O=VeriSign, Inc./OU=Class 1 Public Primary Certification Authority
-issuer=/C=US/O=VeriSign, Inc./OU=Class 1 Public Primary Certification Authority
 -----BEGIN CERTIFICATE-----
 MIICPDCCAaUCEDJQM89Q0VbzXIGtZVxPyCUwDQYJKoZIhvcNAQECBQAwXzELMAkG
 A1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMTcwNQYDVQQLEy5DbGFz
@@ -14,4 +12,3 @@ CSqGSIb3DQEBAgUAA4GBAEtEZmBoZOSYG/OwcuaViXzde7OVwB0u2NgZ0C00PcZQ
 mhCGjKo/O6gE/DdSlcPZydvN8oYGxLEb8IKIMEKOF1AcZHq4PplJdJf8rAJD+5YM
 VgQlDHx8h50kp9jwMim1pN9dokzFFjKoQvZFprY2ueC/ZTaTwtLXa9zeWdaiNfhF
 -----END CERTIFICATE-----
-

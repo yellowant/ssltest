@@ -1,5 +1,3 @@
-subject=/C=JP/O=Japan Certification Services, Inc./CN=SecureSign RootCA3
-issuer=/C=JP/O=Japan Certification Services, Inc./CN=SecureSign RootCA3
 -----BEGIN CERTIFICATE-----
 MIIDKTCCAhECCF9gWF8AAAAAMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNVBAYTAkpQ
 MSswKQYDVQQKEyJKYXBhbiBDZXJ0aWZpY2F0aW9uIFNlcnZpY2VzLCBJbmMuMRsw
@@ -19,4 +17,3 @@ vtB0XpsQL4B1Pwn5LuFmH1ls7W8uPjunJJA0u+SQp0vIL3kpXzZoHh0aFWrg3yuB
 QcY7SkaRv8qTe+GRLC08B18CrHueTg2tPlzkHGgin8+BsXtvmM2hOPPUiSVDhE9O
 4m5eJCRdlMI5z6X5cWAY+krJ5AB8Xv2JUrdtgnd4b61FxnLRgE2lBUPty+Kz
 -----END CERTIFICATE-----
-

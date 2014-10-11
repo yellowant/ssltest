@@ -1,5 +1,3 @@
-subject=/C=BR/ST=Rio de Janeiro/L=Rio de Janeiro/O=Certisign Certificadora Digital Ltda./OU=Certisign Autoridade Certificadora AC3S
-issuer=/C=BR/ST=Rio de Janeiro/L=Rio de Janeiro/O=Certisign Certificadora Digital Ltda./OU=Certisign Autoridade Certificadora AC3S
 -----BEGIN CERTIFICATE-----
 MIICszCCAhwCAQAwDQYJKoZIhvcNAQEEBQAwgaExCzAJBgNVBAYTAkJSMRcwFQYD
 VQQIEw5SaW8gZGUgSmFuZWlybzEXMBUGA1UEBxMOUmlvIGRlIEphbmVpcm8xLjAs
@@ -17,4 +15,3 @@ jJ0upEOfrpFIuGq3/8gzjBPG0uQmcHq4re2sm8WlK6pXiwTXgc2qDTlv5ESpkGUC
 9/p41tRVd8VrQCR4VMvERrHl0oZAhZAI/NsVq84qPmi+F1/EstC8si3NTLcMxC34
 1gtBg8rkdGkL4VWxkRzJSjw+8FIUHfQ=
 -----END CERTIFICATE-----
-

@@ -1,5 +1,3 @@
-subject=/C=us/ST=Utah/L=Salt Lake City/O=Digital Signature Trust Co./OU=United Parcel Service/CN=DST (UPS) RootCA/emailAddress=ca@digsigtrust.com
-issuer=/C=us/ST=Utah/L=Salt Lake City/O=Digital Signature Trust Co./OU=United Parcel Service/CN=DST (UPS) RootCA/emailAddress=ca@digsigtrust.com
 -----BEGIN CERTIFICATE-----
 MIID+DCCAuACEQDQHkCLAAACfAAAAAcAAAABMA0GCSqGSIb3DQEBBQUAMIG5MQsw
 CQYDVQQGEwJ1czENMAsGA1UECBMEVXRhaDEXMBUGA1UEBxMOU2FsdCBMYWtlIENp
@@ -24,4 +22,3 @@ XZJLAch77qA37eQdgg2ZQUMXrdTVyuP5fReiAdAwD0C53LkEgmmDtvkP+gaS96j0
 1hcc8F5/xCnI5uHi/zZoIVGu/6m6hJKtinsz2JDSwXltMzM5dKwbOHGfLAeQ6h3g
 04lfy+8UjSdUpb1G
 -----END CERTIFICATE-----
-

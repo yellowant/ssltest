@@ -1,5 +1,3 @@
-subject=/C=DE/ST=Hamburg/L=Hamburg/O=TC TrustCenter for Security in Data Networks GmbH/OU=TC TrustCenter Class 1 CA/emailAddress=certificate@trustcenter.de
-issuer=/C=DE/ST=Hamburg/L=Hamburg/O=TC TrustCenter for Security in Data Networks GmbH/OU=TC TrustCenter Class 1 CA/emailAddress=certificate@trustcenter.de
 -----BEGIN CERTIFICATE-----
 MIIDXDCCAsWgAwIBAgICA+kwDQYJKoZIhvcNAQEEBQAwgbwxCzAJBgNVBAYTAkRF
 MRAwDgYDVQQIEwdIYW1idXJnMRAwDgYDVQQHEwdIYW1idXJnMTowOAYDVQQKEzFU
@@ -20,4 +18,3 @@ CSqGSIb3DQEBBAUAA4GBAE+ZWYXIZFaCxW892EYJLzxRwadwWIGSEur01BYAll5y
 KOfWNl8anK8fwoMatAVVmaZYXDco8lce612/sdNFD3IcA9IAxyxV2v5fiXaL4tR3
 9U0JF6/EuqswK0+4HerZ/1nwUHRGul7qNrDrknsPWNoy4VK9IzcP9fMASq6wXt5u
 -----END CERTIFICATE-----
-

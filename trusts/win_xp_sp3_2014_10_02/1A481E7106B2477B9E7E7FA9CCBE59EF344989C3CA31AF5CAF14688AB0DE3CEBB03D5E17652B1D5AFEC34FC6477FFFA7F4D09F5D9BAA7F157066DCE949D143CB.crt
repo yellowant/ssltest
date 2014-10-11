@@ -1,5 +1,3 @@
-subject=/C=us/ST=Utah/L=Salt Lake City/O=Digital Signature Trust Co./OU=DSTCA X2/CN=DST RootCA X2/emailAddress=ca@digsigtrust.com
-issuer=/C=us/ST=Utah/L=Salt Lake City/O=Digital Signature Trust Co./OU=DSTCA X2/CN=DST RootCA X2/emailAddress=ca@digsigtrust.com
 -----BEGIN CERTIFICATE-----
 MIID2DCCAsACEQDQHkCLAAB3bQAAAAEAAAAEMA0GCSqGSIb3DQEBBQUAMIGpMQsw
 CQYDVQQGEwJ1czENMAsGA1UECBMEVXRhaDEXMBUGA1UEBxMOU2FsdCBMYWtlIENp
@@ -23,4 +21,3 @@ I3wdEJ5F6fYAbqbNGf9PLCmPV03Ed5K+4EwJ+11EhmYhqLkyolbV6YyDfFk/xPEL
 10mDEQb+64JYMzJM8FasHpwvVpp7wUocpf1VNs78lk30sPDst2yC7S8xmUJMqbIN
 uBVd8d+6ybVK1GSYsyapMMj9puyrliGtf8J4tg==
 -----END CERTIFICATE-----
-

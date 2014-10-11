@@ -1,5 +1,3 @@
-subject=/C=US/O=Digital Signature Trust Co./OU=DST (ANX Network) CA
-issuer=/C=US/O=Digital Signature Trust Co./OU=DST (ANX Network) CA
 -----BEGIN CERTIFICATE-----
 MIIDTTCCAragAwIBAgIENm6ibzANBgkqhkiG9w0BAQUFADBSMQswCQYDVQQGEwJV
 UzEkMCIGA1UEChMbRGlnaXRhbCBTaWduYXR1cmUgVHJ1c3QgQ28uMR0wGwYDVQQL
@@ -20,4 +18,3 @@ AEklyWCxDF+pORDTxTRVfc95wynr3vnCQPnoVsXwL+z02exIUbhjOF6TbhiWhbnK
 UJykuOpmJmiThW9vTHHQvnoLPDG5975pnhDX0UDorBZxq66rOOFwscqSFuBdhaYY
 gAYAnOGmGEJRp2hoWe8mlF+tMQz+KR4XAYQ3W+gSMqNd
 -----END CERTIFICATE-----
-

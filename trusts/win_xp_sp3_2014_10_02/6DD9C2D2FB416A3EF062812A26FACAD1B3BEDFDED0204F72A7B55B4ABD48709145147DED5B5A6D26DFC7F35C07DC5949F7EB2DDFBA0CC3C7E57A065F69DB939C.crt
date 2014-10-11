@@ -1,5 +1,3 @@
-subject=/C=NL/O=PTT Post/OU=KeyMail/CN=PTT Post Root CA/mail=ca@ptt-post.nl
-issuer=/C=NL/O=PTT Post/OU=KeyMail/CN=PTT Post Root CA/mail=ca@ptt-post.nl
 -----BEGIN CERTIFICATE-----
 MIIDkzCCAnugAwIBAgIEN3uAZDANBgkqhkiG9w0BAQUFADBtMQswCQYDVQQGEwJO
 TDERMA8GA1UEChMIUFRUIFBvc3QxEDAOBgNVBAsTB0tleU1haWwxGTAXBgNVBAMT
@@ -22,4 +20,3 @@ plzoYEO83X5I8sNpXOmuEoGmDELOEuRzb78zmjNSeJTz2M5BGYxQJd8SkikrU6m5
 ZcqPIleFWvxZ1siS0HASVP1kmbycBVxUMenEElQBxoE2Nqxbiw2Gidi5ClJNyJ68
 19t/gG3SrQ==
 -----END CERTIFICATE-----
-

@@ -1,5 +1,3 @@
-subject=/C=US/ST=DC/L=Washington/O=ABA.ECOM, INC./CN=ABA.ECOM Root CA/emailAddress=admin@digsigtrust.com
-issuer=/C=US/ST=DC/L=Washington/O=ABA.ECOM, INC./CN=ABA.ECOM Root CA/emailAddress=admin@digsigtrust.com
 -----BEGIN CERTIFICATE-----
 MIIDtTCCAp2gAwIBAgIRANAeQJAAAEZSAAAAAQAAAAQwDQYJKoZIhvcNAQEFBQAw
 gYkxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJEQzETMBEGA1UEBxMKV2FzaGluZ3Rv
@@ -22,4 +20,3 @@ w8eeG6Z3ePhfm1bR8PIXrI6dWeYf/le22V7hXZ9F7GFoGUHhsiAm/lowdiT/QHI8
 eZ98IkirRs3bs4Ysj78FQdPB4xTjQRcm0HyncUwZ6EoPclgxfexgeqMiKL0ZJGA/
 O4dzwGvky663qyVDslUte6sGDnVdNOVdc22esnVApVnJTzFxiNmIf1Q=
 -----END CERTIFICATE-----
-

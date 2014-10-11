@@ -1,5 +1,3 @@
-subject=/C=BR/O=Certisign Certificadora Digital Ltda./OU=Certisign - Autoridade Certificadora - AC4
-issuer=/C=BR/O=Certisign Certificadora Digital Ltda./OU=Certisign - Autoridade Certificadora - AC4
 -----BEGIN CERTIFICATE-----
 MIICajCCAdOgAwIBAgIBADANBgkqhkiG9w0BAQQFADByMQswCQYDVQQGEwJCUjEu
 MCwGA1UEChMlQ2VydGlzaWduIENlcnRpZmljYWRvcmEgRGlnaXRhbCBMdGRhLjEz
@@ -15,4 +13,3 @@ hkiG9w0BAQQFAAOBgQApXY3251O97KOBFkGxHvgkPaW3Dj7zf/uOyJ6jVucUQd8u
 Jd1O7RJA39lCGcQwmJSZUoojwGm1moJ5Q9yJBB8yv2uNvihzKUyj+1TNY/tfVGtS
 FRig6pXHDwmp74++q2q81qgGpOLSfePyThC5wDwuJaHyk7qhjbavh8aZ0z6hHw==
 -----END CERTIFICATE-----
-

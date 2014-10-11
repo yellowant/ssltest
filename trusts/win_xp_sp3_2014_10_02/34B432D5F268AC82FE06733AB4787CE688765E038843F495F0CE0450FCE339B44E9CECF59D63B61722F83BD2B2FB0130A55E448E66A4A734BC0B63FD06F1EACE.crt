@@ -1,5 +1,3 @@
-subject=/C=BR/O=Certisign Certificadora Digital Ltda./OU=Certisign Autoridade Certificadora AC1S
-issuer=/C=BR/O=Certisign Certificadora Digital Ltda./OU=Certisign Autoridade Certificadora AC1S
 -----BEGIN CERTIFICATE-----
 MIICZDCCAc2gAwIBAgIBBTANBgkqhkiG9w0BAQQFADBvMQswCQYDVQQGEwJCUjEu
 MCwGA1UEChMlQ2VydGlzaWduIENlcnRpZmljYWRvcmEgRGlnaXRhbCBMdGRhLjEw
@@ -15,4 +13,3 @@ AQQFAAOBgQAbrqnYdrx6nviLGuf7RdNeMA6TvfipXQNCm/Bkxnk9Q2k8QKE2RkiC
 VuiI8DqV5r7oobZAvf/WLK2hMwZzeAJl6e17e0mEbWTT852bbJ/hQwOYYMC10+Xr
 SKlJYuK5zswkCtgiwT03MAScdf6IugSleqIA3u0BHaY5E6Rs2LWaog==
 -----END CERTIFICATE-----
-

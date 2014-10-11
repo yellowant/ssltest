@@ -1,5 +1,3 @@
-subject=/C=us/ST=Utah/L=Salt Lake City/O=Digital Signature Trust Co./OU=National Retail Federation/CN=DST (NRF) RootCA/emailAddress=ca@digsigtrust.com
-issuer=/C=us/ST=Utah/L=Salt Lake City/O=Digital Signature Trust Co./OU=National Retail Federation/CN=DST (NRF) RootCA/emailAddress=ca@digsigtrust.com
 -----BEGIN CERTIFICATE-----
 MIIEAjCCAuoCEQDQHkCKAAACfAAAAAMAAAABMA0GCSqGSIb3DQEBBQUAMIG+MQsw
 CQYDVQQGEwJ1czENMAsGA1UECBMEVXRhaDEXMBUGA1UEBxMOU2FsdCBMYWtlIENp
@@ -24,4 +22,3 @@ B1hYYUKZUgOxOD3GcW9s8uh9BqrBfFPLGi2IT8mpp6xpb/ekH9h0gfVKv7FVt9N3
 OKdvwkrI4nOJ01dy4UMvcjz2H7f4BEpuwemUF+SXF/QOE4ZvjavoXy20/2zWorQf
 7LmUaqoSTxrd9Xe1JYzyigrx/FJbWA==
 -----END CERTIFICATE-----
-

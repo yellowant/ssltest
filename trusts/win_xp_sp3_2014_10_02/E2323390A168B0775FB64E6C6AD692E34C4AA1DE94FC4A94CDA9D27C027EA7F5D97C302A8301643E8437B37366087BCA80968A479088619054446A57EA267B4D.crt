@@ -1,5 +1,3 @@
-subject=/C=FR/O=Certplus/CN=Class 1 Primary CA
-issuer=/C=FR/O=Certplus/CN=Class 1 Primary CA
 -----BEGIN CERTIFICATE-----
 MIIDkjCCAnqgAwIBAgIRAIb+HV/DgfhH1zMsc5R1ezcwDQYJKoZIhvcNAQEFBQAw
 PTELMAkGA1UEBhMCRlIxETAPBgNVBAoTCENlcnRwbHVzMRswGQYDVQQDExJDbGFz
@@ -22,4 +20,3 @@ sn3qaIpA/pHBwkn/IdFnDhoSHUouHPuU+W07eTL5HimRCkKWRfHvylgPcp0MqYO8
 Mt2YBNFZ4WQXvcyBowNelmDlfxY4CmvR+rOEnSrKPvtC+E/op1soGRit4KZmHrAp
 IfK4mY//
 -----END CERTIFICATE-----
-

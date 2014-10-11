@@ -1,5 +1,3 @@
-subject=/C=FR/O=Certiposte/CN=Certiposte Serveur
-issuer=/C=FR/O=Certiposte/CN=Certiposte Serveur
 -----BEGIN CERTIFICATE-----
 MIIDkzCCAnugAwIBAgIEAgAAADANBgkqhkiG9w0BAQQFADA/MQswCQYDVQQGEwJG
 UjETMBEGA1UEChMKQ2VydGlwb3N0ZTEbMBkGA1UEAxMSQ2VydGlwb3N0ZSBTZXJ2
@@ -22,4 +20,3 @@ JcmdHIntmf7JPM5n6cDBv17uSW63er7NkVnMFHwK1QaGFLMybFkzaeGrvFm4k3lR
 efiXDmuOe+FhJgHYezYHf44LvPRPwhSrzi9+Aq3o8pWDguJuZDIUP1F1jMa+LPwv
 REXfFcUW+w==
 -----END CERTIFICATE-----
-

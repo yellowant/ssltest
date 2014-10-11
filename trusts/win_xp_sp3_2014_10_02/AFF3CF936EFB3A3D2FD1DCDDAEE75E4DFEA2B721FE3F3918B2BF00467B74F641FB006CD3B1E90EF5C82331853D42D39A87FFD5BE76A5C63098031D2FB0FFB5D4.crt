@@ -1,5 +1,3 @@
-subject=/C=US/O=Equifax Secure Inc./CN=Equifax Secure eBusiness CA-1
-issuer=/C=US/O=Equifax Secure Inc./CN=Equifax Secure eBusiness CA-1
 -----BEGIN CERTIFICATE-----
 MIICgjCCAeugAwIBAgIBBDANBgkqhkiG9w0BAQQFADBTMQswCQYDVQQGEwJVUzEc
 MBoGA1UEChMTRXF1aWZheCBTZWN1cmUgSW5jLjEmMCQGA1UEAxMdRXF1aWZheCBT
@@ -16,4 +14,3 @@ zfmpTMANmvPMZWnmJXbMWbfWVMMdzZmsGd20hdXgPfxiIKeES1hl8eL5lSE/9dR+
 WB5Hh1Q+WKG1tfgq73HnvMP2sUlG4tega+VWeponmHxGYhTnyfxuAxJ5gDgdSIKN
 /Bf+KpYrtWKmpj29f5JZzVoqgrI3eQ==
 -----END CERTIFICATE-----
-

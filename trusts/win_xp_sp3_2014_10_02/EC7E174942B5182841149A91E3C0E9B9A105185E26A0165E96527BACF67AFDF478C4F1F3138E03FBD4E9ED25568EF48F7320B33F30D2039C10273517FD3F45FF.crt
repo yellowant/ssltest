@@ -1,5 +1,3 @@
-subject=/C=ES/ST=Barcelona/L=Barcelona/O=Fundacion FESTE/CN=FESTE, Verified Certs/emailAddress=feste@feste.org
-issuer=/C=ES/ST=Barcelona/L=Barcelona/O=Fundacion FESTE/CN=FESTE, Verified Certs/emailAddress=feste@feste.org
 -----BEGIN CERTIFICATE-----
 MIICjzCCAfgCAQAwDQYJKoZIhvcNAQEEBQAwgY8xCzAJBgNVBAYTAkVTMRIwEAYD
 VQQIEwlCYXJjZWxvbmExEjAQBgNVBAcTCUJhcmNlbG9uYTEYMBYGA1UEChMPRnVu
@@ -16,4 +14,3 @@ gYEAfvj3P7Lu3vohb4EUd4ae71xPjpbPfHXP1F1/cUbURQpgaiqW8dSIpI6j9xcw
 LsFK8Butk7JgKQzhxHWSZcOGzXLGMh+gVb485XfbHWQTmIslbgB/7KPhWgTYLKgS
 ozCGRKBhN/4QMHk0zeX6AnU192Ft9R9kmwOQ0EyhTG4bO9I=
 -----END CERTIFICATE-----
-

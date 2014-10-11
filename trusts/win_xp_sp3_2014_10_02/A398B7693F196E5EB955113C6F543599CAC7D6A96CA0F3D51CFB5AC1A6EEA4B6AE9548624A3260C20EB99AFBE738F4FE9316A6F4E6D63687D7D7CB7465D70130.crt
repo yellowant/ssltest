@@ -1,5 +1,3 @@
-subject=/L=ValiCert Validation Network/O=ValiCert, Inc./OU=ValiCert Class 3 Policy Validation Authority/CN=http://www.valicert.com//emailAddress=info@valicert.com
-issuer=/L=ValiCert Validation Network/O=ValiCert, Inc./OU=ValiCert Class 3 Policy Validation Authority/CN=http://www.valicert.com//emailAddress=info@valicert.com
 -----BEGIN CERTIFICATE-----
 MIIC5zCCAlACAQEwDQYJKoZIhvcNAQEFBQAwgbsxJDAiBgNVBAcTG1ZhbGlDZXJ0
 IFZhbGlkYXRpb24gTmV0d29yazEXMBUGA1UEChMOVmFsaUNlcnQsIEluYy4xNTAz
@@ -18,4 +16,3 @@ Zwgs3x/be0kz9dNnnfS0ChCzycUs4pJqcXgn8nCDQtM+z6lU9PHYkhaM0QTLS6vJ
 n0WuPIqpsHEzXcjFV9+vqDWzf4mH6eglkrh/hXqu1rweN1gqZ8mRzyqBPu3GOd/A
 PhmcGcwTTYJBtYze4D1gCCAPRX5ron+jjBXu
 -----END CERTIFICATE-----
-

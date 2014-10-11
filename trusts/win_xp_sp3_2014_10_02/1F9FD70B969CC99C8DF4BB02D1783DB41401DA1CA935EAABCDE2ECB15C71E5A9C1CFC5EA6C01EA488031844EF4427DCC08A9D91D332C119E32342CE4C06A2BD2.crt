@@ -1,5 +1,3 @@
-subject=/C=DE/ST=Hamburg/L=Hamburg/O=TC TrustCenter for Security in Data Networks GmbH/OU=TC TrustCenter Time Stamping CA/CN=TC TrustCenter Time Stamping CA
-issuer=/C=DE/ST=Hamburg/L=Hamburg/O=TC TrustCenter for Security in Data Networks GmbH/OU=TC TrustCenter Time Stamping CA/CN=TC TrustCenter Time Stamping CA
 -----BEGIN CERTIFICATE-----
 MIIDQzCCAqygAwIBAgICA/EwDQYJKoZIhvcNAQEEBQAwgcExCzAJBgNVBAYTAkRF
 MRAwDgYDVQQIEwdIYW1idXJnMRAwDgYDVQQHEwdIYW1idXJnMTowOAYDVQQKEzFU
@@ -20,4 +18,3 @@ AbsJadYuBft2K2k118hvBqgb8tVfC8xL88FT9JW/nI5ss197C8bmnKfQLAM+1Tnh
 nG7rQfjJZEO4PaJK4R5PhZLXG0duPxfar+wWPo4aiS1BidZpL0OqXS7y6NBU7g0W
 xdpw2BJ0RK4WS3TtjAurNQpIaOxpAyk=
 -----END CERTIFICATE-----
-

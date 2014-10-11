@@ -1,5 +1,3 @@
-subject=/C=BR/O=Certisign Certificadora Digital Ltda./OU=Certisign - Autoridade Certificadora - AC2
-issuer=/C=BR/O=Certisign Certificadora Digital Ltda./OU=Certisign - Autoridade Certificadora - AC2
 -----BEGIN CERTIFICATE-----
 MIICajCCAdOgAwIBAgIBADANBgkqhkiG9w0BAQQFADByMQswCQYDVQQGEwJCUjEu
 MCwGA1UEChMlQ2VydGlzaWduIENlcnRpZmljYWRvcmEgRGlnaXRhbCBMdGRhLjEz
@@ -15,4 +13,3 @@ hkiG9w0BAQQFAAOBgQBIa969g3LQgWoJEgXcYwOVaoZILqriJUtiZDyHhKQwpL2l
 HotWEldDZE/H6Y+9qvEadXmKU5H2Q10Cmg/XQhQ6go30aR6wrFHOydXbYE4ocChR
 SerdgyZhnAv1jqoVp7UKvg+4jQLU5RFAPG7HDGN8UWPa4lIQcj1NsyPRTQVBxA==
 -----END CERTIFICATE-----
-
