@@ -187,7 +187,7 @@ public class TruststoreOverview extends HttpServlet {
             for (Entry<CertificateIdentifier, Certificate> e : certs.entrySet()) {
                 X509Certificate cert = (X509Certificate) e.getValue();
                 pw.print("<tr>");
-                e.getKey().print(pw, TruststoreUtil.outputFingerprint(e.getValue(), MessageDigest.getInstance("SHA-512")));
+                e.getKey().print(pw, "SHA-512-end: " + TruststoreUtil.outputFingerprint(e.getValue(), MessageDigest.getInstance("SHA-512")).substring(118));
                 pw.print("<td>");
                 outputDate(pw, cert.getNotBefore());
                 pw.print("</td><td>");
