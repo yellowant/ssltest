@@ -92,13 +92,14 @@ public class Service extends HttpServlet {
             return;
         }
 
-        String port = req.getParameter("port");
-        if (port == null) {
-            port = "443";
+        String portStr = req.getParameter("port");
+        int port;
+        if (portStr == null) {
+            portStr = "443";
             return;
         }
         try {
-            Integer.parseInt(port);
+            port = Integer.parseInt(portStr);
         } catch (NumberFormatException nfe) {
             resp.sendError(401, "Fuck off");
             return;
@@ -110,45 +111,46 @@ public class Service extends HttpServlet {
             ps.println("retry: 10000");
             ps.println();
 
-            String host = domain + ":" + port;
+            String host = domain + ":" + portStr;
+            boolean observingOnly = false;
+
             synchronized (cache) {
                 to = cache.get(host);
                 if (to == null) {
                     to = new TestingSession();
                     cache.put(host, to);
-                    to.attach(ps);
                 } else {
-                    to.attach(ps);
-                    to.waitForCompletion();
+                    observingOnly = true;
                 }
+            }
+
+            to.attach(ps);
+
+            if (observingOnly) {
+                to.waitForCompletion();
+                return;
             }
         }
 
         try {
             System.out.println("Testing " + domain + ":" + port);
             to.output("Testing " + domain + ":" + port);
-            try {
-                int por = Integer.parseInt(port);
-                TestImplementationBugs b = new TestImplementationBugs(domain, por);
-                testBugs(b, to);
-                CertificateTest.testCerts(to, b);
 
-                boolean testCompression = b.testDeflate(to);
-                if (testCompression) {
-                    to.output("Does support tls compression. ", -10);
-                } else {
-                    to.output("Does not support tls compression.");
-                }
+            TestImplementationBugs b = new TestImplementationBugs(domain, port);
+            testBugs(b, to);
+            CertificateTest.testCerts(to, b);
 
-                TestCipherList c = new TestCipherList(domain, por);
-                to.enterTest("Determining cipher suites");
-                determineCiphers(to, c);
-                to.exitTest("Determining cipher suites", TestResult.IGNORE);
-
-            } catch (NumberFormatException e) {
-                to.output("error port not int");
-                return;
+            boolean testCompression = b.testDeflate(to);
+            if (testCompression) {
+                to.output("Does support tls compression. ", -10);
+            } else {
+                to.output("Does not support tls compression.");
             }
+
+            TestCipherList c = new TestCipherList(domain, port);
+            to.enterTest("Determining cipher suites");
+            determineCiphers(to, c);
+            to.exitTest("Determining cipher suites", TestResult.IGNORE);
         } finally {
             to.end();
         }
