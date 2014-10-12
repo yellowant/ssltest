@@ -85,9 +85,9 @@ public class Truststore {
             Truststore any = new Truststore(new File("trusts/any"), storesm);
             storesm.put("any", any);
         } catch (GeneralSecurityException e) {
-            throw new Error(e);
+            e.printStackTrace();
         } catch (IOException e) {
-            throw new Error(e);
+            e.printStackTrace();
         }
         stores = Collections.unmodifiableMap(storesm);
 
@@ -98,7 +98,6 @@ public class Truststore {
     }
 
     public static void main(String[] args) {
-
     }
 
     public boolean contains(Certificate c) {
