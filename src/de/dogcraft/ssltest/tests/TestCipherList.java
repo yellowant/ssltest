@@ -89,7 +89,9 @@ public class TestCipherList {
         int worst = yourCiphers.get(yourCiphers.size() - 1);
         int choice = choose(Arrays.asList(worst, best));
         serverPref = choice != worst;
-        return chosen.toArray(new String[chosen.size()]);
+        // TODO output was already made to the test output;
+        // return chosen.toArray(new TestResultCipher[chosen.size()]);
+        return new String[0];
     }
 
     public class TestResultCipher {
@@ -133,7 +135,9 @@ public class TestCipherList {
     private int choose(final Collection<Integer> ciphers) throws IOException {
         Socket sock = new Socket(host, port);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] { CompressionMethod._null });
+        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] {
+            CompressionMethod._null
+        }, null);
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();
