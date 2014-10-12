@@ -1,7 +1,6 @@
 package de.dogcraft.ssltest.utils;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -22,13 +21,9 @@ import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 
 public class CipherProbingClient extends DefaultTlsClient {
 
-    private static SecureRandom random = new SecureRandom();
-
     private Certificate cert;
 
     private final String host;
-
-    private final int port;
 
     private final int[] ciphers;
 
@@ -36,7 +31,6 @@ public class CipherProbingClient extends DefaultTlsClient {
 
     public CipherProbingClient(String host, int port, Collection<Integer> ciphers, short[] comp) {
         this.host = host;
-        this.port = port;
 
         Integer[] tmpI = (Integer[]) ciphers.toArray();
         int[] tmp = new int[tmpI.length];
@@ -59,10 +53,13 @@ public class CipherProbingClient extends DefaultTlsClient {
     }
 
     @Override
-    public Hashtable getClientExtensions() throws IOException {
-        Hashtable clientExtensions = super.getClientExtensions();
+    public Hashtable<Integer, byte[]> getClientExtensions() throws IOException {
+        @SuppressWarnings("unchecked")
+        Hashtable<Integer, byte[]> clientExtensions = super.getClientExtensions();
+
         TlsExtensionsUtils.addServerNameExtension(clientExtensions, new ServerNameList(new Vector<>(Arrays.asList(new ServerName(NameType.host_name, host)))));
         TlsExtensionsUtils.addHeartbeatExtension(clientExtensions, new HeartbeatExtension(HeartbeatMode.peer_allowed_to_send));
+
         return clientExtensions;
     }
 

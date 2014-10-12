@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1String;
@@ -56,8 +57,6 @@ public class CertificateTest {
     }
 
     private static final BigInteger TWO = new BigInteger("2");
-
-    private static final BigInteger THREE = new BigInteger("3");
 
     public static void testCerts(TestOutput pw, TestImplementationBugs b) throws IOException {
         pw.enterTest("Certificate");
@@ -245,7 +244,10 @@ public class CertificateTest {
             outputCritical(pw, ext);
 
             ASN1Sequence ds = ASN1Sequence.getInstance(ext.getParsedValue());
-            Enumeration obj = ds.getObjects();
+
+            @SuppressWarnings("unchecked")
+            Enumeration<ASN1Encodable> obj = ds.getObjects();
+
             while (obj.hasMoreElements()) {
                 GeneralName genName = GeneralName.getInstance(obj.nextElement());
                 if (genName.getTagNo() == GeneralName.dNSName) {
@@ -256,6 +258,7 @@ public class CertificateTest {
                     pw.output("Unknown SAN name " + genName.getName());
                 }
             }
+
             pw.exitTest("SubjectAltNames", new TestResult(mult));
         } else {
             pw.exitTest("SubjectAltNames", TestResult.FAILED);

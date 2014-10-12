@@ -55,6 +55,7 @@ public class CommandLine {
         byte[] sn = (byte[]) bugs.getExt().get(ExtensionType.server_name);
         byte[] hb = (byte[]) bugs.getExt().get(ExtensionType.heartbeat);
         byte[] rn = (byte[]) bugs.getExt().get(ExtensionType.renegotiation_info);
+        System.out.println("sni: " + (sn == null ? "off" : "on"));
         System.out.println("renego: " + (rn == null ? "off" : "on"));
         System.out.println("heartbeat: " + (hb == null ? "off" : "on"));
         bugs.testBug(to);

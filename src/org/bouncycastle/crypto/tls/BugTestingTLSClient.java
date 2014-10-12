@@ -46,6 +46,7 @@ public class BugTestingTLSClient extends TlsClientProtocol {
         return recordStream.readRecord();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void cleanupHandshake() {
         if (tlsSession != null) {
@@ -60,7 +61,7 @@ public class BugTestingTLSClient extends TlsClientProtocol {
 
     public interface CertificateObserver {
 
-        public void OnServerExtensionsReceived(Hashtable extensions);
+        public void OnServerExtensionsReceived(Hashtable<Integer, byte[]> extensions);
 
         public void OnCertificateReceived(Certificate cert);
 

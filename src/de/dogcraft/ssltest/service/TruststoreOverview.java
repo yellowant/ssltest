@@ -26,6 +26,8 @@ import de.dogcraft.ssltest.utils.TruststoreUtil;
 
 public class TruststoreOverview extends HttpServlet {
 
+    private static final long serialVersionUID = 1L;
+
     class CertificateIdentifier implements Comparable<CertificateIdentifier> {
 
         String hash;

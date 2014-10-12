@@ -18,7 +18,7 @@ public class TestingTLSClient extends TlsClientProtocol {
 
     private static SecureRandom random = new SecureRandom();
 
-    private Hashtable extensions;
+    private Hashtable<Integer, byte[]> extensions;
 
     private TLSCipherInfo cipherInfo;
 
@@ -30,6 +30,7 @@ public class TestingTLSClient extends TlsClientProtocol {
         cipherInfo = null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void cleanupHandshake() {
         if (tlsSession != null) {
@@ -82,7 +83,7 @@ public class TestingTLSClient extends TlsClientProtocol {
         return failedLocaly;
     }
 
-    protected Hashtable getExtensions() {
+    protected Hashtable<Integer, byte[]> getExtensions() {
         return extensions;
     }
 

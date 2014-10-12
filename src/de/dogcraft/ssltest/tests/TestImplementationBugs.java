@@ -46,7 +46,7 @@ public class TestImplementationBugs {
         BugTestingTLSClient tcp = new BugTestingTLSClient(new CertificateObserver() {
 
             @Override
-            public void OnServerExtensionsReceived(Hashtable extensions) {
+            public void OnServerExtensionsReceived(Hashtable<Integer, byte[]> extensions) {
                 TestImplementationBugs.this.extensions = extensions;
             }
 
@@ -92,7 +92,7 @@ public class TestImplementationBugs {
         }
     }
 
-    private Hashtable extensions;
+    private Hashtable<Integer, byte[]> extensions;
 
     private String cipherInfo;
 
@@ -100,7 +100,7 @@ public class TestImplementationBugs {
         return cert;
     }
 
-    public Hashtable getExt() {
+    public Hashtable<Integer, byte[]> getExt() {
         return extensions;
     }
 
