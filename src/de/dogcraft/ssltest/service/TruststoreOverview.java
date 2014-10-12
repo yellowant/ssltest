@@ -156,6 +156,7 @@ public class TruststoreOverview extends HttpServlet {
         pw.println(".debian{ background-color: #BB8888;}");
         pw.println(".openbsd{ background-color: #f2eb5d;}");
         pw.println(".osx{ background-color: #DDDDFF;}");
+        pw.println(".win{ background-color: #22affe;}");
         pw.println("</style>");
         pw.println("<table border='1'>");
         TreeMap<String, Truststore> store = new TreeMap<>();
