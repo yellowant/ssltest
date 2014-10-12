@@ -5,6 +5,8 @@ import java.net.Socket;
 import java.util.Hashtable;
 
 import org.bouncycastle.crypto.tls.BugTestingTLSClient;
+import org.bouncycastle.crypto.tls.BugTestingTLSClient.CertificateObserver;
+import org.bouncycastle.crypto.tls.Certificate;
 import org.bouncycastle.crypto.tls.CompressionMethod;
 import org.bouncycastle.crypto.tls.HeartbeatMessage;
 import org.bouncycastle.crypto.tls.HeartbeatMessageType;
@@ -13,7 +15,7 @@ import de.dogcraft.ssltest.utils.CipherProbingClient;
 
 public class TestImplementationBugs {
 
-    private org.bouncycastle.crypto.tls.Certificate cert;
+    private Certificate cert;
 
     private final String host;
 
@@ -41,7 +43,19 @@ public class TestImplementationBugs {
 
     public void testBug(TestOutput pw) throws IOException {
         Socket sock = new Socket(host, port);
-        BugTestingTLSClient tcp = new BugTestingTLSClient(this, sock.getInputStream(), sock.getOutputStream());
+        BugTestingTLSClient tcp = new BugTestingTLSClient(new CertificateObserver() {
+
+            @Override
+            public void OnServerExtensionsReceived(Hashtable extensions) {
+                TestImplementationBugs.this.extensions = extensions;
+            }
+
+            @Override
+            public void OnCertificateReceived(Certificate cert) {
+                TestImplementationBugs.this.cert = cert;
+            }
+
+        }, sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] { CompressionMethod._null });
         tcp.connect(tc);
         HeartbeatMessage hbm = new HeartbeatMessage(HeartbeatMessageType.heartbeat_request, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 16);

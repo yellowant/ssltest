@@ -7,20 +7,18 @@ import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Hashtable;
 
-import de.dogcraft.ssltest.tests.TestImplementationBugs;
-
 public class BugTestingTLSClient extends TlsClientProtocol {
 
     private static SecureRandom random = new SecureRandom();
 
-    private TestImplementationBugs bouncy;
+    private CertificateObserver certObserver;
 
-    public BugTestingTLSClient(TestImplementationBugs bouncy, InputStream input, OutputStream output) {
+    public BugTestingTLSClient(CertificateObserver certObserver, InputStream input, OutputStream output) {
         super(input, output, random);
-        this.bouncy = bouncy;
+        this.certObserver = certObserver;
     }
 
-    boolean recievedHB = false;
+    private boolean recievedHB = false;
 
     public boolean fetchRecievedHB() {
         boolean hb = recievedHB;
@@ -53,12 +51,19 @@ public class BugTestingTLSClient extends TlsClientProtocol {
         if (tlsSession != null) {
             SessionParameters sp = tlsSession.exportSessionParameters();
             try {
-                Hashtable data = sp.readServerExtensions();
-                this.bouncy.setExt(data);
+                this.certObserver.OnServerExtensionsReceived(sp.readServerExtensions());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public interface CertificateObserver {
+
+        public void OnServerExtensionsReceived(Hashtable extensions);
+
+        public void OnCertificateReceived(Certificate cert);
+
     }
 
 }
