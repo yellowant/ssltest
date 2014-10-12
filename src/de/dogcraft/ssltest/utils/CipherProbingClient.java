@@ -74,7 +74,7 @@ public class CipherProbingClient extends DefaultTlsClient {
             @Override
             public void notifyServerCertificate(org.bouncycastle.crypto.tls.Certificate serverCertificate) throws IOException {
                 if (observer != null) {
-                    observer.OnCertificateReceived(serverCertificate);
+                    observer.onCertificateReceived(serverCertificate);
                 }
             }
 

@@ -52,7 +52,7 @@ public class BugTestingTLSClient extends TlsClientProtocol {
         if (tlsSession != null) {
             SessionParameters sp = tlsSession.exportSessionParameters();
             try {
-                this.certObserver.OnServerExtensionsReceived(sp.readServerExtensions());
+                this.certObserver.onServerExtensionsReceived(sp.readServerExtensions());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -61,9 +61,9 @@ public class BugTestingTLSClient extends TlsClientProtocol {
 
     public interface CertificateObserver {
 
-        public void OnServerExtensionsReceived(Hashtable<Integer, byte[]> extensions);
+        public void onServerExtensionsReceived(Hashtable<Integer, byte[]> extensions);
 
-        public void OnCertificateReceived(Certificate cert);
+        public void onCertificateReceived(Certificate cert);
 
     }
 

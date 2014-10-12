@@ -48,12 +48,12 @@ public class TestImplementationBugs {
         CertificateObserver observer = new CertificateObserver() {
 
             @Override
-            public void OnServerExtensionsReceived(Hashtable<Integer, byte[]> extensions) {
+            public void onServerExtensionsReceived(Hashtable<Integer, byte[]> extensions) {
                 TestImplementationBugs.this.extensions = extensions;
             }
 
             @Override
-            public void OnCertificateReceived(Certificate cert) {
+            public void onCertificateReceived(Certificate cert) {
                 TestImplementationBugs.this.cert = cert;
             }
 
