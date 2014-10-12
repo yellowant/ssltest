@@ -74,7 +74,7 @@ public class TestingTLSClient extends TlsClientProtocol {
     protected void raiseAlert(short alertLevel, short alertDescription, String message, Exception cause) throws IOException {
         if (cause != null) {
             failedLocaly = true;
-            // cause.printStackTrace();
+            cause.printStackTrace();
         }
         super.raiseAlert(alertLevel, alertDescription, message, cause);
     }

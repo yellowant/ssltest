@@ -1,6 +1,7 @@
 package de.dogcraft.ssltest.utils;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -8,7 +9,7 @@ import java.util.Vector;
 
 import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.AlertLevel;
-import org.bouncycastle.crypto.tls.Certificate;
+import org.bouncycastle.crypto.tls.BugTestingTLSClient.CertificateObserver;
 import org.bouncycastle.crypto.tls.DefaultTlsClient;
 import org.bouncycastle.crypto.tls.HeartbeatExtension;
 import org.bouncycastle.crypto.tls.HeartbeatMode;
@@ -21,7 +22,7 @@ import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 
 public class CipherProbingClient extends DefaultTlsClient {
 
-    private Certificate cert;
+    private static SecureRandom random = new SecureRandom();
 
     private final String host;
 
@@ -29,10 +30,13 @@ public class CipherProbingClient extends DefaultTlsClient {
 
     private final short[] comp;
 
-    public CipherProbingClient(String host, int port, Collection<Integer> ciphers, short[] comp) {
-        this.host = host;
+    CertificateObserver observer;
 
-        Integer[] tmpI = (Integer[]) ciphers.toArray();
+    public CipherProbingClient(String host, int port, Collection<Integer> ciphers, short[] comp, CertificateObserver observer) {
+        this.host = host;
+        this.observer = observer;
+
+        Integer[] tmpI = ciphers.toArray(new Integer[ciphers.size()]);
         int[] tmp = new int[tmpI.length];
         for (int idx = 0; idx < tmpI.length; idx++) {
             tmp[idx] = tmpI[idx];
@@ -69,7 +73,9 @@ public class CipherProbingClient extends DefaultTlsClient {
 
             @Override
             public void notifyServerCertificate(org.bouncycastle.crypto.tls.Certificate serverCertificate) throws IOException {
-                cert = serverCertificate;
+                if (observer != null) {
+                    observer.onCertificateReceived(serverCertificate);
+                }
             }
 
         };

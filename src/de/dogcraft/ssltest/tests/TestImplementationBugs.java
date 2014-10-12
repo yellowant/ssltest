@@ -29,7 +29,9 @@ public class TestImplementationBugs {
     public boolean testDeflate(TestOutput pw) throws IOException {
         Socket sock = new Socket(host, port);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] { CompressionMethod.DEFLATE });
+        CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] {
+            CompressionMethod.DEFLATE
+        }, null);
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();
@@ -43,22 +45,27 @@ public class TestImplementationBugs {
 
     public void testBug(TestOutput pw) throws IOException {
         Socket sock = new Socket(host, port);
-        BugTestingTLSClient tcp = new BugTestingTLSClient(new CertificateObserver() {
+        CertificateObserver observer = new CertificateObserver() {
 
             @Override
-            public void OnServerExtensionsReceived(Hashtable<Integer, byte[]> extensions) {
+            public void onServerExtensionsReceived(Hashtable<Integer, byte[]> extensions) {
                 TestImplementationBugs.this.extensions = extensions;
             }
 
             @Override
-            public void OnCertificateReceived(Certificate cert) {
+            public void onCertificateReceived(Certificate cert) {
                 TestImplementationBugs.this.cert = cert;
             }
 
-        }, sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] { CompressionMethod._null });
+        };
+        BugTestingTLSClient tcp = new BugTestingTLSClient(observer, sock.getInputStream(), sock.getOutputStream());
+        CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] {
+            CompressionMethod._null
+        }, observer);
         tcp.connect(tc);
-        HeartbeatMessage hbm = new HeartbeatMessage(HeartbeatMessageType.heartbeat_request, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 16);
+        HeartbeatMessage hbm = new HeartbeatMessage(HeartbeatMessageType.heartbeat_request, new byte[] {
+                1, 2, 3, 4, 5, 6, 7, 8
+        }, 16);
         sock.setSoTimeout(1500);
         boolean hb = false;
         try {
