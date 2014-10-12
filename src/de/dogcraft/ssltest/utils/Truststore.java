@@ -82,7 +82,7 @@ public class Truststore {
             }
         }
         try {
-            Truststore any = new Truststore(new File("trusts\\any"), storesm);
+            Truststore any = new Truststore(new File("trusts/any"), storesm);
             storesm.put("any", any);
         } catch (GeneralSecurityException e) {
             throw new Error(e);
