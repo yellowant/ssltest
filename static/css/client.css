@@ -1,3 +1,6 @@
-body {
-	font-face: 'Comic Sans';
+#container {
+	margin-top: 70px;	
+}
+.space-below {
+	margin-bottom: 10px;
 }

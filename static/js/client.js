@@ -1,6 +1,10 @@
 function events(){
 	var domain = document.getElementById('domain').value;
 	var port = document.getElementById('port').value;
+	
+	if(port.trim() == "") {
+		port = 443;
+	}
 
 	var url = '/test.event?domain='+encodeURIComponent(domain)+'&port='+encodeURIComponent(port);
 
