@@ -49,8 +49,7 @@ public class TruststoreOverview extends HttpServlet {
         public CertificateIdentifier(X509Certificate c, int count) {
             this.count = count;
             try {
-                pubkey = TruststoreUtil.outputFingerprint(c.getPublicKey().getEncoded(), MessageDigest.getInstance("SHA-1"));
-                pubkey = pubkey.substring(pubkey.length() - 8);
+                pubkey = TruststoreUtil.outputFingerprint(c.getPublicKey().getEncoded(), MessageDigest.getInstance("SHA-512"));
                 hash = c.getSigAlgName();
                 X500Name n = new X500Name(c.getSubjectX500Principal().getEncoded());
                 o = n.getOrganization();
@@ -89,17 +88,17 @@ public class TruststoreOverview extends HttpServlet {
             pw.print("<th>");
             output(pw, ou);
             pw.print("</th>");
-            pw.print("<th style='text-align: left' title='" + print + "'>");
+            pw.print("<th>");
             output(pw, cn);
             pw.print("</th>");
             pw.print("<th>");
             output(pw, other);
             pw.print("</th>");
-            pw.print("<th>");
+            pw.print("<th class=\"" + hash + "\">");
             pw.print(hash);
             pw.print("</th>");
-            pw.print("<th>");
-            pw.print(pubkey);
+            pw.print("<th style='text-align: left' title='" + print + "'>");
+            pw.print(pubkey.substring(pubkey.length() - 8));
             pw.print("</th>");
             pw.print("<th>");
             if (count != 1) {
@@ -223,7 +222,7 @@ public class TruststoreOverview extends HttpServlet {
             for (Entry<CertificateIdentifier, Certificate> e : certs.entrySet()) {
                 X509Certificate cert = (X509Certificate) e.getValue();
                 pw.print("<tr>");
-                e.getKey().print(pw, "SHA-512-end: " + TruststoreUtil.outputFingerprint(e.getValue(), MessageDigest.getInstance("SHA-512")).substring(118));
+                e.getKey().print(pw, TruststoreUtil.outputFingerprint(e.getValue(), MessageDigest.getInstance("SHA-512")));
                 pw.print("<td>");
                 outputDate(pw, cert.getNotBefore());
                 pw.print("</td><td>");
