@@ -67,20 +67,25 @@ public class Truststore {
     private static final Map<String, Truststore> stores;
     static {
         HashMap<String, Truststore> storesm = new HashMap<>();
-        File f = new File("trusts");
-        for (File fs : f.listFiles()) {
-            if ( !fs.isDirectory() || fs.getName().startsWith("_")) {
-                continue;
+        try {
+            File f = new File("trusts");
+            for (File fs : f.listFiles()) {
+                if ( !fs.isDirectory() || fs.getName().startsWith("_")) {
+                    continue;
+                }
+                try {
+                    Truststore ts = new Truststore(fs, storesm);
+                    storesm.put(fs.getName(), ts);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            try {
-                Truststore ts = new Truststore(fs, storesm);
-                storesm.put(fs.getName(), ts);
-            } catch (GeneralSecurityException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         try {
             Truststore any = new Truststore(new File("trusts/any"), storesm);
             storesm.put("any", any);
@@ -90,15 +95,13 @@ public class Truststore {
             e.printStackTrace();
         }
         stores = Collections.unmodifiableMap(storesm);
-
     }
 
     public static Map<String, Truststore> getStores() {
         return stores;
     }
 
-    public static void main(String[] args) {
-    }
+    public static void main(String[] args) {}
 
     public boolean contains(Certificate c) {
         try {
