@@ -201,7 +201,6 @@ public class TruststoreOverview extends HttpServlet {
             pw.print("<th><span title='");
             pw.print(truststore.getKey());
             pw.print("'>?</span></th>");
-
         }
         pw.println("</tr>");
         try {
@@ -223,11 +222,9 @@ public class TruststoreOverview extends HttpServlet {
                 X509Certificate cert = (X509Certificate) e.getValue();
                 pw.print("<tr>");
                 e.getKey().print(pw, TruststoreUtil.outputFingerprint(e.getValue(), MessageDigest.getInstance("SHA-512")));
+                outputDate(pw, cert.getNotBefore(), false);
+                outputDate(pw, cert.getNotAfter(), true);
                 pw.print("<td>");
-                outputDate(pw, cert.getNotBefore());
-                pw.print("</td><td>");
-                outputDate(pw, cert.getNotAfter());
-                pw.print("</td><td>");
                 try {
                     cert.verify(cert.getPublicKey());
                     pw.print("S");
@@ -256,9 +253,67 @@ public class TruststoreOverview extends HttpServlet {
 
     }
 
-    private void outputDate(PrintWriter pw, Date notBefore) {
+    private void outputDate(PrintWriter pw, Date notBefore, boolean endOfLife) {
+        String attrib = " style=\"";
+
+        Date now = new Date();
+        Long diff = notBefore.getTime() - now.getTime();
+
+        if ( !endOfLife) {
+            diff = -diff;
+        }
+
+        if (diff < 0) {
+            attrib += "background-color: #FF8888;";
+        } else {
+            diff /= 1000;
+            diff /= 86400;
+            diff /= 30;
+
+            if (diff < 3) {
+                attrib += "background-color: #FFCCCC;";
+            } else if (diff < 6) {
+                attrib += "background-color: #FFDDCC;";
+            } else if (diff < 12) {
+                attrib += "background-color: #FFEECC;";
+            } else if (diff < 24) {
+                attrib += "background-color: #FFFFCC;";
+            } else if (diff < 36) {
+                attrib += "background-color: #EEFFCC;";
+            } else if (diff < 60) {
+                attrib += "background-color: #DDFFCC;";
+            } else if (diff < 120) {
+                attrib += "background-color: #CCFFCC;";
+            } else if (diff < 140) {
+                attrib += "background-color: #CCFFDD;";
+            } else if (diff < 160) {
+                attrib += "background-color: #CCFFEE;";
+            } else if (diff < 180) {
+                attrib += "background-color: #CCFFFF;";
+            } else if (diff < 200) {
+                attrib += "background-color: #CCEEFF;";
+            } else if (diff < 220) {
+                attrib += "background-color: #CCDDFF;";
+            } else if (diff < 240) {
+                attrib += "background-color: #CCCCFF;";
+            } else if (diff < 260) {
+                attrib += "background-color: #B0CCFF;";
+            } else if (diff < 280) {
+                attrib += "background-color: #9CCCFF;";
+            } else if (diff < 300) {
+                attrib += "background-color: #8888FF;";
+            } else {
+                attrib += "background-color: #FF88FF;";
+            }
+        }
+
+        attrib += "\"";
+        outputDate(pw, notBefore, attrib);
+    }
+
+    private void outputDate(PrintWriter pw, Date notBefore, String attrib) {
         Calendar gc = Calendar.getInstance();
         gc.setTime(notBefore);
-        pw.print("<span title='" + notBefore + "'>" + gc.get(Calendar.YEAR) + "</span>");
+        pw.print("<td title=\"" + notBefore + "\"" + attrib + ">" + gc.get(Calendar.YEAR) + "</td>");
     }
 }
