@@ -2,18 +2,25 @@ package de.dogcraft.ssltest.service;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.EllipticCurve;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import javax.crypto.interfaces.DHPublicKey;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -46,8 +53,11 @@ public class TruststoreOverview extends HttpServlet {
 
         String country;
 
+        private X509Certificate c;
+
         public CertificateIdentifier(X509Certificate c, int count) {
             this.count = count;
+            this.c = c;
             try {
                 pubkey = TruststoreUtil.outputFingerprint(c.getPublicKey().getEncoded(), MessageDigest.getInstance("SHA-512"));
                 hash = c.getSigAlgName();
@@ -96,6 +106,39 @@ public class TruststoreOverview extends HttpServlet {
             pw.print("</th>");
             pw.print("<th class=\"" + hash + "\">");
             pw.print(hash);
+            pw.print("</th>");
+            pw.print("<th>");
+            PublicKey pk = c.getPublicKey();
+            pw.print(pk.getAlgorithm());
+            pw.print("</th>");
+            pw.print("<th>");
+            if (pk instanceof RSAPublicKey) {
+                pw.print(((RSAPublicKey) pk).getModulus().bitLength());
+                pw.print("</th>");
+                pw.print("<th>");
+                BigInteger publicExponent = ((RSAPublicKey) pk).getPublicExponent();
+                if (publicExponent.bitLength() > 50) {
+                    pw.print(publicExponent.bitLength() + "bit");
+                } else {
+                    pw.print(publicExponent);
+                }
+            } else if (pk instanceof ECPublicKey) {
+                EllipticCurve ec = ((ECPublicKey) pk).getParams().getCurve();
+                pw.print(ec.getField().getFieldSize());
+                pw.print("</th>");
+                pw.print("<th>");
+            } else if (pk instanceof DSAPublicKey) {
+                pw.print(((DSAPublicKey) pk).getY().bitLength());
+                pw.print("</th>");
+                pw.print("<th>");
+            } else if (pk instanceof DHPublicKey) {
+                pw.print(((DHPublicKey) pk).getY().bitLength());
+                pw.print("</th>");
+                pw.print("<th>");
+            } else {
+                pw.print("unknown</th>");
+                pw.print("<th>");
+            }
             pw.print("</th>");
             pw.print("<th style='text-align: left' title='" + print + "'>");
             pw.print(pubkey.substring(pubkey.length() - 8));
@@ -191,7 +234,7 @@ public class TruststoreOverview extends HttpServlet {
         pw.println("<body>");
         pw.println("<table border='1'>");
         TreeMap<String, Truststore> store = new TreeMap<>();
-        pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
+        pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>keyType</th><th>keySize</th><th>publicExponent</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
         for (Entry<String, Truststore> truststore : Truststore.getStores().entrySet()) {
             if (truststore.getKey().equals("any"))
                 continue;
