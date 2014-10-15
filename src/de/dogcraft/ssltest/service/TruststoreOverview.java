@@ -107,39 +107,145 @@ public class TruststoreOverview extends HttpServlet {
             pw.print("<th class=\"" + hash + "\">");
             pw.print(hash);
             pw.print("</th>");
-            pw.print("<th>");
             PublicKey pk = c.getPublicKey();
-            pw.print(pk.getAlgorithm());
-            pw.print("</th>");
-            pw.print("<th>");
             if (pk instanceof RSAPublicKey) {
-                pw.print(((RSAPublicKey) pk).getModulus().bitLength());
+                pw.print("<th style=\"background-color:#CCFFCC;\">");
+                pw.print(pk.getAlgorithm());
+                pw.print("</th>");
+                int bitLength = ((RSAPublicKey) pk).getModulus().bitLength();
+                String bitsec;
+                if (bitLength <= 512) {
+                    bitsec = "background-color: #FF4444;";
+                } else if (bitLength < 1024) {
+                    bitsec = "background-color: #FF8888;";
+                } else if (bitLength < 2048) {
+                    bitsec = "background-color: #FFCCCC;";
+                } else if (bitLength < 3072) {
+                    bitsec = "background-color: #FFDDCC;";
+                } else if (bitLength < 4096) {
+                    bitsec = "background-color: #FFEECC;";
+                } else if (bitLength < 6144) {
+                    bitsec = "background-color: #FFFFCC;";
+                } else if (bitLength < 8192) {
+                    bitsec = "background-color: #EEFFCC;";
+                } else if (bitLength < 12288) {
+                    bitsec = "background-color: #DDFFCC;";
+                } else if (bitLength < 16384) {
+                    bitsec = "background-color: #CCFFCC;";
+                } else if (bitLength < 32768) {
+                    bitsec = "background-color: #CCFFFF;";
+                } else if (bitLength < 65536) {
+                    bitsec = "background-color: #CCCCFF;";
+                } else {
+                    bitsec = "background-color: #8888FF;";
+                }
+                pw.print("<th style=\"" + bitsec + "\">");
+                pw.print(bitLength);
                 pw.print("</th>");
                 pw.print("<th>");
                 BigInteger publicExponent = ((RSAPublicKey) pk).getPublicExponent();
                 if (publicExponent.bitLength() > 50) {
-                    pw.print(publicExponent.bitLength() + "bit");
+                    pw.print("e = [" + publicExponent.bitLength() + "bit]");
                 } else {
-                    pw.print(publicExponent);
+                    pw.print("e = " + publicExponent);
                 }
+                pw.print("</th>");
             } else if (pk instanceof ECPublicKey) {
+                pw.print("<th style=\"background-color:#CCCCFF;\">");
+                pw.print(pk.getAlgorithm());
+                pw.print("</th>");
                 EllipticCurve ec = ((ECPublicKey) pk).getParams().getCurve();
-                pw.print(ec.getField().getFieldSize());
+                int bitLength = ec.getField().getFieldSize();
+                String bitsec;
+                if (bitLength <= 192) {
+                    bitsec = "background-color: #FF4444;";
+                } else if (bitLength < 224) {
+                    bitsec = "background-color: #FF8888;";
+                } else if (bitLength < 256) {
+                    bitsec = "background-color: #FFCCCC;";
+                } else if (bitLength < 320) {
+                    bitsec = "background-color: #FFDDCC;";
+                } else if (bitLength < 384) {
+                    bitsec = "background-color: #FFEECC;";
+                } else if (bitLength < 416) {
+                    bitsec = "background-color: #FFFFCC;";
+                } else if (bitLength < 448) {
+                    bitsec = "background-color: #EEFFCC;";
+                } else if (bitLength < 480) {
+                    bitsec = "background-color: #DDFFCC;";
+                } else if (bitLength < 512) {
+                    bitsec = "background-color: #CCFFCC;";
+                } else if (bitLength < 640) {
+                    bitsec = "background-color: #CCFFFF;";
+                } else if (bitLength < 768) {
+                    bitsec = "background-color: #CCCCFF;";
+                } else {
+                    bitsec = "background-color: #8888FF;";
+                }
+                pw.print("<th style=\"" + bitsec + "\">");
+                pw.print(bitLength);
                 pw.print("</th>");
                 pw.print("<th>");
+                pw.print("Char = ?, Curve = ?");
+                pw.print("</th>");
             } else if (pk instanceof DSAPublicKey) {
-                pw.print(((DSAPublicKey) pk).getY().bitLength());
+                pw.print("<th style=\"background-color:#FFCCCC;\">");
+                pw.print(pk.getAlgorithm());
+                pw.print("</th>");
+                int bitLength = ((DSAPublicKey) pk).getY().bitLength();
+                String bitsec;
+                if (bitLength <= 512) {
+                    bitsec = "background-color: #FF4444;";
+                } else if (bitLength < 1024) {
+                    bitsec = "background-color: #FF8888;";
+                } else if (bitLength < 2048) {
+                    bitsec = "background-color: #FFCCCC;";
+                } else if (bitLength < 3072) {
+                    bitsec = "background-color: #FFDDCC;";
+                } else if (bitLength < 4096) {
+                    bitsec = "background-color: #FFEECC;";
+                } else if (bitLength < 6144) {
+                    bitsec = "background-color: #FFFFCC;";
+                } else if (bitLength < 8192) {
+                    bitsec = "background-color: #EEFFCC;";
+                } else if (bitLength < 12288) {
+                    bitsec = "background-color: #DDFFCC;";
+                } else if (bitLength < 16384) {
+                    bitsec = "background-color: #CCFFCC;";
+                } else if (bitLength < 32768) {
+                    bitsec = "background-color: #CCFFFF;";
+                } else if (bitLength < 65536) {
+                    bitsec = "background-color: #CCCCFF;";
+                } else {
+                    bitsec = "background-color: #8888FF;";
+                }
+                pw.print("<th style=\"" + bitsec + "\">");
+                pw.print(bitLength);
                 pw.print("</th>");
                 pw.print("<th>");
+                pw.print("g = ?, y = ?");
+                pw.print("</th>");
             } else if (pk instanceof DHPublicKey) {
+                pw.print("<th style=\"background-color:#FFFFCC;\">");
+                pw.print(pk.getAlgorithm());
+                pw.print("</th>");
+                pw.print("<th>");
                 pw.print(((DHPublicKey) pk).getY().bitLength());
                 pw.print("</th>");
                 pw.print("<th>");
+                pw.print("g = ?");
+                pw.print("</th>");
             } else {
-                pw.print("unknown</th>");
                 pw.print("<th>");
+                pw.print(pk.getAlgorithm());
+                pw.print("</th>");
+                pw.print("<th>");
+                pw.print("-");
+                pw.print("</th>");
+                pw.print("<th>");
+                pw.print("-");
+                pw.print("</th>");
             }
-            pw.print("</th>");
             pw.print("<th style='text-align: left' title='" + print + "'>");
             pw.print(pubkey.substring(pubkey.length() - 8));
             pw.print("</th>");
@@ -234,7 +340,7 @@ public class TruststoreOverview extends HttpServlet {
         pw.println("<body>");
         pw.println("<table border='1'>");
         TreeMap<String, Truststore> store = new TreeMap<>();
-        pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>keyType</th><th>keySize</th><th>publicExponent</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
+        pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>keyType</th><th>keySize</th><th>keyDetail</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
         for (Entry<String, Truststore> truststore : Truststore.getStores().entrySet()) {
             if (truststore.getKey().equals("any"))
                 continue;
