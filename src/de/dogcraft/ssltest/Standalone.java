@@ -23,7 +23,9 @@ public class Standalone {
         hand.setResourceBase("static/");
         ContextHandler resHand = new ContextHandler("/static");
         resHand.setHandler(hand);
-        hl.setHandlers(new Handler[] { resHand, main });
+        hl.setHandlers(new Handler[] {
+                resHand, main
+        });
         s.setHandler(hl);
         s.start();
     }
