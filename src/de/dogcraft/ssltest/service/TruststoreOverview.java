@@ -150,8 +150,37 @@ public class TruststoreOverview extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+
         PrintWriter pw = resp.getWriter();
+        pw.println("<!DOCTYPE html>");
+        pw.println("<html>");
+        pw.println("<head>");
         pw.println("<style type='text/css'>");
+        pw.println("/* Signature Algorithm coloring */");
+        pw.println(".MD2withRSA { background-color: #FFCCCC;}");
+        pw.println(".MD4withRSA { background-color: #FFDDCC;}");
+        pw.println(".MD5withRSA { background-color: #FFEECC;}");
+        pw.println(".SHA1withRSA { background-color: #FFFFCC;}");
+        pw.println(".SHA256withRSA { background-color: #EEFFCC;}");
+        pw.println(".SHA384withRSA { background-color: #DDFFCC;}");
+        pw.println(".SHA512withRSA { background-color: #CCFFCC;}");
+
+        pw.println(".MD2withDSA { background-color: #FFCCCC;}");
+        pw.println(".MD4withDSA { background-color: #FFDDCC;}");
+        pw.println(".MD5withDSA { background-color: #FFEECC;}");
+        pw.println(".SHA1withDSA { background-color: #FFFFCC;}");
+        pw.println(".SHA256withDSA { background-color: #EEFFCC;}");
+        pw.println(".SHA384withDSA { background-color: #DDFFCC;}");
+        pw.println(".SHA512withDSA { background-color: #CCFFCC;}");
+
+        pw.println(".SHA1withECDSA { background-color: #FFFFCC;}");
+        pw.println(".SHA256withECDSA { background-color: #CCEEFF;}");
+        pw.println(".SHA384withECDSA { background-color: #CCDDFF;}");
+        pw.println(".SHA384withECDSA { background-color: #CCCCFF;}");
+
+        pw.println("/* System Store coloring */");
         pw.println(".firefox{ background-color: #FFAA33;}");
         pw.println(".debian{ background-color: #BB8888;}");
         pw.println(".openbsd{ background-color: #f2eb5d;}");
@@ -159,6 +188,8 @@ public class TruststoreOverview extends HttpServlet {
         pw.println(".android{ background-color: #adf260;}");
         pw.println(".win{ background-color: #22affe;}");
         pw.println("</style>");
+        pw.println("</head>");
+        pw.println("<body>");
         pw.println("<table border='1'>");
         TreeMap<String, Truststore> store = new TreeMap<>();
         pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
@@ -218,6 +249,8 @@ public class TruststoreOverview extends HttpServlet {
                 pw.println("</tr>");
             }
             pw.println("</table>");
+            pw.println("</body>");
+            pw.println("</html>");
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
         }
