@@ -13,19 +13,19 @@ import de.dogcraft.ssltest.service.TruststoreOverview;
 
 public class Standalone {
 
-	public static void main(String[] args) throws Exception {
-		Server s = new Server(8080);
-		ServletContextHandler main = new ServletContextHandler();
-		main.addServlet(new ServletHolder(new Service()), "/*");
-		main.addServlet(new ServletHolder(new TruststoreOverview()), "/trust");
-		HandlerList hl = new HandlerList();
-		ResourceHandler hand = new ResourceHandler();
-		hand.setResourceBase("static/");
-		ContextHandler resHand = new ContextHandler("/static");
-		resHand.setHandler(hand);
-		hl.setHandlers(new Handler[] { resHand, main });
-		s.setHandler(hl);
-		s.start();
-	}
+    public static void main(String[] args) throws Exception {
+        Server s = new Server(8080);
+        ServletContextHandler main = new ServletContextHandler();
+        main.addServlet(new ServletHolder(new Service()), "/*");
+        main.addServlet(new ServletHolder(new TruststoreOverview()), "/trust");
+        HandlerList hl = new HandlerList();
+        ResourceHandler hand = new ResourceHandler();
+        hand.setResourceBase("static/");
+        ContextHandler resHand = new ContextHandler("/static");
+        resHand.setHandler(hand);
+        hl.setHandlers(new Handler[] { resHand, main });
+        s.setHandler(hl);
+        s.start();
+    }
 
 }
