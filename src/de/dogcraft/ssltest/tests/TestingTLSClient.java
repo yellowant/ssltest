@@ -104,6 +104,38 @@ public class TestingTLSClient extends TlsClientProtocol {
         /** Raw information on this particular Key Exchange */
         private TlsKeyExchange raw;
 
+        public String getKexType() {
+            return kexType;
+        }
+
+        public Integer getKexSize() {
+            return kexSize;
+        }
+
+        public String getAuthKeyType() {
+            return authKeyType;
+        }
+
+        public int getAuthKeySize() {
+            return authKeySize;
+        }
+
+        public TlsKeyExchange getRaw() {
+            return raw;
+        }
+
+        public String getCipherType() {
+            return "FOO";
+        }
+
+        public int getCipherSize() {
+            return 42;
+        }
+
+    }
+
+    public TLSCipherInfo getCipherInfo() {
+        return cipherInfo;
     }
 
 }

@@ -5,13 +5,18 @@ import java.lang.reflect.Field;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
 
 import org.bouncycastle.crypto.tls.CipherSuite;
 import org.bouncycastle.crypto.tls.CompressionMethod;
+import org.bouncycastle.crypto.tls.TlsCipher;
+import org.bouncycastle.crypto.tls.TlsCompression;
+import org.bouncycastle.crypto.tls.TlsKeyExchange;
 
+import de.dogcraft.ssltest.tests.TestingTLSClient.TLSCipherInfo;
 import de.dogcraft.ssltest.utils.CipherProbingClient;
 
 public class TestCipherList {
@@ -58,36 +63,31 @@ public class TestCipherList {
     }
 
     public String[] determineCiphers(TestOutput pw) throws IOException {
-        LinkedList<Integer> yourCiphers = new LinkedList<>();
+        LinkedList<TestResultCipher> yourCiphers = new LinkedList<>();
         Collection<Integer> ciphers = getAllCiphers();
 
         LinkedList<TestResultCipher> chosen = new LinkedList<>();
         try {
             for (int n = 0; n < ciphers.size(); n++) {
-                int selection = choose(ciphers);
+                TestResultCipher selection = choose(ciphers);
                 yourCiphers.add(selection);
 
-                TestResultCipher resultCipher = new TestResultCipher();
-                resultCipher.cipherID = selection;
-                resultCipher.priority = n;
-                resultCipher.supported = true;
+                selection.priority = n;
 
-                String cipherDesc = cipherNames.get(selection) + " (0x" + Integer.toHexString(selection) + ") " + resultCipher.toString();
+                String cipherDesc = selection.toString();
 
                 if (pw != null) {
                     pw.output(cipherDesc);
                 }
 
-                chosen.add(resultCipher);
-
-                ciphers.remove(selection);
+                ciphers.remove(selection.cipherID);
             }
         } catch (Throwable t) {
             t.printStackTrace();
         }
-        int best = yourCiphers.get(0);
-        int worst = yourCiphers.get(yourCiphers.size() - 1);
-        int choice = choose(Arrays.asList(worst, best));
+        int best = yourCiphers.get(0).getCipherID();
+        int worst = yourCiphers.get(yourCiphers.size() - 1).getCipherID();
+        int choice = choose(Arrays.asList(worst, best)).getCipherID();
         serverPref = choice != worst;
         // TODO output was already made to the test output;
         // return chosen.toArray(new TestResultCipher[chosen.size()]);
@@ -101,6 +101,14 @@ public class TestCipherList {
         public Boolean supported;
 
         public Integer priority;
+
+        public TlsKeyExchange kex;
+
+        public TlsCompression compress;
+
+        public TlsCipher cipher;
+
+        public TLSCipherInfo info;
 
         public Integer getCipherID() {
             return cipherID;
@@ -130,30 +138,46 @@ public class TestCipherList {
             this.priority = priority;
         }
 
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            Formatter f = new Formatter(sb);
+            f.format("%06x (%s): kex=%s(%d), auth=%s(%d), enc=%s(%d) mode=%s mac=%s(%d)", getCipherID(), getCipherName(), info.getKexType(), info.getKexSize(), info.getAuthKeyType(), info.getAuthKeySize(), info.getCipherType(), info.getCipherSize(), "NSA", "Whirlpool", 512);
+            return sb.toString();
+        }
     }
 
-    private int choose(final Collection<Integer> ciphers) throws IOException {
+    private TestResultCipher choose(final Collection<Integer> ciphers) throws IOException {
         Socket sock = new Socket(host, port);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] {
-            CompressionMethod._null
-        }, null);
+        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] { CompressionMethod._null }, null);
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();
             tcp.close();
             sock.close();
-        } catch (Throwable t) {
+        } catch (IOException e) {
 
         }
+
         int selectedCipherSuite = tc.getSelectedCipherSuite();
         if (selectedCipherSuite == 0) {
             throw new IOException();
         }
+
         if (tc.isFailed() || tcp.hasFailedLocaly()) {
             System.out.println("--- failed ---: " + cipherNames.get(selectedCipherSuite));
         }
-        return selectedCipherSuite;
+
+        TestResultCipher resultCipher = new TestResultCipher();
+        resultCipher.cipherID = selectedCipherSuite;
+        resultCipher.priority = 0;
+        resultCipher.supported = true;
+        resultCipher.kex = tc.getKeyExchange();
+        resultCipher.compress = tc.getCompression();
+        // resultCipher.cipher = tc.getCipher();
+        resultCipher.info = tcp.getCipherInfo();
+
+        return resultCipher;
     }
 
 }
