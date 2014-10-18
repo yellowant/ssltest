@@ -329,12 +329,13 @@ public class TruststoreOverview extends HttpServlet {
         pw.println(".SHA384withECDSA { background-color: #CCCCFF;}");
 
         pw.println("/* System Store coloring */");
-        pw.println(".firefox{ background-color: #FFAA33;}");
-        pw.println(".debian{ background-color: #BB8888;}");
-        pw.println(".openbsd{ background-color: #f2eb5d;}");
-        pw.println(".osx{ background-color: #DDDDFF;}");
-        pw.println(".android{ background-color: #adf260;}");
-        pw.println(".win{ background-color: #22affe;}");
+        pw.println(".archlinux{ background-color: #0088CC; }");
+        pw.println(".debian{ background-color: #BB8888; }");
+        pw.println(".firefox{ background-color: #FFAA33; }");
+        pw.println(".openbsd{ background-color: #f2eb5d; }");
+        pw.println(".osx{ background-color: #DDDDFF; }");
+        pw.println(".android{ background-color: #adf260; }");
+        pw.println(".win{ background-color: #42affe; }");
         pw.println("</style>");
         pw.println("</head>");
         pw.println("<body>");
