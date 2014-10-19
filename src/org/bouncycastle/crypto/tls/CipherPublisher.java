@@ -16,7 +16,7 @@ public class CipherPublisher {
             if (ci instanceof CCMBlockCipher) {
                 info.setMac("CCM", 0);
             } else if (ci instanceof GCMBlockCipher) {
-                info.setMac("GCM", 0);
+                info.setMac("GCM", ((GCMBlockCipher) ci).getOutputSize(0));
             } else {
                 info.setMac("???", 0);
             }

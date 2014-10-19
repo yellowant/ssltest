@@ -155,9 +155,7 @@ public class TestCipherList {
     private TestResultCipher choose(final Collection<Integer> ciphers) throws IOException {
         Socket sock = new Socket(host, port);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] {
-            CompressionMethod._null
-        }, null);
+        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] { CompressionMethod._null }, null);
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();

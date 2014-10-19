@@ -121,13 +121,13 @@ public class TestingTLSClient extends TlsClientProtocol {
         /** Raw information on this particular Key Exchange */
         private TlsKeyExchange raw;
 
-        private String cipher;
+        private String cipherName;
 
-        private int cipherLen;
+        private int cipherSize;
 
-        private String mac;
+        private String macType;
 
-        private int macLen;
+        private int macSize;
 
         public boolean isPFS() {
             return pfs;
@@ -154,33 +154,33 @@ public class TestingTLSClient extends TlsClientProtocol {
         }
 
         public String getCipherType() {
-            return cipher.split("/", 2)[0];
+            return cipherName.split("/", 2)[0];
         }
 
         public String getCipherMode() {
-            return cipher.split("/", 2)[1];
+            return cipherName.split("/", 2)[1];
         }
 
         public int getCipherSize() {
-            return cipherLen;
+            return cipherSize;
         }
 
         public String getMacType() {
-            return mac;
+            return macType;
         }
 
         public int getMacSize() {
-            return macLen;
+            return macSize;
         }
 
-        public void setMac(String algorithmName, int macSize) {
-            mac = algorithmName;
-            macLen = macSize * 8;
+        public void setMac(String algorithmName, int macLen) {
+            macType = algorithmName;
+            macSize = macLen * 8;
         }
 
         public void setCipher(String algorithmName, int blockSize) {
-            cipher = algorithmName;
-            cipherLen = blockSize * 8;
+            cipherName = algorithmName;
+            cipherSize = blockSize * 8;
         }
 
     }
