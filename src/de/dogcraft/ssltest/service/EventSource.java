@@ -18,6 +18,8 @@ public class EventSource extends HttpServlet {
         // set content type
         res.setContentType("text/event-stream");
         res.setCharacterEncoding("UTF-8");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Pragma", "no-cache, no-store, must-revalidate");
 
         String msg = req.getParameter("msg");
 
