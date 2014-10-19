@@ -32,7 +32,7 @@
 	<div class="container" id="container" role="main">
 		<div class="jumbotron">
 			<h1>Test a webserver!</h1>
-			<form method="POST">
+			<form method="POST" onSubmit="return false">
 				<div class="input-group space-below">
 					<span class="input-group-addon">@</span> <input type="text"
 						class="form-control" name="domain" id="domain"
@@ -41,7 +41,7 @@
 						class="form-control" name="port" id="port"
 						placeholder="Port - leave blank for 443">
 				</div>
-				<input type="button"
+				<input type="submit"
 					value="Check!" class="btn btn-primary btn-lg" onclick="events()">
 			</form>
 		</div>
