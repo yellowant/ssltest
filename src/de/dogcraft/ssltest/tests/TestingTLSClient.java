@@ -11,7 +11,9 @@ import org.bouncycastle.crypto.tls.DHParameterInspector;
 import org.bouncycastle.crypto.tls.SessionParameters;
 import org.bouncycastle.crypto.tls.TlsCipher;
 import org.bouncycastle.crypto.tls.TlsClientProtocol;
+import org.bouncycastle.crypto.tls.TlsDHEKeyExchange;
 import org.bouncycastle.crypto.tls.TlsDHKeyExchange;
+import org.bouncycastle.crypto.tls.TlsECDHEKeyExchange;
 import org.bouncycastle.crypto.tls.TlsECDHKeyExchange;
 import org.bouncycastle.crypto.tls.TlsKeyExchange;
 import org.bouncycastle.crypto.tls.TlsRSAKeyExchange;
@@ -52,12 +54,15 @@ public class TestingTLSClient extends TlsClientProtocol {
             e.printStackTrace();
         }
         cipherInfo.raw = keyExchange;
+        cipherInfo.pfs = false;
         if (keyExchange instanceof TlsDHKeyExchange) {
             cipherInfo.kexType = "DH";
             cipherInfo.kexSize = DHParameterInspector.inspectDH((TlsDHKeyExchange) keyExchange);
+            cipherInfo.pfs = keyExchange instanceof TlsDHEKeyExchange;
         } else if (keyExchange instanceof TlsECDHKeyExchange) {
             cipherInfo.kexType = "ECDH";
             cipherInfo.kexSize = DHParameterInspector.inspectECDH((TlsECDHKeyExchange) keyExchange);
+            cipherInfo.pfs = keyExchange instanceof TlsECDHEKeyExchange;
         } else if (keyExchange instanceof TlsRSAKeyExchange) {
             cipherInfo.kexType = "RSA";
             cipherInfo.kexSize = DHParameterInspector.inspectRSA((TlsRSAKeyExchange) keyExchange);
@@ -71,6 +76,7 @@ public class TestingTLSClient extends TlsClientProtocol {
             // cipherInfo.kexType = "SRP";
             // cipherInfo.kexSize =
             // DHParameterInspector.inspectSRP((TlsSRPKeyExchange) keyExchange);
+            // cipherInfo.pfs = true;
         } else {
             cipherInfo.kexType = "Unknown";
             cipherInfo.kexSize = 0;
@@ -98,7 +104,9 @@ public class TestingTLSClient extends TlsClientProtocol {
 
     public class TLSCipherInfo {
 
-        /** Key Exchange format: DH, DHE, ECDH, ECDHE, RSA, CK, PSK, SRP, NULL */
+        private boolean pfs;
+
+        /** Key Exchange format: DH, ECDH, RSA, CK, PSK, SRP, NULL */
         private String kexType;
 
         /** Key Exchange key size */
@@ -120,6 +128,10 @@ public class TestingTLSClient extends TlsClientProtocol {
         private String mac;
 
         private int macLen;
+
+        public boolean isPFS() {
+            return pfs;
+        }
 
         public String getKexType() {
             return kexType;

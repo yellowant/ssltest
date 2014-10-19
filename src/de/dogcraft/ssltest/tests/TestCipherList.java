@@ -141,11 +141,13 @@ public class TestCipherList {
         public String toString() {
             StringBuilder sb = new StringBuilder();
             Formatter f = new Formatter(sb);
-            f.format("%06x (%s): kex=%s(%d), auth=%s(%d), enc=%s(%d) mode=%s mac=%s(%d)", //
-                    getCipherID(), getCipherName(), info.getKexType(), info.getKexSize(), //
+            f.format("%06x (%s): kex=%s(%d), auth=%s(%d), enc=%s(%d) mode=%s mac=%s(%d) pfs=%s", //
+                    getCipherID(), getCipherName(), //
+                    info.getKexType(), info.getKexSize(), //
                     info.getAuthKeyType(), info.getAuthKeySize(), //
                     info.getCipherType(), info.getCipherSize(), info.getCipherMode(), //
-                    info.getMacType(), info.getMacSize());
+                    info.getMacType(), info.getMacSize(), //
+                    info.isPFS() ? "yes" : "no");
             return sb.toString();
         }
     }
