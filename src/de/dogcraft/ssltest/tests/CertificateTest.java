@@ -184,7 +184,7 @@ public class CertificateTest {
             long validFor = now.getTime() - start.getTime();
             if (validFor > 3 * 30 * MILLISECONDS_PER_DAY) {
                 pw.output("Certificate has been valid for at least 3 months (max)", 2);
-            } else if (validFor > 24 * 30 * MILLISECONDS_PER_DAY) {
+            } else if (validFor > 30 * MILLISECONDS_PER_DAY) {
                 pw.output("Certificate has been valid for at least 1 month", 1);
             } else {
                 pw.output("Certificate has been valid for less than 1 month", 0);
