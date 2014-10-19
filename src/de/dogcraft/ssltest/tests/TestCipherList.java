@@ -141,7 +141,11 @@ public class TestCipherList {
         public String toString() {
             StringBuilder sb = new StringBuilder();
             Formatter f = new Formatter(sb);
-            f.format("%06x (%s): kex=%s(%d), auth=%s(%d), enc=%s(%d) mode=%s mac=%s(%d)", getCipherID(), getCipherName(), info.getKexType(), info.getKexSize(), info.getAuthKeyType(), info.getAuthKeySize(), info.getCipherType(), info.getCipherSize(), "NSA", "Whirlpool", 512);
+            f.format("%06x (%s): kex=%s(%d), auth=%s(%d), enc=%s(%d) mode=%s mac=%s(%d)", //
+                    getCipherID(), getCipherName(), info.getKexType(), info.getKexSize(), //
+                    info.getAuthKeyType(), info.getAuthKeySize(), //
+                    info.getCipherType(), info.getCipherSize(), info.getCipherMode(), //
+                    info.getMacType(), info.getMacSize());
             return sb.toString();
         }
     }
@@ -149,7 +153,9 @@ public class TestCipherList {
     private TestResultCipher choose(final Collection<Integer> ciphers) throws IOException {
         Socket sock = new Socket(host, port);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] { CompressionMethod._null }, null);
+        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] {
+            CompressionMethod._null
+        }, null);
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();

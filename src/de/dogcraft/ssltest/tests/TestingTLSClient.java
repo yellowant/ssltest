@@ -6,8 +6,10 @@ import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Hashtable;
 
+import org.bouncycastle.crypto.tls.CipherPublisher;
 import org.bouncycastle.crypto.tls.DHParameterInspector;
 import org.bouncycastle.crypto.tls.SessionParameters;
+import org.bouncycastle.crypto.tls.TlsCipher;
 import org.bouncycastle.crypto.tls.TlsClientProtocol;
 import org.bouncycastle.crypto.tls.TlsDHKeyExchange;
 import org.bouncycastle.crypto.tls.TlsECDHKeyExchange;
@@ -42,6 +44,13 @@ public class TestingTLSClient extends TlsClientProtocol {
             }
         }
         cipherInfo = new TLSCipherInfo();
+        TlsCipher c;
+        try {
+            c = getPeer().getCipher();
+            CipherPublisher.publish(c, cipherInfo);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         cipherInfo.raw = keyExchange;
         if (keyExchange instanceof TlsDHKeyExchange) {
             cipherInfo.kexType = "DH";
@@ -104,6 +113,14 @@ public class TestingTLSClient extends TlsClientProtocol {
         /** Raw information on this particular Key Exchange */
         private TlsKeyExchange raw;
 
+        private String cipher;
+
+        private int cipherLen;
+
+        private String mac;
+
+        private int macLen;
+
         public String getKexType() {
             return kexType;
         }
@@ -125,11 +142,33 @@ public class TestingTLSClient extends TlsClientProtocol {
         }
 
         public String getCipherType() {
-            return "FOO";
+            return cipher.split("/", 2)[0];
+        }
+
+        public String getCipherMode() {
+            return cipher.split("/", 2)[1];
         }
 
         public int getCipherSize() {
-            return 42;
+            return cipherLen;
+        }
+
+        public String getMacType() {
+            return mac;
+        }
+
+        public int getMacSize() {
+            return macLen;
+        }
+
+        public void setMac(String algorithmName, int macSize) {
+            mac = algorithmName;
+            macLen = macSize * 8;
+        }
+
+        public void setCipher(String algorithmName, int blockSize) {
+            cipher = algorithmName;
+            cipherLen = blockSize * 8;
         }
 
     }
