@@ -62,7 +62,7 @@ public class TestCipherList {
         return serverPref;
     }
 
-    public String[] determineCiphers(TestOutput pw) throws IOException {
+    public String[] determineCiphers(TestOutput pw) {
         LinkedList<TestResultCipher> yourCiphers = new LinkedList<>();
         Collection<Integer> ciphers = getAllCiphers();
 
@@ -87,7 +87,13 @@ public class TestCipherList {
         }
         int best = yourCiphers.get(0).getCipherID();
         int worst = yourCiphers.get(yourCiphers.size() - 1).getCipherID();
-        int choice = choose(Arrays.asList(worst, best)).getCipherID();
+        int choice;
+        try {
+            choice = choose(Arrays.asList(worst, best)).getCipherID();
+        } catch (IOException e) {
+            choice = worst;
+            e.printStackTrace();
+        }
         serverPref = choice != worst;
         // TODO output was already made to the test output;
         // return chosen.toArray(new TestResultCipher[chosen.size()]);

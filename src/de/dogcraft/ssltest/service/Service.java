@@ -12,14 +12,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.bouncycastle.crypto.tls.ExtensionType;
-
-import de.dogcraft.ssltest.tests.CertificateTest;
-import de.dogcraft.ssltest.tests.TestCipherList;
-import de.dogcraft.ssltest.tests.TestImplementationBugs;
-import de.dogcraft.ssltest.tests.TestOutput;
-import de.dogcraft.ssltest.tests.TestResult;
-
 public class Service extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -140,46 +132,7 @@ public class Service extends HttpServlet {
             }
         }
 
-        try {
-            System.out.println("Testing " + domain + ":" + port);
-            to.output("Testing " + domain + ":" + port);
-
-            TestImplementationBugs b = new TestImplementationBugs(domain, port);
-            testBugs(b, to);
-            CertificateTest.testCerts(to, b);
-
-            boolean testCompression = b.testDeflate(to);
-            if (testCompression) {
-                to.output("Does support tls compression. ", -10);
-            } else {
-                to.output("Does not support tls compression.");
-            }
-
-            TestCipherList c = new TestCipherList(domain, port);
-            to.enterTest("Determining cipher suites");
-            determineCiphers(to, c);
-            to.exitTest("Determining cipher suites", TestResult.IGNORE);
-        } finally {
-            to.end();
-        }
-    }
-
-    private void testBugs(TestImplementationBugs b, TestOutput ps) throws IOException {
-        b.testBug(ps);
-        byte[] sn = b.getExt().get(ExtensionType.server_name);
-        byte[] hb = b.getExt().get(ExtensionType.heartbeat);
-        byte[] rn = b.getExt().get(ExtensionType.renegotiation_info);
-        ps.output("renego: " + (rn == null ? "off" : "on"));
-        ps.output("heartbeat: " + (hb == null ? "off" : "on"));
-    }
-
-    private void determineCiphers(TestOutput ps, TestCipherList c) throws IOException {
-        String[] ciph = c.determineCiphers(ps);
-        if (c.hasServerPref()) {
-            ps.output("Server has cipher preference.");
-        } else {
-            ps.output("Server has no cipher preference.");
-        }
+        to.performTest();
     }
 
 }
