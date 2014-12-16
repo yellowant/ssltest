@@ -21,13 +21,16 @@ public class TestImplementationBugs {
 
     private final int port;
 
-    public TestImplementationBugs(String host, int port) {
+    private final String proto;
+
+    public TestImplementationBugs(String host, int port, String proto) {
         this.host = host;
         this.port = port;
+        this.proto = proto;
     }
 
     public boolean testDeflate(TestOutput pw) throws IOException {
-        Socket sock = new Socket(host, port);
+        Socket sock = STARTTLS.starttls(new Socket(host, port), proto);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] {
             CompressionMethod.DEFLATE
@@ -44,7 +47,7 @@ public class TestImplementationBugs {
     }
 
     public void testBug(TestOutput pw) throws IOException {
-        Socket sock = new Socket(host, port);
+        Socket sock = STARTTLS.starttls(new Socket(host, port), proto);
         CertificateObserver observer = new CertificateObserver() {
 
             @Override
@@ -71,6 +74,7 @@ public class TestImplementationBugs {
         try {
             hb = tcp.sendHeartbeat(hbm, false);
         } catch (IOException e) {
+            e.printStackTrace();
         }
         boolean resp = tcp.fetchRecievedHB();
         boolean bleed = false;

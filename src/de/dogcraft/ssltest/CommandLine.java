@@ -34,9 +34,9 @@ public class CommandLine {
         }
 
         TestOutput to = new PrintstreamTestOutput(System.out);
-        TestImplementationBugs bugs = new TestImplementationBugs(host, port);
+        TestImplementationBugs bugs = new TestImplementationBugs(host, port, "direct");
 
-        TestCipherList cipherlist = new TestCipherList(host, port);
+        TestCipherList cipherlist = new TestCipherList(host, port, "direct");
         String[] ciph = cipherlist.determineCiphers(to);
         for (String string : ciph) {
             System.out.println(string);

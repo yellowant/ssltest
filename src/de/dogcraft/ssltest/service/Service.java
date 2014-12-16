@@ -106,7 +106,12 @@ public class Service extends HttpServlet {
             portStr = "443";
             return;
         }
+        String proto = "direct";
         try {
+            if (portStr.indexOf('-') != -1) {
+                proto = portStr.split("-", 2)[0];
+                portStr = portStr.split("-", 2)[1];
+            }
             port = Integer.parseInt(portStr);
         } catch (NumberFormatException nfe) {
             resp.sendError(401, "Fuck off");
@@ -142,9 +147,10 @@ public class Service extends HttpServlet {
 
         try {
             System.out.println("Testing " + domain + ":" + port);
+            System.out.println("Proto: " + proto);
             to.output("Testing " + domain + ":" + port);
 
-            TestImplementationBugs b = new TestImplementationBugs(domain, port);
+            TestImplementationBugs b = new TestImplementationBugs(domain, port, proto);
             testBugs(b, to);
             CertificateTest.testCerts(to, b);
 
@@ -155,7 +161,7 @@ public class Service extends HttpServlet {
                 to.output("Does not support tls compression.");
             }
 
-            TestCipherList c = new TestCipherList(domain, port);
+            TestCipherList c = new TestCipherList(domain, port, proto);
             to.enterTest("Determining cipher suites");
             determineCiphers(to, c);
             to.exitTest("Determining cipher suites", TestResult.IGNORE);

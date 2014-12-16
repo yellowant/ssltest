@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketTimeoutException;
 import java.security.SecureRandom;
 import java.util.Hashtable;
 
@@ -43,7 +44,15 @@ public class BugTestingTLSClient extends TlsClientProtocol {
 
         }
         safeWriteRecord(ContentType.heartbeat, pla, 0, pla.length);
-        return recordStream.readRecord();
+        try {
+            while (recordStream.readRecord()) {
+
+            }
+            return false;
+        } catch (SocketTimeoutException e) {
+            // is ok
+        }
+        return true;
     }
 
     @SuppressWarnings("unchecked")

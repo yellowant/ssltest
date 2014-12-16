@@ -51,7 +51,6 @@ public class TestingTLSClient extends TlsClientProtocol {
             c = getPeer().getCipher();
             CipherPublisher.publish(c, cipherInfo);
         } catch (IOException e) {
-            e.printStackTrace();
         }
         cipherInfo.raw = keyExchange;
         cipherInfo.pfs = false;

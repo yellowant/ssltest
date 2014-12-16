@@ -25,6 +25,8 @@ public class TestCipherList {
 
     private final int port;
 
+    private final String proto;
+
     private Vector<Integer> ciphers = new Vector<>();
 
     private boolean serverPref = false;
@@ -34,9 +36,10 @@ public class TestCipherList {
         initCipherNames();
     }
 
-    public TestCipherList(String host, int port) {
+    public TestCipherList(String host, int port, String proto) {
         this.host = host;
         this.port = port;
+        this.proto = proto;
     }
 
     private static void initCipherNames() {
@@ -83,7 +86,6 @@ public class TestCipherList {
                 ciphers.remove(selection.cipherID);
             }
         } catch (Throwable t) {
-            t.printStackTrace();
         }
         int best = yourCiphers.get(0).getCipherID();
         int worst = yourCiphers.get(yourCiphers.size() - 1).getCipherID();
@@ -153,9 +155,11 @@ public class TestCipherList {
     }
 
     private TestResultCipher choose(final Collection<Integer> ciphers) throws IOException {
-        Socket sock = new Socket(host, port);
+        Socket sock = STARTTLS.starttls(new Socket(host, port), proto);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] { CompressionMethod._null }, null);
+        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] {
+            CompressionMethod._null
+        }, null);
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();
