@@ -86,6 +86,7 @@ public class TestCipherList {
                 ciphers.remove(selection.cipherID);
             }
         } catch (Throwable t) {
+            t.printStackTrace();
         }
         int best = yourCiphers.get(0).getCipherID();
         int worst = yourCiphers.get(yourCiphers.size() - 1).getCipherID();
@@ -155,7 +156,7 @@ public class TestCipherList {
     }
 
     private TestResultCipher choose(final Collection<Integer> ciphers) throws IOException {
-        Socket sock = STARTTLS.starttls(new Socket(host, port), proto);
+        Socket sock = STARTTLS.starttls(new Socket(host, port), proto, host);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] {
             CompressionMethod._null
@@ -166,7 +167,7 @@ public class TestCipherList {
             tcp.close();
             sock.close();
         } catch (IOException e) {
-
+            e.printStackTrace();
         }
 
         int selectedCipherSuite = tc.getSelectedCipherSuite();

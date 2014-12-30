@@ -30,7 +30,7 @@ public class TestImplementationBugs {
     }
 
     public boolean testDeflate(TestOutput pw) throws IOException {
-        Socket sock = STARTTLS.starttls(new Socket(host, port), proto);
+        Socket sock = STARTTLS.starttls(new Socket(host, port), proto, host);
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] {
             CompressionMethod.DEFLATE
@@ -47,7 +47,7 @@ public class TestImplementationBugs {
     }
 
     public void testBug(TestOutput pw) throws IOException {
-        Socket sock = STARTTLS.starttls(new Socket(host, port), proto);
+        Socket sock = STARTTLS.starttls(new Socket(host, port), proto, host);
         CertificateObserver observer = new CertificateObserver() {
 
             @Override

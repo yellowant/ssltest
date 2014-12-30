@@ -157,7 +157,10 @@ public class TestingTLSClient extends TlsClientProtocol {
         }
 
         public String getCipherMode() {
-            return cipherName.split("/", 2)[1];
+            String[] split = cipherName.split("/", 2);
+            if (split.length < 2)
+                return null;
+            return split[1];
         }
 
         public int getCipherSize() {
