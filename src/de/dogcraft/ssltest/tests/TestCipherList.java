@@ -66,7 +66,6 @@ public class TestCipherList {
         LinkedList<TestResultCipher> yourCiphers = new LinkedList<>();
         Collection<Integer> ciphers = getAllCiphers();
 
-        LinkedList<TestResultCipher> chosen = new LinkedList<>();
         try {
             for (int n = 0; n < ciphers.size(); n++) {
                 TestResultCipher selection = choose(ciphers);
@@ -85,8 +84,10 @@ public class TestCipherList {
         } catch (Throwable t) {
             t.printStackTrace();
         }
+
         int best = yourCiphers.get(0).getCipherID();
         int worst = yourCiphers.get(yourCiphers.size() - 1).getCipherID();
+
         int choice;
         try {
             choice = choose(Arrays.asList(worst, best)).getCipherID();
@@ -94,9 +95,12 @@ public class TestCipherList {
             choice = worst;
             e.printStackTrace();
         }
+
         serverPref = choice != worst;
+
         // TODO output was already made to the test output;
         // return chosen.toArray(new TestResultCipher[chosen.size()]);
+
         return new String[0];
     }
 

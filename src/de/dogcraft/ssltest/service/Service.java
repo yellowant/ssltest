@@ -93,13 +93,12 @@ public class Service extends HttpServlet {
         }
 
         String portStr = req.getParameter("port");
-        int port;
-        if (portStr == null) {
+        if (portStr == null || portStr.trim().equals("")) {
             portStr = "443";
             return;
         }
         try {
-            port = Integer.parseInt(portStr);
+            portStr = String.format("%d", Integer.parseInt(portStr));
         } catch (NumberFormatException nfe) {
             resp.sendError(401, "Fuck off");
             return;

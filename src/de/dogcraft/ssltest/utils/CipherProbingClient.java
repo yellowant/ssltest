@@ -1,7 +1,6 @@
 package de.dogcraft.ssltest.utils;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -21,8 +20,6 @@ import org.bouncycastle.crypto.tls.TlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 
 public class CipherProbingClient extends DefaultTlsClient {
-
-    private static SecureRandom random = new SecureRandom();
 
     private final String host;
 

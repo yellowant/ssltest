@@ -78,8 +78,10 @@ public class TestingSession extends TestOutput {
         byte[] rn = b.getExt().get(ExtensionType.renegotiation_info);
         output("renego: " + (rn == null ? "off" : "on"));
         output("heartbeat: " + (hb == null ? "off" : "on"));
+        output("sni: " + (sn == null ? "off" : "on"));
 
         boolean testCompression = b.testDeflate(this);
+
         if (testCompression) {
             output("Does support tls compression. ", -10);
         } else {
@@ -90,7 +92,8 @@ public class TestingSession extends TestOutput {
     }
 
     private void determineCiphers(TestCipherList c) {
-        String[] ciph = c.determineCiphers(this);
+        c.determineCiphers(this);
+
         if (c.hasServerPref()) {
             output("Server has cipher preference.");
         } else {
