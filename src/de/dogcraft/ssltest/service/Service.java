@@ -116,8 +116,8 @@ public class Service extends HttpServlet {
             synchronized (cache) {
                 to = cache.get(host);
                 if (to == null) {
-                    to = new TestingSession();
-                    cache.put(host, to);
+                    to = new TestingSession(domain, Integer.parseInt(portStr));
+                    cache.put(domain, to);
                 } else {
                     observingOnly = true;
                 }

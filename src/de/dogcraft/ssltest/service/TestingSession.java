@@ -15,9 +15,9 @@ import de.dogcraft.ssltest.tests.TestResult;
 
 public class TestingSession extends TestOutput {
 
-    private String host;
+    private final String host;
 
-    private int port;
+    private final int port;
 
     private StringBuffer strb = new StringBuffer();
 
@@ -25,7 +25,10 @@ public class TestingSession extends TestOutput {
 
     private LinkedList<PrintStream> interestedParties = new LinkedList<>();
 
-    public TestingSession() {}
+    public TestingSession(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
 
     public synchronized void attach(PrintStream target) {
         target.print(strb.toString());
