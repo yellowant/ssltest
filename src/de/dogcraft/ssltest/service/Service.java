@@ -172,6 +172,10 @@ public class Service extends HttpServlet {
 
     private void testBugs(TestImplementationBugs b, TestOutput ps) throws IOException {
         b.testBug(ps);
+        if (b.getExt() == null) {
+            ps.output("extensions not found");
+            return;
+        }
         byte[] sn = b.getExt().get(ExtensionType.server_name);
         byte[] hb = b.getExt().get(ExtensionType.heartbeat);
         byte[] rn = b.getExt().get(ExtensionType.renegotiation_info);

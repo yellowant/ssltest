@@ -363,6 +363,9 @@ public class CertificateTest {
         } else if (ext.isCritical()) {
             pw.output("Your server certificate not a CA.", 15);
             pw.exitTest("BasicConstraints", TestResult.IGNORE);
+        } else {
+            pw.output("Your server certificate not a CA, but it's not critical?", -5);
+            pw.exitTest("BasicConstraints", TestResult.FAILED);
         }
     }
 

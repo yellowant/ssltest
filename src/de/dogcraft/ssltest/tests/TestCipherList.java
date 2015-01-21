@@ -46,7 +46,10 @@ public class TestCipherList {
         Field[] fs = CipherSuite.class.getFields();
         for (Field field : fs) {
             try {
-                cipherNames.put(field.getInt(null), field.getName());
+                int int1 = field.getInt(null);
+                if (int1 == 7)
+                    continue;
+                cipherNames.put(int1, field.getName());
             } catch (ReflectiveOperationException e) {
                 e.printStackTrace();
             }
