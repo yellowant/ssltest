@@ -12,14 +12,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.bouncycastle.crypto.tls.ExtensionType;
-
-import de.dogcraft.ssltest.tests.CertificateTest;
-import de.dogcraft.ssltest.tests.TestCipherList;
-import de.dogcraft.ssltest.tests.TestImplementationBugs;
-import de.dogcraft.ssltest.tests.TestOutput;
-import de.dogcraft.ssltest.tests.TestResult;
-
 public class Service extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -58,21 +50,7 @@ public class Service extends HttpServlet {
             resp.setContentType("text/html");
             resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
             copyStream(Service.class.getResourceAsStream("../res/index.htm"), resp.getOutputStream());
-        }
-        // else if (path.equals("/client.js")) {
-        // resp.setContentType("text/javascript");
-        // resp.setDateHeader("Last-Modified",
-        // ManagementFactory.getRuntimeMXBean().getStartTime());
-        // copyStream(Service.class.getResourceAsStream("../res/client.js"),
-        // resp.getOutputStream());
-        // } else if (path.equals("/client.css")) {
-        // resp.setContentType("text/css");
-        // resp.setDateHeader("Last-Modified",
-        // ManagementFactory.getRuntimeMXBean().getStartTime());
-        // copyStream(Service.class.getResourceAsStream("../res/client.css"),
-        // resp.getOutputStream());
-        // }
-        else if (path.equals("/test.event")) {
+        } else if (path.equals("/test.event")) {
             if (req.getParameter("domain") != null) {
                 stream(req, resp, true);
             }
@@ -101,8 +79,7 @@ public class Service extends HttpServlet {
         }
 
         String portStr = req.getParameter("port");
-        int port;
-        if (portStr == null) {
+        if (portStr == null || portStr.trim().equals("")) {
             portStr = "443";
             return;
         }
@@ -112,7 +89,7 @@ public class Service extends HttpServlet {
                 proto = portStr.split("-", 2)[0];
                 portStr = portStr.split("-", 2)[1];
             }
-            port = Integer.parseInt(portStr);
+            portStr = String.format("%d", Integer.parseInt(portStr));
         } catch (NumberFormatException nfe) {
             resp.sendError(401, "Fuck off");
             return;
@@ -130,8 +107,8 @@ public class Service extends HttpServlet {
             synchronized (cache) {
                 to = cache.get(host);
                 if (to == null) {
-                    to = new TestingSession();
-                    cache.put(host, to);
+                    to = new TestingSession(domain, Integer.parseInt(portStr), proto);
+                    cache.put(domain, to);
                 } else {
                     observingOnly = true;
                 }
@@ -145,51 +122,6 @@ public class Service extends HttpServlet {
             }
         }
 
-        try {
-            System.out.println("Testing " + domain + ":" + port);
-            System.out.println("Proto: " + proto);
-            to.output("Testing " + domain + ":" + port);
-
-            TestImplementationBugs b = new TestImplementationBugs(domain, port, proto);
-            testBugs(b, to);
-            CertificateTest.testCerts(to, b);
-
-            boolean testCompression = b.testDeflate(to);
-            if (testCompression) {
-                to.output("Does support tls compression. ", -10);
-            } else {
-                to.output("Does not support tls compression.");
-            }
-
-            TestCipherList c = new TestCipherList(domain, port, proto);
-            to.enterTest("Determining cipher suites");
-            determineCiphers(to, c);
-            to.exitTest("Determining cipher suites", TestResult.IGNORE);
-        } finally {
-            to.end();
-        }
+        to.performTest();
     }
-
-    private void testBugs(TestImplementationBugs b, TestOutput ps) throws IOException {
-        b.testBug(ps);
-        if (b.getExt() == null) {
-            ps.output("extensions not found");
-            return;
-        }
-        byte[] sn = b.getExt().get(ExtensionType.server_name);
-        byte[] hb = b.getExt().get(ExtensionType.heartbeat);
-        byte[] rn = b.getExt().get(ExtensionType.renegotiation_info);
-        ps.output("renego: " + (rn == null ? "off" : "on"));
-        ps.output("heartbeat: " + (hb == null ? "off" : "on"));
-    }
-
-    private void determineCiphers(TestOutput ps, TestCipherList c) throws IOException {
-        String[] ciph = c.determineCiphers(ps);
-        if (c.hasServerPref()) {
-            ps.output("Server has cipher preference.");
-        } else {
-            ps.output("Server has no cipher preference.");
-        }
-    }
-
 }

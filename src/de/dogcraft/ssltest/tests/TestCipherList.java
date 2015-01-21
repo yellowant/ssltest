@@ -68,11 +68,10 @@ public class TestCipherList {
         return serverPref;
     }
 
-    public String[] determineCiphers(TestOutput pw) throws IOException {
+    public String[] determineCiphers(TestOutput pw) {
         LinkedList<TestResultCipher> yourCiphers = new LinkedList<>();
         Collection<Integer> ciphers = getAllCiphers();
 
-        LinkedList<TestResultCipher> chosen = new LinkedList<>();
         try {
             for (int n = 0; n < ciphers.size(); n++) {
                 TestResultCipher selection = choose(ciphers);
@@ -91,12 +90,23 @@ public class TestCipherList {
         } catch (Throwable t) {
             t.printStackTrace();
         }
+
         int best = yourCiphers.get(0).getCipherID();
         int worst = yourCiphers.get(yourCiphers.size() - 1).getCipherID();
-        int choice = choose(Arrays.asList(worst, best)).getCipherID();
+
+        int choice;
+        try {
+            choice = choose(Arrays.asList(worst, best)).getCipherID();
+        } catch (IOException e) {
+            choice = worst;
+            e.printStackTrace();
+        }
+
         serverPref = choice != worst;
+
         // TODO output was already made to the test output;
         // return chosen.toArray(new TestResultCipher[chosen.size()]);
+
         return new String[0];
     }
 
@@ -147,13 +157,19 @@ public class TestCipherList {
         public String toString() {
             StringBuilder sb = new StringBuilder();
             Formatter f = new Formatter(sb);
-            f.format("%06x (%s): kex=%s(%d), auth=%s(%d), enc=%s(%d) mode=%s mac=%s(%d) pfs=%s", //
-                    getCipherID(), getCipherName(), //
-                    info.getKexType(), info.getKexSize(), //
-                    info.getAuthKeyType(), info.getAuthKeySize(), //
-                    info.getCipherType(), info.getCipherSize(), info.getCipherMode(), //
-                    info.getMacType(), info.getMacSize(), //
-                    info.isPFS() ? "yes" : "no");
+
+            try {
+                f.format("%06x (%s): kex=%s(%d), auth=%s(%d), enc=%s(%d) mode=%s mac=%s(%d) pfs=%s", //
+                        getCipherID(), getCipherName(), //
+                        info.getKexType(), info.getKexSize(), //
+                        info.getAuthKeyType(), info.getAuthKeySize(), //
+                        info.getCipherType(), info.getCipherSize(), info.getCipherMode(), //
+                        info.getMacType(), info.getMacSize(), //
+                        info.isPFS() ? "yes" : "no");
+            } finally {
+                f.close();
+            }
+
             return sb.toString();
         }
     }
