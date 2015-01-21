@@ -6,13 +6,13 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/jetty"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/bouncy"/>
 	<classpathentry kind="lib" path="libs/bcprov-jdk15on-151.jar"/>
-	<classpathentry kind="lib" path="libs/jetty-http-9.2.3.v20140905.jar"/>
-	<classpathentry kind="lib" path="libs/jetty-io-9.2.3.v20140905.jar"/>
-	<classpathentry kind="lib" path="libs/jetty-security-9.2.3.v20140905.jar"/>
-	<classpathentry kind="lib" path="libs/jetty-server-9.2.3.v20140905.jar" sourcepath="C:/jars/jetty-distribution-9.1.0.RC0/org.eclipse.jetty.project"/>
-	<classpathentry kind="lib" path="libs/jetty-servlet-9.2.3.v20140905.jar"/>
-	<classpathentry kind="lib" path="libs/jetty-servlets-9.2.3.v20140905.jar"/>
-	<classpathentry kind="lib" path="libs/jetty-util-9.2.3.v20140905.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-http-9.2.7.v20150116.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-io-9.2.7.v20150116.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-security-9.2.7.v20150116.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-server-9.2.7.v20150116.jar" sourcepath="C:/jars/jetty-distribution-9.1.0.RC0/org.eclipse.jetty.project"/>
+	<classpathentry kind="lib" path="libs/jetty-servlet-9.2.7.v20150116.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-servlets-9.2.7.v20150116.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-util-9.2.7.v20150116.jar"/>
 	<classpathentry kind="lib" path="libs/servlet-api-3.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
