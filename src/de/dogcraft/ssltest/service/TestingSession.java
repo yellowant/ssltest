@@ -60,8 +60,8 @@ public class TestingSession extends TestOutput {
     @Override
     public void end() {
         super.end();
-        ended = true;
         synchronized (this) {
+            ended = true;
             notifyAll();
         }
     }
