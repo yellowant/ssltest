@@ -14,10 +14,10 @@
         <mkdir dir="build-files/" />
         <mkdir dir="libs/" />
         <get skipexisting="true"
-            src="http://eclipse.org/downloads/download.php?file=/jetty/9.2.3.v20140905/dist/jetty-distribution-9.2.3.v20140905.zip&amp;r=1"
+            src="https://eclipse.org/downloads/download.php?file=/jetty/9.2.3.v20140905/dist/jetty-distribution-9.2.3.v20140905.zip&amp;r=1"
             dest="build-files/jetty.zip" />
         <get skipexisting="true"
-            src="http://www.bouncycastle.org/download/bcprov-jdk15on-151.jar"
+            src="https://www.bouncycastle.org/download/bcprov-jdk15on-151.jar"
             dest="build-files/" />
         <jar destfile="libs/bcprov-jdk15on-151.jar">
             <zipfileset src="build-files/bcprov-jdk15on-151.jar"
