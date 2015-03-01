@@ -14,7 +14,7 @@
         <mkdir dir="build-files/" />
         <mkdir dir="libs/" />
         <get skipexisting="true"
-            src="https://eclipse.org/downloads/download.php?file=/jetty/9.2.3.v20140905/dist/jetty-distribution-9.2.3.v20140905.zip&amp;r=1"
+            src="https://eclipse.org/downloads/download.php?file=/jetty/9.2.9.v20150224/dist/jetty-distribution-9.2.9.v20150224.zip&amp;r=1"
             dest="build-files/jetty.zip" />
         <get skipexisting="true"
             src="https://www.bouncycastle.org/download/bcprov-jdk15on-151.jar"
