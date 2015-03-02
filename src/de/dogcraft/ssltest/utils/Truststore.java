@@ -6,14 +6,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Truststore {
 
@@ -24,7 +22,25 @@ public class Truststore {
         ks.load(null);
     }
 
-    public Truststore(File f, HashMap<String, Truststore> storesm) throws GeneralSecurityException, IOException {
+    public void initAny(Iterable<TruststoreGroup> collection) throws GeneralSecurityException, IOException {
+        File ksF = new File("trusts/any.jks");
+        if (ksF.exists()) {
+            ks.load(new FileInputStream(ksF), "changeit".toCharArray());
+        } else {
+            for (TruststoreGroup i : collection) {
+                for (Truststore ts : i.tm.values()) {
+                    Enumeration<String> al = ts.ks.aliases();
+                    while (al.hasMoreElements()) {
+                        put(ts.ks.getCertificate(al.nextElement()));
+                    }
+                }
+            }
+            ks.store(new FileOutputStream(ksF), "changeit".toCharArray());
+        }
+
+    }
+
+    public Truststore(File f) throws GeneralSecurityException, IOException {
         ks = KeyStore.getInstance("JKS");
         File ksF = new File(f.getAbsolutePath() + ".jks");
         if (ksF.exists()) {
@@ -45,13 +61,6 @@ public class Truststore {
                     md.reset();
                     ks.setCertificateEntry(TruststoreUtil.outputFingerprint(crt, md), crt);
                 }
-            } else if (f.getName().equals("any")) {
-                for (Truststore i : storesm.values()) {
-                    Enumeration<String> al = i.ks.aliases();
-                    while (al.hasMoreElements()) {
-                        put(i.ks.getCertificate(al.nextElement()));
-                    }
-                }
             }
             ks.store(new FileOutputStream(ksF), "changeit".toCharArray());
         }
@@ -70,57 +79,30 @@ public class Truststore {
         return ks;
     }
 
-    private static final Map<String, Truststore> stores;
-    static {
-        HashMap<String, Truststore> storesm = new HashMap<>();
-        try {
-            File f = new File("trusts");
-
-            File[] fl = f.listFiles();
-            if (null == fl) {
-                fl = new File[0];
-            }
-
-            for (File fs : fl) {
-                if ( !fs.isDirectory() || fs.getName().startsWith("_")) {
-                    continue;
-                }
-                try {
-                    Truststore ts = new Truststore(fs, storesm);
-                    storesm.put(fs.getName(), ts);
-                } catch (GeneralSecurityException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            Truststore any = new Truststore(new File("trusts/any"), storesm);
-            storesm.put("any", any);
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        stores = Collections.unmodifiableMap(storesm);
-    }
-
-    public static Map<String, Truststore> getStores() {
-        return stores;
-    }
-
-    public static void main(String[] args) {}
-
     public boolean contains(Certificate c) {
         try {
             return c.equals(ks.getCertificate(TruststoreUtil.outputFingerprint(c, MessageDigest.getInstance("SHA-512"))));
         } catch (GeneralSecurityException e) {
             return false;
         }
+    }
+
+    public boolean hasSameContents(Truststore last) throws KeyStoreException {
+        Enumeration<String> en = ks.aliases();
+        while (en.hasMoreElements()) {
+            String key = en.nextElement();
+            if ( !last.ks.containsAlias(key)) {
+                return false;
+            }
+        }
+        Enumeration<String> en2 = last.ks.aliases();
+        while (en2.hasMoreElements()) {
+            String key = en2.nextElement();
+            if ( !ks.containsAlias(key)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

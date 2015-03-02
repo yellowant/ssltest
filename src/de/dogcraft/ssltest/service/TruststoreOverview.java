@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import sun.security.x509.AVA;
 import sun.security.x509.X500Name;
 import de.dogcraft.ssltest.utils.Truststore;
+import de.dogcraft.ssltest.utils.TruststoreGroup;
 import de.dogcraft.ssltest.utils.TruststoreUtil;
 
 public class TruststoreOverview extends HttpServlet {
@@ -340,21 +341,17 @@ public class TruststoreOverview extends HttpServlet {
         pw.println("</head>");
         pw.println("<body>");
         pw.println("<table border='1'>");
-        TreeMap<String, Truststore> store = new TreeMap<>();
         pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>keyType</th><th>keySize</th><th>keyDetail</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
-        for (Entry<String, Truststore> truststore : Truststore.getStores().entrySet()) {
-            if (truststore.getKey().equals("any"))
-                continue;
-            store.put(truststore.getKey(), truststore.getValue());
-        }
-        for (Entry<String, Truststore> truststore : store.entrySet()) {
-            pw.print("<th><span title='");
-            pw.print(truststore.getKey());
-            pw.print("'>?</span></th>");
+        for (Entry<String, TruststoreGroup> truststore : TruststoreGroup.getStores().entrySet()) {
+            for (Entry<String, Truststore> entry : truststore.getValue().getContainedTables().entrySet()) {
+                pw.print("<th><span title='");
+                pw.print(truststore.getKey() + "/" + entry.getKey());
+                pw.print("'>?</span></th>");
+            }
         }
         pw.println("</tr>");
         try {
-            Truststore any = Truststore.getStores().get("any");
+            Truststore any = TruststoreGroup.getAnyTruststore();
             KeyStore ks = any.getKeyStore();
             Enumeration<String> al = ks.aliases();
             TreeMap<CertificateIdentifier, Certificate> certs = new TreeMap<>();
@@ -382,15 +379,21 @@ public class TruststoreOverview extends HttpServlet {
 
                 }
                 pw.print("</td>");
-                for (Entry<String, Truststore> truststore : store.entrySet()) {
-                    pw.print("<td class='" + truststore.getKey().split("_")[0] + "'>");
-                    pw.print("<span title='" + truststore.getKey() + "' style='color: ");
-                    if (truststore.getValue().contains(e.getValue())) {
-                        pw.print("green'>&#x2714;</span>");
-                    } else {
-                        pw.print("red'>&#x2718;</span>");
+                for (Entry<String, TruststoreGroup> truststore : TruststoreGroup.getStores().entrySet()) {
+                    for (Entry<String, Truststore> ttab : truststore.getValue().getContainedTables().entrySet()) {
+                        pw.print("<td class='" + truststore.getKey() + "'>");
+                        pw.print("<span title='" + truststore.getKey() + "/" + ttab.getKey() + "' style='color: ");
+                        // float val =
+                        // truststore.getValue().contains(e.getValue());
+                        if (ttab.getValue().contains(e.getValue())) {
+                            pw.print("green'>&#x2714;</span>");// check:
+                                                               //
+                        } else {
+                            pw.print("red'>&#x2718;</span>"); // cross:
+                                                              //
+                        }
+                        pw.print("</td>");
                     }
-                    pw.print("</td>");
                 }
                 pw.println("</tr>");
             }
