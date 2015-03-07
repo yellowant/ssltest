@@ -70,6 +70,7 @@ public class Service extends HttpServlet {
 
     HashMap<String, TestingSession> cacheTestSession = new HashMap<>();
 
+    @SuppressWarnings("deprecation")
     private void stream(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
         if (useEventStream) {
             resp.setContentType("text/event-stream");
@@ -101,13 +102,10 @@ public class Service extends HttpServlet {
             return;
         }
 
-        PrintStream ps = new PrintStream(resp.getOutputStream(), true);
-        ps.println("retry: 10000");
-        ps.println();
+        List<String> iplist;
 
-        String ip = req.getParameter("ip");
         synchronized (cacheHostIPs) {
-            List<String> iplist = cacheHostIPs.get(domain);
+            iplist = cacheHostIPs.get(domain);
             if (iplist == null) {
                 iplist = new ArrayList<String>();
 
@@ -117,33 +115,41 @@ public class Service extends HttpServlet {
                 }
                 cacheHostIPs.put(domain, iplist);
             }
+        }
 
-            if (null == ip) {
-                for (String hostip : iplist) {
-                    ps.println("event: hostip");
-                    ps.println("data: {");
-                    ps.println("data: domain: \"" + domain + "\"");
-                    ps.println("data: port: \"" + proto + "-" + portStr + "\"");
-                    ps.println("data: ip: \"" + hostip + "\"");
-                    ps.println("data: }");
-                    ps.println();
-                }
+        String ip = req.getParameter("ip");
+        if ((ip != null) && !iplist.contains(ip)) {
+            resp.setStatus(404, "Host not found at this location");
+        }
 
-                ps.println("event: eof");
+        PrintStream ps = new PrintStream(resp.getOutputStream(), true);
+        ps.println("retry: 10000");
+        ps.println();
+
+        if (null == ip) {
+            for (String hostip : iplist) {
+                ps.println("event: hostip");
                 ps.println("data: {");
-                ps.println("data: msg: \"IP lookup completed.\"");
+                ps.println("data: domain: \"" + domain + "\"");
+                ps.println("data: port: \"" + proto + "-" + portStr + "\"");
+                ps.println("data: ip: \"" + hostip + "\"");
                 ps.println("data: }");
                 ps.println();
-                return;
-            } else if ( !iplist.contains(ip)) {
-                resp.sendError(404);
-                ps.println("event: eof");
-                ps.println("data: {");
-                ps.println("data: msg: \"Host not found at this address.\"");
-                ps.println("data: }");
-                ps.println();
-                return;
             }
+
+            ps.println("event: eof");
+            ps.println("data: {");
+            ps.println("data: msg: \"IP lookup completed.\"");
+            ps.println("data: }");
+            ps.println();
+            return;
+        } else if ( !iplist.contains(ip)) {
+            ps.println("event: eof");
+            ps.println("data: {");
+            ps.println("data: msg: \"Host not found at this address.\"");
+            ps.println("data: }");
+            ps.println();
+            return;
         }
 
         TestingSession to;
