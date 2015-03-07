@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import de.dogcraft.ssltest.utils.JSONUtils;
+import de.dogcraft.ssltest.utils.URLParsing;
+import de.dogcraft.ssltest.utils.URLParsing.TestParameter;
+import de.dogcraft.ssltest.utils.URLParsing.TestParameterParsingException;
 
 public class Service extends HttpServlet {
 
@@ -79,43 +83,34 @@ public class Service extends HttpServlet {
         } else {
             resp.setContentType("text/plain");
         }
-
-        String domain = req.getParameter("domain");
-        if (null == domain) {
-            resp.sendError(500, "error params missing");
-            return;
-        }
-
-        String portStr = req.getParameter("port");
-        if (portStr == null || portStr.trim().equals("")) {
-            portStr = "443";
-            return;
-        }
-
-        String proto = "direct";
+        TestParameter u;
         try {
-            if (portStr.indexOf('-') != -1) {
-                proto = portStr.split("-", 2)[0];
-                portStr = portStr.split("-", 2)[1];
+            u = URLParsing.parse(req);
+            String port = u.getProtocol() + "-" + Integer.toString(u.getPort());
+            if ( !u.getHost().equals(req.getParameter("domain")) || !port.equals(req.getParameter("port"))) {
+                String ip = req.getParameter("ip");
+                resp.sendRedirect(req.getPathInfo() + "?domain=" + URLEncoder.encode(u.getHost(), "UTF-8")//
+                        + "&port=" + URLEncoder.encode(port, "UTF-8")//
+                        + (ip != null ? "&ip" + URLEncoder.encode(ip, "UTF-8") : ""));
+                return;
             }
-            portStr = String.format("%d", Integer.parseInt(portStr));
-        } catch (NumberFormatException nfe) {
-            resp.sendError(401, "Fuck off");
+        } catch (TestParameterParsingException e) {
+            resp.sendError(404, e.getMessage());
             return;
         }
 
         List<String> iplist;
 
         synchronized (cacheHostIPs) {
-            iplist = cacheHostIPs.get(domain);
+            iplist = cacheHostIPs.get(u.getHost());
             if (iplist == null) {
                 iplist = new ArrayList<String>();
 
-                InetAddress[] addrlist = InetAddress.getAllByName(domain);
+                InetAddress[] addrlist = InetAddress.getAllByName(u.getHost());
                 for (InetAddress addr : addrlist) {
                     iplist.add(addr.getHostAddress());
                 }
-                cacheHostIPs.put(domain, iplist);
+                cacheHostIPs.put(u.getHost(), iplist);
             }
         }
 
@@ -132,8 +127,8 @@ public class Service extends HttpServlet {
             for (String hostip : iplist) {
                 ps.println("event: hostip");
                 ps.println("data: {");
-                ps.println("data: \"domain\": \"" + JSONUtils.jsonEscape(domain) + "\",");
-                ps.println("data: \"port\": \"" + JSONUtils.jsonEscape(proto) + "-" + JSONUtils.jsonEscape(portStr) + "\",");
+                ps.println("data: \"domain\": \"" + JSONUtils.jsonEscape(u.getHost()) + "\",");
+                ps.println("data: \"port\": \"" + JSONUtils.jsonEscape(u.getProtocol()) + "-" + JSONUtils.jsonEscape(Integer.toString(u.getPort())) + "\",");
                 ps.println("data: \"ip\": \"" + JSONUtils.jsonEscape(hostip) + "\"");
                 ps.println("data: }");
                 ps.println();
@@ -156,7 +151,7 @@ public class Service extends HttpServlet {
 
         TestingSession to;
         {
-            String host = domain + ":" + portStr;
+            String host = u.getHost() + ":" + u.getPort();
             boolean observingOnly = false;
 
             synchronized (cacheTestSession) {
@@ -164,7 +159,7 @@ public class Service extends HttpServlet {
 
                 to = cacheTestSession.get(lookupKey);
                 if (to == null) {
-                    to = new TestingSession(domain, Integer.parseInt(portStr), proto);
+                    to = new TestingSession(u.getHost(), u.getPort(), u.getProtocol());
                     cacheTestSession.put(lookupKey, to);
                 } else {
                     observingOnly = true;
