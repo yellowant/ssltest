@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>SSL-Test</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script type="text/javascript" src="/static/js/client.js"></script>
-<link rel="stylesheet" href="/static/css/client.css" />
-<link href="/static/css/bootstrap.min.css" rel="stylesheet">
+	<title>SSL-Test</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script type="text/javascript" src="/static/js/client.js"></script>
+	<link rel="stylesheet" href="/static/css/client.css" />
+	<link href="/static/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -34,15 +34,11 @@
 			<h1>Test a webserver!</h1>
 			<form method="POST" onSubmit="return false">
 				<div class="input-group space-below">
-					<span class="input-group-addon">@</span> <input type="text"
-						class="form-control" name="domain" id="domain"
-						placeholder="Domain">
-						<input type="text"
-						class="form-control" name="port" id="port"
-						placeholder="Port - leave blank for 443">
+					<span class="input-group-addon">@</span>
+					<input type="text" class="form-control" name="domain" id="domain" placeholder="Domain" />
+					<input type="text" class="form-control" name="port" id="port" placeholder="Port - leave blank for 443" />
 				</div>
-				<input type="submit"
-					value="Check!" class="btn btn-primary btn-lg" onclick="events()">
+				<input type="submit" value="Check!" class="btn btn-primary btn-lg" onclick="events()">
 			</form>
 		</div>
 		<div id="output"></div>
