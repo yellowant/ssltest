@@ -3,6 +3,7 @@ package de.dogcraft.ssltest.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -51,7 +52,15 @@ public class Truststore {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 MessageDigest md = MessageDigest.getInstance("SHA-512");
 
-                File[] fl = f.listFiles();
+                File[] fl = f.listFiles(new FilenameFilter() {
+
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.endsWith(".crt");
+                    }
+
+                });
+
                 if (null == fl) {
                     fl = new File[0];
                 }
