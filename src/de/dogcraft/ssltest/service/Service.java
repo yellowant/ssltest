@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import de.dogcraft.ssltest.utils.JSONUtils;
+
 public class Service extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -130,9 +132,9 @@ public class Service extends HttpServlet {
             for (String hostip : iplist) {
                 ps.println("event: hostip");
                 ps.println("data: {");
-                ps.println("data: domain: \"" + domain + "\"");
-                ps.println("data: port: \"" + proto + "-" + portStr + "\"");
-                ps.println("data: ip: \"" + hostip + "\"");
+                ps.println("data: \"domain\": \"" + JSONUtils.jsonEscape(domain) + "\",");
+                ps.println("data: \"port\": \"" + JSONUtils.jsonEscape(proto) + "-" + JSONUtils.jsonEscape(portStr) + "\",");
+                ps.println("data: \"ip\": \"" + JSONUtils.jsonEscape(hostip) + "\"");
                 ps.println("data: }");
                 ps.println();
             }

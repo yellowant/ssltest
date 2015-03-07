@@ -38,21 +38,21 @@ function events(){
 
 		var stream = new EventSource(url);
 
-		function registerEvent(name, handler) {
+		this.registerEvent = function(name, handler) {
 			stream.addEventListener(name, function (event) {
 				handler(container, stream, event);
 			});
 		};
 
-		registerEvent("open", function (container, stream, event) {
+		this.registerEvent("open", function (container, stream, event) {
 			handleMessage(container, stream, "Stream started!");
 		});
 
-		registerEvent("message", function (container, stream, event) {
+		this.registerEvent("message", function (container, stream, event) {
 			handleMessage(container, stream, event.data);
 		});
 
-		registerEvent("eof", function (container, stream, event) {
+		this.registerEvent("eof", function (container, stream, event) {
 			stream.close();
 			handleMessage(container, stream, "Stream finished!");
 		});
@@ -65,7 +65,7 @@ function events(){
 		var port = _hostinfo.port;
 		var ip = _hostinfo.ip;
 
-		var url = hostInfoToURL( hostinfo );
+		var url = hostInfoToURL( _hostinfo );
 		var stream = new Stream(c, url);
 
 		var stack = new Array();
