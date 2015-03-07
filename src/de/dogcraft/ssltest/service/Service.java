@@ -108,7 +108,7 @@ public class Service extends HttpServlet {
                 to = cache.get(host);
                 if (to == null) {
                     to = new TestingSession(domain, Integer.parseInt(portStr), proto);
-                    cache.put(domain, to);
+                    cache.put(host, to);
                 } else {
                     observingOnly = true;
                 }
