@@ -75,8 +75,8 @@ public abstract class TestOutput {
     }
 
     public void end() {
-        println("event: end");
-        println("data: yup");
+        println("event: eof");
+        println("data: {}");
         println("");
     }
 
