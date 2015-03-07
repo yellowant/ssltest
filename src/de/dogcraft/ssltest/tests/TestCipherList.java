@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.bouncycastle.crypto.tls.CipherSuite;
@@ -57,7 +58,7 @@ public class TestCipherList {
     }
 
     public static Collection<Integer> getAllCiphers() {
-        return cipherNames.keySet();
+        return new TreeSet<Integer>(cipherNames.keySet());
     }
 
     public Collection<Integer> getCiphers() {
@@ -134,7 +135,8 @@ public class TestCipherList {
         }
 
         public String getCipherName() {
-            return TestCipherList.cipherNames.get(cipherID);
+            String resolved = TestCipherList.cipherNames.get(cipherID);
+            return resolved;
         }
 
         public Boolean getSupported() {
