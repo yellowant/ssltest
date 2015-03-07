@@ -29,7 +29,7 @@ public class CipherProbingClient extends DefaultTlsClient {
 
     CertificateObserver observer;
 
-    public CipherProbingClient(String host, int port, Collection<Integer> ciphers, short[] comp, CertificateObserver observer) {
+    public CipherProbingClient(String host, Collection<Integer> ciphers, short[] comp, CertificateObserver observer) {
         this.host = host;
         this.observer = observer;
 

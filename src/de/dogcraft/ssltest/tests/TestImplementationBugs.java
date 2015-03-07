@@ -19,20 +19,17 @@ public class TestImplementationBugs {
 
     private final String host;
 
-    private final int port;
+    private TestConnectionBuilder tcb;
 
-    private final String proto;
-
-    public TestImplementationBugs(String host, int port, String proto) {
+    public TestImplementationBugs(String host, TestConnectionBuilder tcb) {
         this.host = host;
-        this.port = port;
-        this.proto = proto;
+        this.tcb = tcb;
     }
 
     public boolean testDeflate(TestOutput pw) throws IOException {
-        Socket sock = STARTTLS.starttls(new Socket(host, port), proto, host);
+        Socket sock = tcb.spawn();
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] {
+        CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
             CompressionMethod.DEFLATE
         }, null);
         try {
@@ -47,7 +44,7 @@ public class TestImplementationBugs {
     }
 
     public void testBug(TestOutput pw) throws IOException {
-        Socket sock = STARTTLS.starttls(new Socket(host, port), proto, host);
+        Socket sock = tcb.spawn();
         CertificateObserver observer = new CertificateObserver() {
 
             @Override
@@ -62,7 +59,7 @@ public class TestImplementationBugs {
 
         };
         BugTestingTLSClient tcp = new BugTestingTLSClient(observer, sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, TestCipherList.getAllCiphers(), new short[] {
+        CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
             CompressionMethod._null
         }, observer);
         tcp.connect(tc);
@@ -120,10 +117,6 @@ public class TestImplementationBugs {
 
     public String getHost() {
         return host;
-    }
-
-    public int getPort() {
-        return port;
     }
 
     public String getCipherInfo() {

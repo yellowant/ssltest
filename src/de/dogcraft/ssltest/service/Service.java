@@ -159,7 +159,7 @@ public class Service extends HttpServlet {
 
                 to = cacheTestSession.get(lookupKey);
                 if (to == null) {
-                    to = new TestingSession(u.getHost(), u.getPort(), u.getProtocol());
+                    to = new TestingSession(u.getHost(), ip, u.getPort(), u.getProtocol());
                     cacheTestSession.put(lookupKey, to);
                 } else {
                     observingOnly = true;

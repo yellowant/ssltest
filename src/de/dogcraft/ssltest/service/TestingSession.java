@@ -2,18 +2,21 @@ package de.dogcraft.ssltest.service;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.Socket;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
 import org.bouncycastle.crypto.tls.ExtensionType;
 
 import de.dogcraft.ssltest.tests.CertificateTest;
+import de.dogcraft.ssltest.tests.STARTTLS;
 import de.dogcraft.ssltest.tests.TestCipherList;
+import de.dogcraft.ssltest.tests.TestConnectionBuilder;
 import de.dogcraft.ssltest.tests.TestImplementationBugs;
 import de.dogcraft.ssltest.tests.TestOutput;
 import de.dogcraft.ssltest.tests.TestResult;
 
-public class TestingSession extends TestOutput {
+public class TestingSession extends TestOutput implements TestConnectionBuilder {
 
     private final String host;
 
@@ -21,14 +24,17 @@ public class TestingSession extends TestOutput {
 
     private final String proto;
 
+    private final String ip;
+
     private StringBuffer strb = new StringBuffer();
 
     private boolean ended;
 
     private LinkedList<PrintStream> interestedParties = new LinkedList<>();
 
-    public TestingSession(String host, int port, String proto) {
+    public TestingSession(String host, String ip, int port, String proto) {
         this.host = host;
+        this.ip = ip;
         this.port = port;
         this.proto = proto;
     }
@@ -77,7 +83,7 @@ public class TestingSession extends TestOutput {
     }
 
     private void testBugs() throws IOException {
-        TestImplementationBugs b = new TestImplementationBugs(host, port, proto);
+        TestImplementationBugs b = new TestImplementationBugs(host, this);
         b.testBug(this);
         byte[] sn = b.getExt().get(ExtensionType.server_name);
         byte[] hb = b.getExt().get(ExtensionType.heartbeat);
@@ -109,7 +115,7 @@ public class TestingSession extends TestOutput {
 
     public void performTest() {
         try {
-            System.out.println("Testing " + host + ":" + port);
+            System.out.println("Testing " + ip + "#" + host + ":" + port);
             System.out.println("Proto: " + proto);
             output("Testing " + host + ":" + port);
 
@@ -119,7 +125,7 @@ public class TestingSession extends TestOutput {
                 e.printStackTrace();
             }
 
-            TestCipherList c = new TestCipherList(host, port, proto);
+            TestCipherList c = new TestCipherList(host, this);
             enterTest("Determining cipher suites");
             determineCiphers(c);
             exitTest("Determining cipher suites", TestResult.IGNORE);
@@ -127,6 +133,11 @@ public class TestingSession extends TestOutput {
             end();
         }
 
+    }
+
+    @Override
+    public Socket spawn() throws IOException {
+        return STARTTLS.starttls(new Socket(ip, port), proto, host);
     }
 
 }

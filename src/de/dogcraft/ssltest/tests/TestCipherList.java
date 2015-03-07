@@ -24,23 +24,20 @@ public class TestCipherList {
 
     private final String host;
 
-    private final int port;
-
-    private final String proto;
-
     private Vector<Integer> ciphers = new Vector<>();
 
     private boolean serverPref = false;
 
     private static HashMap<Integer, String> cipherNames = new HashMap<>();
+
+    private TestConnectionBuilder tcb;
     static {
         initCipherNames();
     }
 
-    public TestCipherList(String host, int port, String proto) {
+    public TestCipherList(String host, TestConnectionBuilder tcb) {
         this.host = host;
-        this.port = port;
-        this.proto = proto;
+        this.tcb = tcb;
     }
 
     private static void initCipherNames() {
@@ -180,9 +177,9 @@ public class TestCipherList {
     }
 
     private TestResultCipher choose(final Collection<Integer> ciphers) throws IOException {
-        Socket sock = STARTTLS.starttls(new Socket(host, port), proto, host);
+        Socket sock = tcb.spawn();
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, port, ciphers, new short[] {
+        CipherProbingClient tc = new CipherProbingClient(host, ciphers, new short[] {
             CompressionMethod._null
         }, null);
         try {
