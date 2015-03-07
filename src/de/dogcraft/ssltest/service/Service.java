@@ -83,15 +83,18 @@ public class Service extends HttpServlet {
         } else {
             resp.setContentType("text/plain");
         }
+
         TestParameter u;
         try {
             u = URLParsing.parse(req);
             String port = u.getProtocol() + "-" + Integer.toString(u.getPort());
             if ( !u.getHost().equals(req.getParameter("domain")) || !port.equals(req.getParameter("port"))) {
                 String ip = req.getParameter("ip");
-                resp.sendRedirect(req.getPathInfo() + "?domain=" + URLEncoder.encode(u.getHost(), "UTF-8")//
+                String url = req.getPathInfo() + "?domain=" + URLEncoder.encode(u.getHost(), "UTF-8")//
                         + "&port=" + URLEncoder.encode(port, "UTF-8")//
-                        + (ip != null ? "&ip" + URLEncoder.encode(ip, "UTF-8") : ""));
+                        + (ip != null ? "&ip" + URLEncoder.encode(ip, "UTF-8") : "");
+                System.out.println(url);
+                resp.sendRedirect(url);
                 return;
             }
         } catch (TestParameterParsingException e) {
