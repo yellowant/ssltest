@@ -74,7 +74,6 @@ public class TestImplementationBugs {
         try {
             hb = tcp.sendHeartbeat(hbm, false);
         } catch (IOException e) {
-            e.printStackTrace();
         }
         boolean resp = tcp.fetchRecievedHB();
         boolean bleed = false;

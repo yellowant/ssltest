@@ -75,6 +75,9 @@ public class TestCipherList {
         try {
             for (int n = 0; n < ciphers.size(); n++) {
                 TestResultCipher selection = choose(ciphers);
+                if (selection == null) {
+                    break;
+                }
                 yourCiphers.add(selection);
 
                 selection.priority = n;
@@ -186,12 +189,11 @@ public class TestCipherList {
             tcp.close();
             sock.close();
         } catch (IOException e) {
-            e.printStackTrace();
         }
 
         int selectedCipherSuite = tc.getSelectedCipherSuite();
         if (selectedCipherSuite == 0) {
-            throw new IOException();
+            return null;
         }
 
         if (tc.isFailed() || tcp.hasFailedLocaly()) {
