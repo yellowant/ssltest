@@ -34,7 +34,13 @@ public class Truststore {
             if (f.exists()) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 MessageDigest md = MessageDigest.getInstance("SHA-512");
-                for (File f1 : f.listFiles()) {
+
+                File[] fl = f.listFiles();
+                if (null == fl) {
+                    fl = new File[0];
+                }
+
+                for (File f1 : fl) {
                     X509Certificate crt = (X509Certificate) cf.generateCertificate(new FileInputStream(f1));
                     md.reset();
                     ks.setCertificateEntry(TruststoreUtil.outputFingerprint(crt, md), crt);
@@ -69,7 +75,13 @@ public class Truststore {
         HashMap<String, Truststore> storesm = new HashMap<>();
         try {
             File f = new File("trusts");
-            for (File fs : f.listFiles()) {
+
+            File[] fl = f.listFiles();
+            if (null == fl) {
+                fl = new File[0];
+            }
+
+            for (File fs : fl) {
                 if ( !fs.isDirectory() || fs.getName().startsWith("_")) {
                     continue;
                 }

@@ -70,6 +70,10 @@ public class TruststoreUtil {
 
         });
 
+        if (null == data) {
+            data = new File[0];
+        }
+
         for (File file : data) {
             System.out.println("======= " + file + " ==========");
             KeyStore ks = KeyStore.getInstance("jks");
