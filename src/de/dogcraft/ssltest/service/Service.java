@@ -5,7 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -63,7 +66,9 @@ public class Service extends HttpServlet {
         }
     }
 
-    HashMap<String, TestingSession> cache = new HashMap<>();
+    HashMap<String, List<String>> cacheHostIPs = new HashMap<>();
+
+    HashMap<String, TestingSession> cacheTestSession = new HashMap<>();
 
     private void stream(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
         if (useEventStream) {
@@ -83,6 +88,7 @@ public class Service extends HttpServlet {
             portStr = "443";
             return;
         }
+
         String proto = "direct";
         try {
             if (portStr.indexOf('-') != -1) {
@@ -95,20 +101,63 @@ public class Service extends HttpServlet {
             return;
         }
 
+        PrintStream ps = new PrintStream(resp.getOutputStream(), true);
+        ps.println("retry: 10000");
+        ps.println();
+
+        String ip = req.getParameter("ip");
+        synchronized (cacheHostIPs) {
+            List<String> iplist = cacheHostIPs.get(domain);
+            if (iplist == null) {
+                iplist = new ArrayList<String>();
+
+                InetAddress[] addrlist = InetAddress.getAllByName(domain);
+                for (InetAddress addr : addrlist) {
+                    iplist.add(addr.getHostAddress());
+                }
+                cacheHostIPs.put(domain, iplist);
+            }
+
+            if (null == ip) {
+                for (String hostip : iplist) {
+                    ps.println("event: hostip");
+                    ps.println("data: {");
+                    ps.println("data: domain: \"" + domain + "\"");
+                    ps.println("data: port: \"" + proto + "-" + portStr + "\"");
+                    ps.println("data: ip: \"" + hostip + "\"");
+                    ps.println("data: }");
+                    ps.println();
+                }
+
+                ps.println("event: eof");
+                ps.println("data: {");
+                ps.println("data: msg: \"IP lookup completed.\"");
+                ps.println("data: }");
+                ps.println();
+                return;
+            } else if ( !iplist.contains(ip)) {
+                resp.sendError(404);
+                ps.println("event: eof");
+                ps.println("data: {");
+                ps.println("data: msg: \"Host not found at this address.\"");
+                ps.println("data: }");
+                ps.println();
+                return;
+            }
+        }
+
         TestingSession to;
         {
-            PrintStream ps = new PrintStream(resp.getOutputStream(), true);
-            ps.println("retry: 10000");
-            ps.println();
-
             String host = domain + ":" + portStr;
             boolean observingOnly = false;
 
-            synchronized (cache) {
-                to = cache.get(host);
+            synchronized (cacheTestSession) {
+                String lookupKey = ip + "#" + host;
+
+                to = cacheTestSession.get(lookupKey);
                 if (to == null) {
                     to = new TestingSession(domain, Integer.parseInt(portStr), proto);
-                    cache.put(host, to);
+                    cacheTestSession.put(lookupKey, to);
                 } else {
                     observingOnly = true;
                 }
