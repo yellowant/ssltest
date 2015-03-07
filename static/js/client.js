@@ -32,15 +32,16 @@ function events(){
 			;
 	}
 
-	function Stream(_container, _url) {
-		var c = _container;
-		var url = _url;
+	function Stream(c, url) {
+		this.getTargetContainer = function(){
+			return c;
+		}
 
 		var stream = new EventSource(url);
-
+		var streamSelf = this;
 		this.registerEvent = function(name, handler) {
 			stream.addEventListener(name, function (event) {
-				handler(container, stream, event);
+				handler(streamSelf.getTargetContainer(), stream, event);
 			});
 		};
 
@@ -58,18 +59,20 @@ function events(){
 		});
 	}
 
-	function HostIP(_container, _hostinfo) {
-		var c = _container;
+	function HostIP(c, hostinfo) {
+		var domain = hostinfo.domain;
+		var port = hostinfo.port;
+		var ip = hostinfo.ip;
 
-		var domain = _hostinfo.domain;
-		var port = _hostinfo.port;
-		var ip = _hostinfo.ip;
-
-		var url = hostInfoToURL( _hostinfo );
+		var url = hostInfoToURL( hostinfo );
 		var stream = new Stream(c, url);
 
 		var stack = new Array();
-		stack.push({fs: current});
+		stack.push({fs: c});
+		
+		stream.getTargetContainer = function(){
+			return stack[stack.length-1].fs;
+		}; // Overriding...
 
 		stream.registerEvent("enter", function (c, s, e) {
 			var fs = document.createElement("fieldset");
@@ -77,15 +80,13 @@ function events(){
 			var legendT = document.createTextNode(e.data);
 			legend.appendChild(legendT);
 			fs.appendChild(legend);
-			current.appendChild(fs);
+			c.appendChild(fs);
 
 			stack.push( { fs:fs, leg:legend, legT:legendT} );
-			current = fs;
 		});
 
 		stream.registerEvent("exit", function (c, s, e) {
 			var frame = stack.pop();
-			current = stack[stack.length-1].fs;
 
 			var legT = document.createTextNode(e.data);
 			frame.leg.removeChild(frame.legT);
@@ -102,11 +103,13 @@ function events(){
 	stream.registerEvent("hostip", function (c, s, e) {
 		var hostInfo = JSON.parse(e.data);
 
-		var text = document.createTextNode(e.data);
-		var node = document.createElement("div");
-		node.appendChild(text);
+		var node = document.createElement("fieldset");
+		var legend = document.createElement("legend");
+		var legendT = document.createTextNode(hostInfo.ip);
+		legend.appendChild(legendT);
+		node.appendChild(legend);
 		c.appendChild(node);
-
+		
 		var stream = new HostIP( node, hostInfo );
 	});
 
