@@ -41,9 +41,7 @@ public abstract class TestOutput {
     }
 
     public void enterTest(String testName) {
-        println("event: enter");
-        println("data: " + testName);
-        println("");
+        outputEvent("enter", testName);
         que.push(new TestExecution(testName));
     }
 
@@ -56,15 +54,15 @@ public abstract class TestOutput {
         }
 
         que.peek().add(testName, res);
-        println("event: exit");
-        println("data: " + testName + (res == null ? "" : " -> " + (Math.ceil(100 * res.getRes()))));
-        println("");
+        outputEvent("exit", testName + (res == null ? "" : " -> " + (Math.ceil(100 * res.getRes()))));
     }
 
+    @Deprecated
     public void output(String message) {
         output(message, 0);
     }
 
+    @Deprecated
     public void output(String message, int points) {
         println("data: " + message + (points == 0 ? "" : " (" + points + ")"));
         println("");
@@ -75,13 +73,17 @@ public abstract class TestOutput {
     }
 
     public void end() {
-        println("event: eof");
-        println("data: {}");
-        println("");
+        outputEvent("eof", "{}");
     }
 
     public HashMap<String, TestResult> getSubresults() {
         return que.peek().getMap();
+    }
+
+    public void outputEvent(String event, String details) {
+        println("event: " + event);
+        println("data: " + details);
+        println("");
     }
 
 }
