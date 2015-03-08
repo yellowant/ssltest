@@ -19,6 +19,7 @@ import org.bouncycastle.crypto.tls.TlsKeyExchange;
 
 import de.dogcraft.ssltest.tests.TestingTLSClient.TLSCipherInfo;
 import de.dogcraft.ssltest.utils.CipherProbingClient;
+import de.dogcraft.ssltest.utils.JSONUtils;
 
 public class TestCipherList {
 
@@ -83,7 +84,7 @@ public class TestCipherList {
                 String cipherDesc = selection.toString();
 
                 if (pw != null) {
-                    pw.output(cipherDesc);
+                    pw.outputEvent("cipher", cipherDesc);
                 }
 
                 ciphers.remove(selection.cipherID);
@@ -161,12 +162,22 @@ public class TestCipherList {
             Formatter f = new Formatter(sb);
 
             try {
-                f.format("%06x (%s): kex=%s(%d), auth=%s(%d), enc=%s(%d) mode=%s mac=%s(%d) pfs=%s", //
-                        getCipherID(), getCipherName(), //
-                        info.getKexType(), info.getKexSize(), //
-                        info.getAuthKeyType(), info.getAuthKeySize(), //
-                        info.getCipherType(), info.getCipherSize(), info.getCipherMode(), //
-                        info.getMacType(), info.getMacSize(), //
+                f.format(//
+                        "{ " + //
+                                "\"cipherid\": %06x, \"ciphername\": \"%s\", " + //
+                                "\"kextype\": \"%s\", \"kexsize\": %d, " + //
+                                "\"authtype\": \"%s\", \"authsize\": %d, " + //
+                                "\"enctype\": \"%s\", \"encsize\": %d, " + //
+                                "\"mode\": \"%s\", " + //
+                                "\"mactype\": \"%s\", \"macsize\": %d, " + //
+                                "\"pfs\": \"%s\" " + //
+                                "}", //
+                        getCipherID(), JSONUtils.jsonEscape(getCipherName()), //
+                        JSONUtils.jsonEscape(info.getKexType()), info.getKexSize(), //
+                        JSONUtils.jsonEscape(info.getAuthKeyType()), info.getAuthKeySize(), //
+                        JSONUtils.jsonEscape(info.getCipherType()), info.getCipherSize(), //
+                        JSONUtils.jsonEscape(info.getCipherMode()), //
+                        JSONUtils.jsonEscape(info.getMacType()), info.getMacSize(), //
                         info.isPFS() ? "yes" : "no");
             } finally {
                 f.close();

@@ -107,9 +107,9 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
         c.determineCiphers(this);
 
         if (c.hasServerPref()) {
-            output("Server has cipher preference.");
+            outputEvent("cipherpref", "{ \"cipherpref\": \"yes\" }");
         } else {
-            output("Server has no cipher preference.");
+            outputEvent("cipherpref", "{ \"cipherpref\": \"no\" }");
         }
     }
 
