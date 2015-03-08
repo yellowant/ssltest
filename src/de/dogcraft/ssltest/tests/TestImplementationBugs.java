@@ -32,15 +32,17 @@ public class TestImplementationBugs {
         CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
             CompressionMethod.DEFLATE
         }, null);
+        boolean gotThrough = false;
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();
+            gotThrough = true;
             tcp.close();
             sock.close();
         } catch (Throwable t) {
 
         }
-        return tcp.hasFailedLocaly() || tc.isFailed();
+        return !(tcp.hasFailedLocaly() || tc.isFailed() || !gotThrough);
     }
 
     public void testBug(TestOutput pw) throws IOException {
