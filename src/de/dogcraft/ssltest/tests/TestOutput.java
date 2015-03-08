@@ -34,26 +34,26 @@ public abstract class TestOutput {
         }
     }
 
-    LinkedBlockingDeque<TestExecution> que = new LinkedBlockingDeque<>();
+    LinkedBlockingDeque<TestExecution> queue = new LinkedBlockingDeque<>();
 
     public TestOutput() {
-        que.add(new TestExecution("root"));
+        queue.add(new TestExecution("root"));
     }
 
     public void enterTest(String testName) {
         outputEvent("enter", testName);
-        que.push(new TestExecution(testName));
+        queue.push(new TestExecution(testName));
     }
 
     public abstract void println(String s);
 
     public void exitTest(String testName, TestResult res) {
-        TestExecution poll = que.poll();
+        TestExecution poll = queue.poll();
         if ( !poll.getName().equals(testName)) {
             throw new Error(poll.getName() + " <=> " + testName);
         }
 
-        que.peek().add(testName, res);
+        queue.peek().add(testName, res);
         outputEvent("exit", testName + (res == null ? "" : " -> " + (Math.ceil(100 * res.getRes()))));
     }
 
@@ -77,7 +77,7 @@ public abstract class TestOutput {
     }
 
     public HashMap<String, TestResult> getSubresults() {
-        return que.peek().getMap();
+        return queue.peek().getMap();
     }
 
     public void outputEvent(String event, String details) {
