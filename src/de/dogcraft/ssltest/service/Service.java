@@ -151,11 +151,10 @@ public class Service extends HttpServlet {
 
         TestingSession to;
         {
-            String host = u.getHost() + ":" + u.getPort();
             boolean observingOnly = false;
 
             synchronized (cacheTestSession) {
-                String lookupKey = ip + "#" + host;
+                String lookupKey = ip + "#" + u.getHost() + ":" + u.getProtocol() + "-" + u.getPort();
 
                 to = cacheTestSession.get(lookupKey);
                 if (to == null) {
