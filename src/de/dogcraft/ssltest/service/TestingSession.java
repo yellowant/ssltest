@@ -88,16 +88,26 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
         byte[] sn = b.getExt().get(ExtensionType.server_name);
         byte[] hb = b.getExt().get(ExtensionType.heartbeat);
         byte[] rn = b.getExt().get(ExtensionType.renegotiation_info);
-        output("renego: " + (rn == null ? "off" : "on"));
-        output("heartbeat: " + (hb == null ? "off" : "on"));
-        output("sni: " + (sn == null ? "off" : "on"));
+        outputEvent("renegotiation", //
+                String.format("{ \"secure_renego\": \"%s\" }", //
+                        rn == null ? "yes" : "no"));
+        outputEvent("heartbeat", //
+                String.format("{ \"heartbeat\": \"%s\", \"heartbleed\": \"%s\" }", //
+                        hb != null ? "yes" : "no", "unknown"));
+        outputEvent("sni", String.format("{ \"sni\": \"%s\" }", //
+                sn == null ? "no" : "yes"));
 
-        boolean testCompression = b.testDeflate(this);
+        boolean supportsCompression = true;
+        if (supportsCompression) {
+            boolean acceptsCompression = b.testDeflate(this);
 
-        if (testCompression) {
-            output("Does support tls compression. ", -10);
+            if (acceptsCompression) {
+                outputEvent("compression", "{ \"supported\": \"yes\", \"accepted\": \"yes\", \"points\": -10 }");
+            } else {
+                outputEvent("compression", "{ \"supported\": \"yes\", \"accepted\": \"no\", \"points\": 0 }");
+            }
         } else {
-            output("Does not support tls compression.");
+            outputEvent("compression", "{ \"supported\": \"no\", \"accepted\": \"no\", \"points\": -5 }");
         }
 
         CertificateTest.testCerts(this, b);
