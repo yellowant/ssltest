@@ -82,7 +82,10 @@ public abstract class TestOutput {
 
     public void outputEvent(String event, String details) {
         println("event: " + event);
-        println("data: " + details);
+        String[] lines = details.split("\n");
+        for (String line : lines) {
+            println("data: " + line);
+        }
         println("");
     }
 
