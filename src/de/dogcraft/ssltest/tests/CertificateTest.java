@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -54,6 +55,16 @@ public class CertificateTest {
                 e.printStackTrace();
             }
         }
+    }
+
+    protected static String convertToPEM(Certificate cert) throws IOException {
+        final String cert_begin = "-----BEGIN CERTIFICATE-----\n";
+        final String end_cert = "\n-----END CERTIFICATE-----\n";
+
+        Base64.Encoder encoder = Base64.getMimeEncoder(64, "\n".getBytes("UTF-8"));
+
+        byte[] derCert = cert.getEncoded();
+        return new StringBuilder().append(cert_begin).append(new String(encoder.encode(derCert))).append(end_cert).toString();
     }
 
     private static final BigInteger TWO = new BigInteger("2");
