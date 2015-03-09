@@ -29,6 +29,8 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.TBSCertificate;
 
+import de.dogcraft.ssltest.utils.JSONUtils;
+
 public class CertificateTest {
 
     private static HashMap<String, Integer> kusMap = new HashMap<>();
@@ -73,6 +75,11 @@ public class CertificateTest {
         pw.enterTest("Certificate");
 
         Certificate[] c = b.getCert().getCertificateList();
+        int certindex = 0;
+        for (Certificate cert : c) {
+            pw.outputEvent("certificate", String.format("{ \"index\": %d, \"type\": \"%s\", \"data\": \"%s\" }", certindex++, "X.509", JSONUtils.jsonEscape(convertToPEM(cert))));
+        }
+
         Certificate primary = c[0];
         checkCertEncoding(pw, primary);
         TBSCertificate tbs = primary.getTBSCertificate();
