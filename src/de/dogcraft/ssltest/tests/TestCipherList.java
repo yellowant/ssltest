@@ -164,7 +164,7 @@ public class TestCipherList {
             try {
                 f.format(//
                         "{ " + //
-                                "\"cipherid\": %06x, \"ciphername\": \"%s\", " + //
+                                "\"cipherid\": \"%06x\", \"ciphername\": \"%s\", " + //
                                 "\"kextype\": \"%s\", \"kexsize\": %d, " + //
                                 "\"authtype\": \"%s\", \"authsize\": %d, " + //
                                 "\"enctype\": \"%s\", \"encsize\": %d, " + //

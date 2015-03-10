@@ -4,3 +4,12 @@
 .space-below {
 	margin-bottom: 10px;
 }
+
+table.cipherTable td{
+	border: 1px solid black;
+	padding: 2px;
+}
+
+table.cipherTable th{
+	padding: 2px;
+}

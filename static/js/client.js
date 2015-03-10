@@ -59,7 +59,7 @@ function events(){
 		});
 	}
 
-	function HostIP(c, hostinfo) {
+	function HostIP(c, hostinfo, idBase) {
 		var domain = hostinfo.domain;
 		var port = hostinfo.port;
 		var ip = hostinfo.ip;
@@ -92,6 +92,26 @@ function events(){
 			frame.leg.removeChild(frame.legT);
 			frame.leg.appendChild(legT);
 		});
+		stream.registerEvent("cipher", function(c, s, e){
+			var cipher = JSON.parse(e.data);
+			var tr = document.createElement("tr");
+			if(document.getElementById(idBase+"ciphers").childNodes.length == 0){
+				var header = document.createElement("tr");
+				for( var key in cipher){
+					var td = document.createElement("th");
+					td.appendChild(document.createTextNode(key));
+					header.appendChild(td);
+				}
+				document.getElementById(idBase+"ciphers").appendChild(header)
+			}
+			for( var key in cipher){
+				var td = document.createElement("td");
+				td.appendChild(document.createTextNode(cipher[key]));
+				tr.appendChild(td);
+			}
+			document.getElementById(idBase+"ciphers").appendChild(tr);
+		});
+
 	};
 
 	var container = document.getElementById('output');
@@ -100,7 +120,11 @@ function events(){
 
 	var stream = new Stream(container, url);
 
+	var idBaseCounter = 0;
+
 	stream.registerEvent("hostip", function (c, s, e) {
+		var idBase = "test"+(idBaseCounter++)+"-";
+
 		var hostInfo = JSON.parse(e.data);
 
 		var node = document.createElement("fieldset");
@@ -109,8 +133,13 @@ function events(){
 		legend.appendChild(legendT);
 		node.appendChild(legend);
 		c.appendChild(node);
+		var tab = document.createElement("table");
+		tab.setAttribute("id", idBase+"ciphers")
+		tab.setAttribute("class", "cipherTable")
+		c.appendChild(tab);
 		
-		var stream = new HostIP( node, hostInfo );
+		var stream = new HostIP( node, hostInfo, idBase );
 	});
+
 
 }
