@@ -4,8 +4,7 @@ public class JSONUtils {
 
     public static String jsonEscape(String s) {
 
-        return s.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"").replaceAll("\\n", "\\\\n").replaceAll("\\r", "\\\\r").replaceAll("\\t", "\\\\t").replaceAll("\\b", "\\\\b").replaceAll("\\f", "\\\\f");
-
+        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t").replace("\b", "\\b").replace("\f", "\\f");
     }
 
 }
