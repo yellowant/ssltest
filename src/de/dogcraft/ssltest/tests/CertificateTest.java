@@ -66,7 +66,7 @@ public class CertificateTest {
         Base64.Encoder encoder = Base64.getMimeEncoder(64, "\n".getBytes("UTF-8"));
 
         byte[] derCert = cert.getEncoded();
-        return new StringBuilder().append(cert_begin).append(new String(encoder.encode(derCert))).append(end_cert).toString();
+        return cert_begin + encoder.encodeToString(derCert) + end_cert;
     }
 
     private static final BigInteger TWO = new BigInteger("2");
