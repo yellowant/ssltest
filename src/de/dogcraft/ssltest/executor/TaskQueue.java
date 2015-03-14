@@ -113,7 +113,15 @@ public class TaskQueue {
                                 break;
                             }
 
-                            t.run();
+                            try {
+                                if ( !t.isBlocked()) {
+                                    t.run();
+                                } else {
+                                    System.out.println("Found a task that has highest priority yet still is blocked!");
+                                }
+                            } finally {
+                                t.markCompleted();
+                            }
                         }
                     }
                 }
@@ -126,6 +134,8 @@ public class TaskQueue {
     }
 
     public static abstract class Task implements Runnable, Comparable<Task> {
+
+        private boolean completed = false;
 
         private List<Task> dependsOn = new LinkedList<Task>();
 
@@ -142,7 +152,15 @@ public class TaskQueue {
         }
 
         public boolean isCompleted() {
-            return false;
+            return completed;
+        }
+
+        public void markCompleted() {
+            completed = true;
+        }
+
+        public boolean isDependentOn(Task task) {
+            return dependsOn.contains(task);
         }
 
         @Override
@@ -153,9 +171,9 @@ public class TaskQueue {
                 return 1;
             }
 
-            if (this.dependsOn.contains(other)) {
+            if (this.isDependentOn(other)) {
                 return 1;
-            } else if (other.dependsOn.contains(this)) {
+            } else if (other.isDependentOn(this)) {
                 return -1;
             }
 
