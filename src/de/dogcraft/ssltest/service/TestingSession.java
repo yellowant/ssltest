@@ -15,6 +15,7 @@ import de.dogcraft.ssltest.tests.TestConnectionBuilder;
 import de.dogcraft.ssltest.tests.TestImplementationBugs;
 import de.dogcraft.ssltest.tests.TestOutput;
 import de.dogcraft.ssltest.tests.TestResult;
+import de.dogcraft.ssltest.utils.JSONUtils;
 
 public class TestingSession extends TestOutput implements TestConnectionBuilder {
 
@@ -127,7 +128,10 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
         try {
             System.out.println("Testing " + ip + "#" + host + ":" + port);
             System.out.println("Proto: " + proto);
-            output("Testing " + host + ":" + port);
+            outputEvent("test", String.format("{ \"ip\": \"%s\", \"host\": \"%s\", \"port\": \"%d\", \"proto\": \"%s\" }", //
+                    JSONUtils.jsonEscape(ip), //
+                    JSONUtils.jsonEscape(host), //
+                    port, JSONUtils.jsonEscape(proto)));
 
             try {
                 testBugs();
