@@ -172,9 +172,9 @@ public class TaskQueue {
             }
 
             if (this.isDependentOn(other)) {
-                return 1;
-            } else if (other.isDependentOn(this)) {
                 return -1;
+            } else if (other.isDependentOn(this)) {
+                return 1;
             }
 
             return this.dependsOn.size() - other.dependsOn.size();

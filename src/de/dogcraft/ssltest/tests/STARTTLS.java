@@ -76,15 +76,15 @@ public class STARTTLS {
     }
 
     private static void startXMPP(Socket s, boolean server, String domain) throws IOException {
-        InputStream is = s.getInputStream();
-        OutputStream os = s.getOutputStream();
+        final InputStream is = s.getInputStream();
+        final OutputStream os = s.getOutputStream();
         os.write(("<stream:stream to=\"" + domain + "\" xmlns=\"jabber:" + (server ? "server" : "client") + "\"" + " xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">").getBytes());
         os.flush();
         os.write("<starttls xmlns=\"urn:ietf:params:xml:ns:xmpp-tls\"/>".getBytes());
         os.flush();
+
         scanFor(is, "<proceed");
         scanFor(is, ">");
-
     }
 
 }
