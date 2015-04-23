@@ -22,8 +22,8 @@ public class CertificateChecker extends Task {
 
     public class ValidityChecker extends Task {
 
-        public ValidityChecker(TaskQueue q) {
-            q.super();
+        public ValidityChecker() {
+            CertificateChecker.this.getQueue().super();
         }
 
         @Override
@@ -35,8 +35,8 @@ public class CertificateChecker extends Task {
 
     public class CRLValidityChecker extends ValidityChecker {
 
-        public CRLValidityChecker(TaskQueue q) {
-            super(q);
+        public CRLValidityChecker() {
+            super();
         }
 
         @Override
@@ -48,8 +48,8 @@ public class CertificateChecker extends Task {
 
     public class OCSPValidityChecker extends ValidityChecker {
 
-        public OCSPValidityChecker(TaskQueue q) {
-            super(q);
+        public OCSPValidityChecker() {
+            super();
         }
 
         @Override
