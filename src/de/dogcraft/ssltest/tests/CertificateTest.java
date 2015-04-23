@@ -87,7 +87,8 @@ public class CertificateTest {
         checkRevocation(pw, tbs);
 
         for (int i = 0; i < c.length; i++) {
-            pw.output((i == 0 ? "Subject " : "Additional Subject ") + c[i].getSubject().toString());
+            pw.outputEvent("certsubject", String.format("{ \"index\": %d, \"subject\": \"%s\" }", i, c[i].getSubject().toString()));
+            pw.outputEvent("certissuer", String.format("{ \"index\": %d, \"issuer\": \"%s\" }", i, c[i].getIssuer().toString()));
         }
 
         pw.enterTest("Verifying extensions");
