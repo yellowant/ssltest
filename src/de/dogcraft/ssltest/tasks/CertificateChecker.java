@@ -35,10 +35,6 @@ public class CertificateChecker extends Task {
 
     public class CRLValidityChecker extends ValidityChecker {
 
-        public CRLValidityChecker() {
-            super();
-        }
-
         @Override
         public void run() {
 
@@ -47,10 +43,6 @@ public class CertificateChecker extends Task {
     }
 
     public class OCSPValidityChecker extends ValidityChecker {
-
-        public OCSPValidityChecker() {
-            super();
-        }
 
         @Override
         public void run() {

@@ -95,8 +95,9 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
         outputEvent("heartbeat", //
                 String.format("{ \"heartbeat\": \"%s\", \"heartbleed\": \"%s\" }", //
                         hb != null ? "yes" : "no", "unknown"));
-        outputEvent("sni", String.format("{ \"sni\": \"%s\" }", //
-                sn == null ? "no" : "yes"));
+        outputEvent("sni", //
+                String.format("{ \"sni\": \"%s\" }", //
+                        sn == null ? "no" : "yes"));
 
         boolean supportsCompression = true;
         if (supportsCompression) {
