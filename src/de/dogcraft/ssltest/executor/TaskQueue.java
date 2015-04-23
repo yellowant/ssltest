@@ -10,13 +10,13 @@ public class TaskQueue {
     public static void main(String[] args) {
         final TaskQueue q = new TaskQueue();
 
-        Task t1 = new Task() {
+        Task t1 = q.new Task() {
 
             @Override
             public void run() {
                 System.out.println("Hallo Welt!");
 
-                Task t2 = new Task() {
+                Task t2 = getQueue().new Task() {
 
                     @Override
                     public void run() {
@@ -25,7 +25,7 @@ public class TaskQueue {
 
                 };
 
-                Task t3 = new Task() {
+                Task t3 = getQueue().new Task() {
 
                     @Override
                     public void run() {
@@ -34,7 +34,7 @@ public class TaskQueue {
 
                 };
 
-                Task t4 = new Task() {
+                Task t4 = getQueue().new Task() {
 
                     @Override
                     public void run() {
@@ -48,9 +48,9 @@ public class TaskQueue {
 
                 t2.dependsOn.add(t3);
 
-                q.addTask(t2);
-                q.addTask(t3);
-                q.addTask(t4);
+                getQueue().addTask(t2);
+                getQueue().addTask(t3);
+                getQueue().addTask(t4);
             }
 
         };
@@ -133,7 +133,7 @@ public class TaskQueue {
         }
     }
 
-    public static abstract class Task implements Runnable, Comparable<Task> {
+    public abstract class Task implements Runnable, Comparable<Task> {
 
         private boolean completed = false;
 
@@ -178,6 +178,10 @@ public class TaskQueue {
             }
 
             return this.dependsOn.size() - other.dependsOn.size();
+        }
+
+        public TaskQueue getQueue() {
+            return TaskQueue.this;
         }
 
     }
