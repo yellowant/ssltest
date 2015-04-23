@@ -80,25 +80,24 @@ public class CertificateTest {
             pw.outputEvent("certificate", String.format("{ \"index\": %d, \"type\": \"%s\", \"data\": \"%s\" }", certindex++, "X.509", JSONUtils.jsonEscape(convertToPEM(cert))));
         }
 
-        Certificate primary = c[0];
-        checkCertEncoding(pw, primary);
-        TBSCertificate tbs = primary.getTBSCertificate();
-        checkValidity(pw, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
-        checkRevocation(pw, tbs);
-
         for (int i = 0; i < c.length; i++) {
+            checkCertEncoding(pw, i, c[i]);
+            TBSCertificate tbs = c[i].getTBSCertificate();
+            checkValidity(pw, i, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
+            checkRevocation(pw, i, tbs);
+
             pw.outputEvent("certsubject", String.format("{ \"index\": %d, \"subject\": \"%s\" }", i, c[i].getSubject().toString()));
             pw.outputEvent("certissuer", String.format("{ \"index\": %d, \"issuer\": \"%s\" }", i, c[i].getIssuer().toString()));
+
+            testBasicConstraints(pw, tbs);
+            testKeyUsage(pw, tbs);
+            testExtendedKeyUsage(pw, tbs);
+            testCRL(pw, tbs);
+            testSAN(pw, tbs);
+            testAIA(pw, tbs);
         }
 
         pw.enterTest("Verifying extensions");
-
-        testBasicConstraints(pw, tbs);
-        testKeyUsage(pw, tbs);
-        testExtendedKeyUsage(pw, tbs);
-        testCRL(pw, tbs);
-        testSAN(pw, tbs);
-        testAIA(pw, tbs);
 
         HashMap<String, TestResult> tr = pw.getSubresults();
 
@@ -113,7 +112,7 @@ public class CertificateTest {
         pw.exitTest("Certificate", TestResult.IGNORE);
     }
 
-    private static void checkRevocation(TestOutput pw, TBSCertificate tbs) {
+    private static void checkRevocation(TestOutput pw, int index, TBSCertificate tbs) {
         Extension ext = extractCertExtension(tbs, Extension.cRLDistributionPoints);
         pw.enterTest("Revocation");
         int crlCount = 0;
@@ -123,7 +122,7 @@ public class CertificateTest {
 
             DistributionPoint[] points = CRLDistPoint.getInstance(ext.getParsedValue()).getDistributionPoints();
             for (DistributionPoint distributionPoint : points) {
-                pw.output("CRL-name: " + distributionPoint.getDistributionPoint().toString().replace("\n", "\ndata: "));
+                pw.outputEvent("certcrl", String.format("{ \"index\": %d, \"crl\": \"%s\" }", index, distributionPoint.getDistributionPoint().toString()));
 
                 DistributionPointName point = distributionPoint.getDistributionPoint();
                 if (point.getType() == DistributionPointName.FULL_NAME) {
@@ -154,26 +153,25 @@ public class CertificateTest {
         pw.exitTest("Revocation", TestResult.FAILED);
     }
 
-    private static void checkCertEncoding(TestOutput pw, Certificate primary) {
+    private static void checkCertEncoding(TestOutput pw, int index, Certificate cert) {
         pw.enterTest("Encoding");
-        BigInteger v = primary.getVersion().getValue();
+        BigInteger v = cert.getVersion().getValue();
         if (v.equals(BigInteger.ZERO)) {
-            pw.output("v1-Certificate", -3);
+            pw.outputEvent("certtype", String.format("{ \"index\": %d, \"type\": \"v1-Certificate\", \"points\": %d }", index, -3));
         } else if (v.equals(BigInteger.ONE)) {
-            pw.output("v2-Certificate", -1);
+            pw.outputEvent("certtype", String.format("{ \"index\": %d, \"type\": \"v2-Certificate\", \"points\": %d }", index, -1));
         } else if (v.equals(TWO)) {
-            pw.output("v3-Certificate", 1);
+            pw.outputEvent("certtype", String.format("{ \"index\": %d, \"type\": \"v3-Certificate\", \"points\": %d }", index, 1));
         }
         pw.exitTest("Encoding", TestResult.IGNORE);
     }
 
     private static final long MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
-    private static void checkValidity(TestOutput pw, Date start, Date end) {
+    private static void checkValidity(TestOutput pw, int index, Date start, Date end) {
         pw.enterTest("Validity Period");
         SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'UTC'");
-        pw.output("Start: " + sdf.format(start));
-        pw.output("End: " + sdf.format(end));
+        pw.outputEvent("certvalidity", String.format("{ \"index\": %d, \"start\": \"%s\", \"end\": \"%s\" }", sdf.format(start), sdf.format(end)));
         Date now = new Date();
         if (start.before(now) && end.after(now)) {
             pw.output("Certificate is currently valid.");
