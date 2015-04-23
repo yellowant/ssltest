@@ -171,7 +171,7 @@ public class CertificateTest {
     private static void checkValidity(TestOutput pw, int index, Date start, Date end) {
         pw.enterTest("Validity Period");
         SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'UTC'");
-        pw.outputEvent("certvalidity", String.format("{ \"index\": %d, \"start\": \"%s\", \"end\": \"%s\" }", sdf.format(start), sdf.format(end)));
+        pw.outputEvent("certvalidity", String.format("{ \"index\": %d, \"start\": \"%s\", \"end\": \"%s\" }", index, sdf.format(start), sdf.format(end)));
         Date now = new Date();
         if (start.before(now) && end.after(now)) {
             pw.output("Certificate is currently valid.");
