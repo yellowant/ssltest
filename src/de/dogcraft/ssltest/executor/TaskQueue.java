@@ -184,6 +184,10 @@ public class TaskQueue {
             return TaskQueue.this;
         }
 
+        protected void requeue() {
+            getQueue().addTask(this);
+        }
+
     }
 
 }
