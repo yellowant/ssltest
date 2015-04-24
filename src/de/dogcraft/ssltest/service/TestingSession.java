@@ -8,13 +8,14 @@ import java.util.ListIterator;
 
 import org.bouncycastle.crypto.tls.ExtensionType;
 
+import de.dogcraft.ssltest.executor.TaskQueue;
+import de.dogcraft.ssltest.executor.TaskQueue.Task;
 import de.dogcraft.ssltest.tests.CertificateTest;
 import de.dogcraft.ssltest.tests.STARTTLS;
 import de.dogcraft.ssltest.tests.TestCipherList;
 import de.dogcraft.ssltest.tests.TestConnectionBuilder;
 import de.dogcraft.ssltest.tests.TestImplementationBugs;
 import de.dogcraft.ssltest.tests.TestOutput;
-import de.dogcraft.ssltest.tests.TestResult;
 import de.dogcraft.ssltest.utils.JSONUtils;
 
 public class TestingSession extends TestOutput implements TestConnectionBuilder {
@@ -32,6 +33,8 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
     private boolean ended;
 
     private LinkedList<PrintStream> interestedParties = new LinkedList<>();
+
+    TaskQueue tq = new TaskQueue();
 
     public TestingSession(String host, String ip, int port, String proto) {
         this.host = host;
@@ -83,36 +86,75 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
         }
     }
 
-    private void testBugs() throws IOException {
-        TestImplementationBugs b = new TestImplementationBugs(host, this);
-        b.testBug(this);
-        byte[] sn = b.getExt().get(ExtensionType.server_name);
-        byte[] hb = b.getExt().get(ExtensionType.heartbeat);
-        byte[] rn = b.getExt().get(ExtensionType.renegotiation_info);
-        outputEvent("renegotiation", //
-                String.format("{ \"secure_renego\": \"%s\" }", //
-                        rn == null ? "yes" : "no"));
-        outputEvent("heartbeat", //
-                String.format("{ \"heartbeat\": \"%s\", \"heartbleed\": \"%s\" }", //
-                        hb != null ? "yes" : "no", "unknown"));
-        outputEvent("sni", //
-                String.format("{ \"sni\": \"%s\" }", //
-                        sn == null ? "no" : "yes"));
+    private Task testBugs() {
+        final TestImplementationBugs b = new TestImplementationBugs(host, this);
+        final Task t1 = tq.new Task() {
 
-        boolean supportsCompression = true;
-        if (supportsCompression) {
-            boolean acceptsCompression = b.testDeflate(this);
-
-            if (acceptsCompression) {
-                outputEvent("compression", "{ \"supported\": \"yes\", \"accepted\": \"yes\", \"points\": -10 }");
-            } else {
-                outputEvent("compression", "{ \"supported\": \"yes\", \"accepted\": \"no\", \"points\": 0 }");
+            {
+                requeue();
             }
-        } else {
-            outputEvent("compression", "{ \"supported\": \"no\", \"accepted\": \"no\", \"points\": -5 }");
-        }
 
-        CertificateTest.testCerts(this, b);
+            @Override
+            public void run() {
+
+                try {
+                    String hbTest = b.testHeartbeat();
+                    byte[] sn = b.getExt().get(ExtensionType.server_name);
+                    byte[] hb = b.getExt().get(ExtensionType.heartbeat);
+                    byte[] rn = b.getExt().get(ExtensionType.renegotiation_info);
+                    outputEvent("renegotiation", //
+                            String.format("{ \"secure_renego\": \"%s\" }", //
+                                    rn == null ? "yes" : "no"));
+                    outputEvent("heartbeat", //
+                            String.format("{ \"heartbeat\": \"%s\", \"test\": %s }", //
+                                    hb != null ? "yes" : "no", hbTest));
+                    outputEvent("sni", //
+                            String.format("{ \"sni\": \"%s\" }", //
+                                    sn == null ? "no" : "yes"));
+
+                    boolean supportsCompression = true;
+                    if (supportsCompression) {
+                        boolean acceptsCompression = b.testDeflate(TestingSession.this);
+
+                        if (acceptsCompression) {
+                            outputEvent("compression", "{ \"supported\": \"yes\", \"accepted\": \"yes\", \"points\": -10 }");
+                        } else {
+                            outputEvent("compression", "{ \"supported\": \"yes\", \"accepted\": \"no\", \"points\": 0 }");
+                        }
+                    } else {
+                        outputEvent("compression", "{ \"supported\": \"no\", \"accepted\": \"no\", \"points\": -5 }");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "Task-bugs";
+            }
+        };
+        return tq.new Task() {
+
+            {
+                dependsOn(t1);
+                requeue();
+            }
+
+            @Override
+            public void run() {
+                try {
+                    CertificateTest.testCerts(TestingSession.this, b.getCert().getCertificateList());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "Task-certs";
+            }
+        };
     }
 
     private void determineCiphers(TestCipherList c) {
@@ -126,27 +168,49 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
     }
 
     public void performTest() {
-        try {
-            System.out.println("Testing " + ip + "#" + host + ":" + port);
-            System.out.println("Proto: " + proto);
-            outputEvent("test", String.format("{ \"ip\": \"%s\", \"host\": \"%s\", \"port\": \"%d\", \"proto\": \"%s\" }", //
-                    JSONUtils.jsonEscape(ip), //
-                    JSONUtils.jsonEscape(host), //
-                    port, JSONUtils.jsonEscape(proto)));
+        System.out.println("Testing " + ip + "#" + host + ":" + port);
+        System.out.println("Proto: " + proto);
+        outputEvent("test", String.format("{ \"ip\": \"%s\", \"host\": \"%s\", \"port\": \"%d\", \"proto\": \"%s\" }", //
+                JSONUtils.jsonEscape(ip), //
+                JSONUtils.jsonEscape(host), //
+                port, JSONUtils.jsonEscape(proto)));
 
-            try {
-                testBugs();
-            } catch (IOException e) {
-                e.printStackTrace();
+        final Task bugs = testBugs();
+        final Task ciphers = tq.new Task() {
+
+            {
+                dependsOn(bugs);
+                requeue();
             }
 
-            TestCipherList c = new TestCipherList(host, this);
-            enterTest("Determining cipher suites");
-            determineCiphers(c);
-            exitTest("Determining cipher suites", TestResult.IGNORE);
-        } finally {
-            end();
-        }
+            public void run() {
+                TestCipherList c = new TestCipherList(host, TestingSession.this);
+                determineCiphers(c);
+            }
+
+            @Override
+            public String toString() {
+                return "Task-ciphers";
+            }
+        };
+        tq.new Task() {
+
+            {
+                dependsOn(ciphers);
+                requeue();
+            }
+
+            public void run() {
+                end();
+
+            }
+
+            @Override
+            public String toString() {
+                return "Task-ending";
+            }
+        };
+        waitForCompletion();
 
     }
 

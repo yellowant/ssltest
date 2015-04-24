@@ -71,13 +71,12 @@ public class CertificateTest {
 
     private static final BigInteger TWO = new BigInteger("2");
 
-    public static void testCerts(TestOutput pw, TestImplementationBugs b) throws IOException {
-        pw.enterTest("Certificate");
+    public static void testCerts(TestOutput pw, Certificate[] c) throws IOException {
 
-        Certificate[] c = b.getCert().getCertificateList();
         int certindex = 0;
         for (Certificate cert : c) {
-            pw.outputEvent("certificate", String.format("{ \"index\": %d, \"type\": \"%s\", \"data\": \"%s\" }", certindex++, "X.509", JSONUtils.jsonEscape(convertToPEM(cert))));
+            pw.outputEvent("certificate", String.format("{ \"index\": %d, \"type\": \"%s\", \"data\": \"%s\", \"subject\": \"%s\", \"issuer\": \"%s\" }", certindex++, "X.509", //
+                    JSONUtils.jsonEscape(convertToPEM(cert)), JSONUtils.jsonEscape(cert.getSubject().toString()), JSONUtils.jsonEscape(cert.getIssuer().toString())));
         }
 
         for (int i = 0; i < c.length; i++) {
@@ -85,9 +84,6 @@ public class CertificateTest {
             TBSCertificate tbs = c[i].getTBSCertificate();
             checkValidity(pw, i, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
             checkRevocation(pw, i, tbs);
-
-            pw.outputEvent("certsubject", String.format("{ \"index\": %d, \"subject\": \"%s\" }", i, c[i].getSubject().toString()));
-            pw.outputEvent("certissuer", String.format("{ \"index\": %d, \"issuer\": \"%s\" }", i, c[i].getIssuer().toString()));
 
             testBasicConstraints(pw, tbs);
             testKeyUsage(pw, tbs);
@@ -99,17 +95,13 @@ public class CertificateTest {
 
         pw.enterTest("Verifying extensions");
 
-        HashMap<String, TestResult> tr = pw.getSubresults();
+        /*
+         * HashMap<String, TestResult> tr = pw.getSubresults(); float val = 0;
+         * for (Entry<String, TestResult> e : tr.entrySet()) { val +=
+         * e.getValue().getRes(); } val /= tr.size();
+         */
 
-        float val = 0;
-        for (Entry<String, TestResult> e : tr.entrySet()) {
-            val += e.getValue().getRes();
-        }
-        val /= tr.size();
-
-        pw.exitTest("Verifying extensions", new TestResult(val));
-
-        pw.exitTest("Certificate", TestResult.IGNORE);
+        pw.exitTest("Verifying extensions", new TestResult(9));
     }
 
     private static void checkRevocation(TestOutput pw, int index, TBSCertificate tbs) {

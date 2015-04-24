@@ -43,10 +43,9 @@ public class TaskQueue {
 
                 };
 
-                t4.dependsOn.add(t3);
-                t4.dependsOn.add(t2);
-
-                t2.dependsOn.add(t3);
+                t4.dependsOn(t3);
+                t4.dependsOn(t2);
+                t3.dependsOn(t2);
 
                 getQueue().addTask(t2);
                 getQueue().addTask(t3);
@@ -57,7 +56,7 @@ public class TaskQueue {
 
         q.addTask(t1);
 
-        q.start();
+        // q.start();
 
         while ( !q.isCompleted()) {
             try {
@@ -70,7 +69,7 @@ public class TaskQueue {
 
     protected synchronized void addTask(Task task) {
         tasks.add(task);
-        if (isRunning()) {
+        if ( !isRunning()) {
             this.start();
         }
     }
@@ -105,25 +104,30 @@ public class TaskQueue {
                 public void run() {
                     super.run();
 
-                    synchronized (TaskQueue.this) {
-                        while ( !TaskQueue.this.tasks.isEmpty()) {
-                            Task t = TaskQueue.this.tasks.poll();
+                    while (true) {
+                        Task t;
+                        synchronized (TaskQueue.this) {
+                            System.out.println(tasks);
+                            t = TaskQueue.this.tasks.poll();
 
                             if (null == t) {
                                 break;
                             }
-
-                            try {
-                                if ( !t.isBlocked()) {
-                                    t.run();
-                                } else {
-                                    System.out.println("Found a task that has highest priority yet still is blocked!");
-                                }
-                            } finally {
-                                t.markCompleted();
+                        }
+                        if ( !t.isBlocked()) {
+                            System.out.println("executing... " + t);
+                            t.run();
+                            System.out.println("completed... " + t);
+                            t.markCompleted();
+                        } else {
+                            System.out.println("Found a task that has highest priority yet still is blocked!");
+                            synchronized (TaskQueue.this) {
+                                tasks.add(t);
                             }
+
                         }
                     }
+                    System.out.println("thread ended.");
                 }
             };
         }
@@ -145,7 +149,9 @@ public class TaskQueue {
             }
 
             for (Task dependentTask : dependsOn) {
-                dependentTask.isCompleted();
+                if ( !dependentTask.isCompleted()) {
+                    return true;
+                }
             }
 
             return false;
@@ -166,9 +172,9 @@ public class TaskQueue {
         @Override
         public int compareTo(Task other) {
             if (this.isBlocked() && !other.isBlocked()) {
-                return -1;
-            } else if ( !this.isBlocked() && other.isBlocked()) {
                 return 1;
+            } else if ( !this.isBlocked() && other.isBlocked()) {
+                return -1;
             }
 
             if (this.isDependentOn(other)) {
@@ -178,6 +184,10 @@ public class TaskQueue {
             }
 
             return this.dependsOn.size() - other.dependsOn.size();
+        }
+
+        public void dependsOn(Task t) {
+            dependsOn.add(t);
         }
 
         public TaskQueue getQueue() {
