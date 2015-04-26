@@ -100,6 +100,9 @@ public class CertificateTest {
         pw.enterTest("Verifying extensions");
 
         HashMap<String, TestResult> tr = pw.getSubresults();
+        if (tr == null) {
+            tr = new HashMap<String, TestResult>();
+        }
 
         float val = 0;
         for (Entry<String, TestResult> e : tr.entrySet()) {
