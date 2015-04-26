@@ -66,7 +66,7 @@ public class CommandLine {
         System.out.println("sni: " + (sn == null ? "off" : "on"));
         System.out.println("renego: " + (rn == null ? "off" : "on"));
         System.out.println("heartbeat: " + (hb == null ? "off" : "on"));
-        bugs.testBug(to);
+        System.out.println(bugs.testHeartbeat());
 
     }
 

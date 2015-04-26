@@ -10,6 +10,17 @@ table.cipherTable td{
 	padding: 2px;
 }
 
+table.extTable td{
+	border: 1px solid black;
+	padding: 2px;
+}
+
 table.cipherTable th{
 	padding: 2px;
+}
+
+fieldset > div {
+	border: 1px solid black;
+	margin: 20px;
+	padding: 10px;
 }

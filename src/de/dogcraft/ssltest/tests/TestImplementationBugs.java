@@ -45,7 +45,7 @@ public class TestImplementationBugs {
         return !(tcp.hasFailedLocaly() || tc.isFailed() || !gotThrough);
     }
 
-    public void testBug(TestOutput pw) throws IOException {
+    public String testHeartbeat() throws IOException {
         Socket sock = tcb.spawn();
         CertificateObserver observer = new CertificateObserver() {
 
@@ -81,17 +81,8 @@ public class TestImplementationBugs {
         } catch (IOException e) {
         }
         boolean resp2 = tcp.fetchRecievedHB();
-
-        if (hb && resp) {
-            pw.output("heartbeat works");
-        } else {
-            pw.output("heartbeat works not");
-        }
-        if (bleed && resp2) {
-            pw.output("heartbleed works!!!");
-        } else {
-            pw.output("heartbleed works not");
-        }
+        String json = "{\"heartbeat\": \"" + (hb && resp ? "yes" : "no") + "\", ";
+        json += "\"heartbleed\": \"" + (bleed && resp2 ? "yes" : "no") + "\"}";
         try {
             sock.getOutputStream().flush();
             tcp.close();
@@ -99,6 +90,7 @@ public class TestImplementationBugs {
         } catch (Throwable t) {
 
         }
+        return json;
     }
 
     private Hashtable<Integer, byte[]> extensions;
