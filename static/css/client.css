@@ -24,3 +24,17 @@ fieldset > div {
 	margin: 20px;
 	padding: 10px;
 }
+
+legend.host-legend a{
+	/*margin: 10px;*/
+	vertical-align: super;
+}
+
+div.certificate {
+	border: 1px gray dashed;
+	margin: 8px;
+}
+div.certificate a{
+	/*margin: 10px;*/
+	vertical-align: super;
+}

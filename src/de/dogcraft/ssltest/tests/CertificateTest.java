@@ -14,6 +14,8 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1String;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.RSAPublicKey;
 import org.bouncycastle.asn1.x509.AccessDescription;
 import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -27,6 +29,7 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x509.TBSCertificate;
 
 import de.dogcraft.ssltest.utils.JSONUtils;
@@ -80,6 +83,11 @@ public class CertificateTest {
         }
 
         for (int i = 0; i < c.length; i++) {
+            SubjectPublicKeyInfo pk = c[i].getTBSCertificate().getSubjectPublicKeyInfo();
+            if (pk.getAlgorithm().getAlgorithm().equals(PKCSObjectIdentifiers.rsaEncryption)) {
+                RSAPublicKey rpk = RSAPublicKey.getInstance(pk.getPublicKeyData().getBytes());
+                pw.outputEvent("certkey", "{ \"index\":" + i + ", \"type\":\"RSA\", \"size\":" + rpk.getModulus().bitLength() + "}");
+            }
             checkCertEncoding(pw, i, c[i]);
             TBSCertificate tbs = c[i].getTBSCertificate();
             checkValidity(pw, i, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
@@ -105,7 +113,7 @@ public class CertificateTest {
             val += e.getValue().getRes();
         }
 
-        if(tr.size() > 0) {
+        if (tr.size() > 0) {
             val /= tr.size();
         }
 

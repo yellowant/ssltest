@@ -126,6 +126,7 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                    throw new Error(e);
                 }
             }
 

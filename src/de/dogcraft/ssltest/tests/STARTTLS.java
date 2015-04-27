@@ -31,9 +31,6 @@ public class STARTTLS {
         s.getOutputStream().write("EHLO ssl.pinger\r\n".getBytes());
         s.getOutputStream().flush();
         readSMTP(is);
-        s.getOutputStream().write("HELP\r\n".getBytes());
-        s.getOutputStream().flush();
-        readSMTP(is);
         s.getOutputStream().write("STARTTLS\r\n".getBytes());
         s.getOutputStream().flush();
         readSMTP(is);

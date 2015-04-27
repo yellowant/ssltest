@@ -21,13 +21,13 @@ function events() {
 		handleMessage(container, stream, "error");
 	};
 
-	function hostInfoToURL(hostinfo) {
-		return hostinfo.ip ? '/test.event?domain='
-				+ encodeURIComponent(hostinfo.domain) + '&ip='
-				+ encodeURIComponent(hostinfo.ip) + '&port='
-				+ encodeURIComponent(hostinfo.port) : '/test.event?domain='
-				+ encodeURIComponent(hostinfo.domain) + '&port='
-				+ encodeURIComponent(hostinfo.port);
+	function hostInfoToURL(hostinfo, base) {
+		if (base === undefined) {
+			base = "/test.event"
+		}
+		return base + '?domain=' + encodeURIComponent(hostinfo.domain)
+				+ (hostinfo.ip ? '&ip=' + encodeURIComponent(hostinfo.ip) : '')
+				+ '&port=' + encodeURIComponent(hostinfo.port);
 	}
 
 	function Stream(c, url) {
@@ -74,18 +74,27 @@ function events() {
 			return stack[stack.length - 1].fs;
 		}; // Overriding...
 
-		var legend = document.createElement("legend");
-		legend.appendChild(document.createTextNode(ip));
 		var isRunning = document.createElement("span");
-		isRunning.appendChild(document.createTextNode("?"));
-		isRunning.style.backgroundColor = '#FF0';
-		legend.appendChild(isRunning);
-		c.appendChild(legend);
+		(function() { // generate Legend
+			var legend = document.createElement("legend");
+			legend.setAttribute("class", "host-legend");
+			legend.appendChild(document.createTextNode(ip));
+			var hr = document.createElement("a");
+			hr.setAttribute("href", hostInfoToURL(hostinfo, "/test.txt"));
+			hr.setAttribute("target", "_blank");
+			hr.appendChild(document.createTextNode("raw"));
+			legend.appendChild(hr);
+			isRunning.appendChild(document.createTextNode("*"));
+			isRunning.style.backgroundColor = '#FF0';
+			legend.appendChild(isRunning);
+			c.appendChild(legend);
+		})();
 
 		stream.registerEvent("open", function(container, stream, event) {
 			isRunning.style.backgroundColor = '#F00';
 		});
 		stream.registerEvent("eof", function(container, stream, event) {
+			console.log("ending");
 			isRunning.style.backgroundColor = '#0F0';
 		});
 		stream.registerEvent("enter", function(c, s, e) {
@@ -112,41 +121,77 @@ function events() {
 			frame.leg.removeChild(frame.legT);
 			frame.leg.appendChild(legT);
 		});
-		{
+		(function() {
 			var certificates = document.createElement("div");
+			var certificateLookup = {};
 			stream.registerEvent("certificate", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
 				var certificateElem = document.createElement("div");
+				certificateElem.setAttribute("class", "certificate");
 				certificateElem.textContent = certificate.index + "-> "
-						+ certificate.subject;
+						+ certificate.subject + " issued by " + certificate.issuer;
+				var raw = document.createElement("a");
+				raw.appendChild(document.createTextNode("pem"));
+				raw.setAttribute("href", "data:text/plain;base64,"
+						+ btoa(certificate.data));
+				raw.setAttribute("target", "_blank");
+				certificateElem.appendChild(raw);
+				
+				certificateLookup[certificate.index] = certificateElem;
+				
 				certificates.appendChild(certificateElem);
 			});
+			stream.registerEvent("certkey", function(c, s, e) {
+				var certificate = JSON.parse(e.data);
+				var validitySpan = document.createElement("div");
+				validitySpan.appendChild(document.createTextNode(certificate.type + ":" + certificate.size));
+				
+				certificateLookup[certificate.index].appendChild(validitySpan);
+			});
+			stream.registerEvent("certvalidity", function(c, s, e) {
+				var certificate = JSON.parse(e.data);
+				var validitySpan = document.createElement("div");
+				validitySpan.appendChild(document.createTextNode(certificate.start + " => " + certificate.end));
+				
+				certificateLookup[certificate.index].appendChild(validitySpan);
+			});
 			c.appendChild(certificates);
-		}
-		{
-      var bugs = document.createElement("div");
-      var table = document.createElement("table");
-      table.setAttribute("class", "extTable");
-      function addElem(name, callback){
-      	var tr = document.createElement("tr");
-      	var td = document.createElement("td");
-      	td.appendChild(document.createTextNode(name));
-      	tr.appendChild(td);
-  			stream.registerEvent(name, function(c, s, e) {
-  				var r = document.createElement("td");
-  				r.textContent = callback(JSON.parse(e.data));
-  				tr.appendChild(r);
-  			});
-  			table.appendChild(tr);
-      }
-      bugs.appendChild(table);
-      addElem("renegotiation", function(renego){return renego.secure_renego;});
-      addElem("heartbeat", function(heartbeat){return heartbeat.heartbeat+", test results ... beat: "+heartbeat.test.heartbeat+", bleed: "+heartbeat.test.heartbleed;});
-      addElem("sni", function(sni){return sni.sni;});
-      addElem("compression", function(compression){return compression.supported+" test results ... accept: "+compression.accepted;});
+		})();
+		(function() { // register SSL Feats
+			var bugs = document.createElement("div");
+			var table = document.createElement("table");
+			table.setAttribute("class", "extTable");
+			function addElem(name, callback) {
+				var tr = document.createElement("tr");
+				var td = document.createElement("td");
+				td.appendChild(document.createTextNode(name));
+				tr.appendChild(td);
+				stream.registerEvent(name, function(c, s, e) {
+					var r = document.createElement("td");
+					r.textContent = callback(JSON.parse(e.data));
+					tr.appendChild(r);
+				});
+				table.appendChild(tr);
+			}
+			bugs.appendChild(table);
+			addElem("renegotiation", function(renego) {
+				return renego.secure_renego;
+			});
+			addElem("heartbeat", function(heartbeat) {
+				return heartbeat.heartbeat + ", test results ... beat: "
+						+ heartbeat.test.heartbeat + ", bleed: "
+						+ heartbeat.test.heartbleed;
+			});
+			addElem("sni", function(sni) {
+				return sni.sni;
+			});
+			addElem("compression", function(compression) {
+				return compression.supported + " test results ... accept: "
+						+ compression.accepted;
+			});
 			c.appendChild(bugs);
-		}
-		{
+		})();
+		(function() { // register Cipher preference
 			var certificateObservations = document.createElement("div");
 			c.appendChild(certificateObservations);
 
@@ -184,9 +229,8 @@ function events() {
 				}
 				tab.appendChild(tr);
 			});
-		}
+		})();
 	}
-	;
 
 	var container = document.getElementById('output');
 
