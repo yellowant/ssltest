@@ -8,14 +8,22 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1String;
+import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.RSAPublicKey;
+import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AccessDescription;
 import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -62,6 +70,40 @@ public class CertificateTest {
         }
     }
 
+    public static String generateDNOids() {
+        try {
+            Field f = org.bouncycastle.asn1.x500.style.BCStyle.class.getDeclaredField("DefaultSymbols");
+            f.setAccessible(true);
+            Hashtable symbols = (Hashtable) f.get(null); // ASN1ObjectIdentifier
+                                                         // -> String
+            Set<Map.Entry<ASN1ObjectIdentifier, String>> set = symbols.entrySet();
+            StringBuffer buf = new StringBuffer();
+            buf.append("{");
+            boolean fst = true;
+            for (Entry<ASN1ObjectIdentifier, String> entry : set) {
+                if (fst) {
+                    fst = false;
+                } else {
+                    buf.append(", ");
+                }
+                String oid = entry.getKey().toString();
+                String text = entry.getValue();
+                buf.append("\"");
+                buf.append(JSONUtils.jsonEscape(oid));
+                buf.append("\":\"");
+                buf.append(JSONUtils.jsonEscape(text));
+                buf.append("\"");
+
+            }
+            buf.append("}");
+            return buf.toString();
+
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     protected static String convertToPEM(Certificate cert) throws IOException {
         final String cert_begin = "-----BEGIN CERTIFICATE-----\n";
         final String end_cert = "\n-----END CERTIFICATE-----\n";
@@ -78,8 +120,19 @@ public class CertificateTest {
 
         int certindex = 0;
         for (Certificate cert : c) {
-            pw.outputEvent("certificate", String.format("{ \"index\": %d, \"type\": \"%s\", \"data\": \"%s\", \"subject\": \"%s\", \"issuer\": \"%s\" }", certindex++, "X.509", //
-                    JSONUtils.jsonEscape(convertToPEM(cert)), JSONUtils.jsonEscape(cert.getSubject().toString()), JSONUtils.jsonEscape(cert.getIssuer().toString())));
+            StringBuffer certificate = new StringBuffer();
+            certificate.append("{ \"index\": ");
+            certificate.append(Integer.toString(certindex++));
+            certificate.append(", \"type\": \"");
+            certificate.append("X.509");
+            certificate.append("\", \"data\": \"");
+            certificate.append(JSONUtils.jsonEscape(convertToPEM(cert)));
+            certificate.append("\", \"subject\": ");
+            appendX500Name(certificate, cert.getSubject());
+            certificate.append(", \"issuer\": ");
+            appendX500Name(certificate, cert.getIssuer());
+            certificate.append("}"); //
+            pw.outputEvent("certificate", certificate.toString());
         }
 
         for (int i = 0; i < c.length; i++) {
@@ -118,6 +171,46 @@ public class CertificateTest {
         }
 
         pw.exitTest("Verifying extensions", new TestResult(val));
+    }
+
+    private static void appendX500Name(StringBuffer certificate, X500Name subject) {
+        certificate.append("[");
+        boolean first = true;
+        for (RDN rdn : subject.getRDNs()) {
+            if (first) {
+                first = false;
+            } else {
+                certificate.append(", ");
+            }
+            certificate.append("{");
+            boolean firstAVA = true;
+            for (AttributeTypeAndValue ava : rdn.getTypesAndValues()) {
+                if (firstAVA) {
+                    firstAVA = false;
+                } else {
+                    certificate.append(", ");
+                }
+                String oid = ava.getType().toString();
+                certificate.append("\"");
+                certificate.append(JSONUtils.jsonEscape(oid));
+                certificate.append("\":");
+                ASN1Encodable val = ava.getValue();
+                if (val instanceof DERPrintableString) {
+                    certificate.append("\"");
+                    certificate.append(((DERPrintableString) val).getString());
+                    certificate.append("\"");
+                } else if (val instanceof DERIA5String) {
+                    certificate.append("\"");
+                    certificate.append(((DERIA5String) val).getString());
+                    certificate.append("\"");
+                } else {
+                    certificate.append("null");
+                }
+            }
+            certificate.append("}");
+        }
+        certificate.append("]");
+
     }
 
     private static void checkRevocation(TestOutput pw, int index, TBSCertificate tbs) {

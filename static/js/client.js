@@ -1,3 +1,19 @@
+function generateOIDInfoHref(oid, content) {
+	var a = document.createElement("a");
+	a.appendChild(document.createTextNode(content));
+	a.setAttribute("href", "http://www.oid-info.com/cgi-bin/display?tree="
+			+ encodeURIComponent(oid));
+	a.setAttribute("title", oid);
+	a.setAttribute("target", "_blank");
+	return a;
+}
+
+function createHeader(content) {
+	var h = document.createElement("h1");
+	h.appendChild(document.createTextNode(content));
+	return h;
+}
+
 function events() {
 	var domain = document.getElementById('domain').value;
 	var port = document.getElementById('port').value;
@@ -122,37 +138,76 @@ function events() {
 			frame.leg.appendChild(legT);
 		});
 		(function() {
+			function appendX500Name(elem, name, desc) {
+				var div = document.createElement("div");
+				div.setAttribute("class", "x500name");
+				div.appendChild(document.createTextNode(desc));
+				for (rdn in name) {
+					var span = document.createElement("span");
+					span.setAttribute("class", "rdn");
+					for (ava in name[rdn]) {
+						var avaspan = document.createElement("span");
+						avaspan.setAttribute("class", "ava");
+						var lookup = dnOIDs[ava];
+						if (lookup === undefined) {
+							lookup = ava;
+						}
+						var keySpan = document.createElement("span");
+						keySpan.appendChild(generateOIDInfoHref(ava, lookup));
+
+						var valSpan = document.createElement("span");
+						valSpan.appendChild(document.createTextNode(name[rdn][ava]));
+
+						avaspan.appendChild(keySpan);
+						avaspan.appendChild(document.createTextNode(": "));
+						avaspan.appendChild(valSpan);
+						span.appendChild(avaspan);
+					}
+					div.appendChild(span);
+				}
+				elem.appendChild(div);
+			}
+
 			var certificates = document.createElement("div");
+			certificates.appendChild(createHeader("Certificates"));
 			var certificateLookup = {};
 			stream.registerEvent("certificate", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
 				var certificateElem = document.createElement("div");
 				certificateElem.setAttribute("class", "certificate");
-				certificateElem.textContent = certificate.index + "-> "
-						+ certificate.subject + " issued by " + certificate.issuer;
-				var raw = document.createElement("a");
-				raw.appendChild(document.createTextNode("pem"));
-				raw.setAttribute("href", "data:text/plain;base64,"
-						+ btoa(certificate.data));
-				raw.setAttribute("target", "_blank");
-				certificateElem.appendChild(raw);
-				
+				certificateElem.textContent = "#" + certificate.index + " ";
+
+				{ // the ^{pem}-link
+					var raw = document.createElement("a");
+					raw.appendChild(document.createTextNode("pem"));
+					raw.setAttribute("class", "rawcert");
+					raw.setAttribute("href", "data:text/plain;base64,"
+							+ btoa(certificate.data));
+					raw.setAttribute("target", "_blank");
+					certificateElem.appendChild(raw);
+				}
+
+				appendX500Name(certificateElem, certificate.subject, "Subject: ");
+				appendX500Name(certificateElem, certificate.issuer, "Issuer: ");
+
 				certificateLookup[certificate.index] = certificateElem;
-				
+
 				certificates.appendChild(certificateElem);
 			});
 			stream.registerEvent("certkey", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
 				var validitySpan = document.createElement("div");
-				validitySpan.appendChild(document.createTextNode(certificate.type + ":" + certificate.size));
-				
+				validitySpan.appendChild(document.createTextNode(certificate.type + ":"
+						+ certificate.size));
+
 				certificateLookup[certificate.index].appendChild(validitySpan);
 			});
 			stream.registerEvent("certvalidity", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
 				var validitySpan = document.createElement("div");
-				validitySpan.appendChild(document.createTextNode(certificate.start + " => " + certificate.end));
-				
+				validitySpan.appendChild(document.createTextNode(certificate.start
+						+ " => " + certificate.end));
+
 				certificateLookup[certificate.index].appendChild(validitySpan);
 			});
 			c.appendChild(certificates);

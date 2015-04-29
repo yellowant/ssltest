@@ -33,8 +33,13 @@ legend.host-legend a{
 div.certificate {
 	border: 1px gray dashed;
 	margin: 8px;
+	padding: 3px;
 }
-div.certificate a{
+div.certificate a.rawcert{
 	/*margin: 10px;*/
 	vertical-align: super;
+}
+.x500name .rdn{
+	border: 1px gray dotted;
+	margin: 5px;
 }
