@@ -43,3 +43,6 @@ div.certificate a.rawcert{
 	border: 1px gray dotted;
 	margin: 5px;
 }
+span.unknownVal{
+	color: gray;
+}

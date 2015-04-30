@@ -156,7 +156,13 @@ function events() {
 						keySpan.appendChild(generateOIDInfoHref(ava, lookup));
 
 						var valSpan = document.createElement("span");
-						valSpan.appendChild(document.createTextNode(name[rdn][ava]));
+						var val = name[rdn][ava];
+						if(val === null){
+							valSpan.setAttribute("class", "unknownVal");
+							valSpan.appendChild(document.createTextNode("<unknown>"));
+						}else{
+							valSpan.appendChild(document.createTextNode(val));
+						}
 
 						avaspan.appendChild(keySpan);
 						avaspan.appendChild(document.createTextNode(": "));
