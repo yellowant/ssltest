@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -116,10 +117,14 @@ public class Service extends HttpServlet {
             iplist = cacheHostIPs.get(u.getHost());
             if (iplist == null) {
                 iplist = new ArrayList<String>();
-
-                InetAddress[] addrlist = InetAddress.getAllByName(u.getHost());
-                for (InetAddress addr : addrlist) {
-                    iplist.add(addr.getHostAddress());
+                try {
+                    InetAddress[] addrlist = InetAddress.getAllByName(u.getHost());
+                    for (InetAddress addr : addrlist) {
+                        iplist.add(addr.getHostAddress());
+                    }
+                } catch (UnknownHostException e) {
+                    resp.sendError(404, e.getMessage());
+                    return;
                 }
                 cacheHostIPs.put(u.getHost(), iplist);
             }
