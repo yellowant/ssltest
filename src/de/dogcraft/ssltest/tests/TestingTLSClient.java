@@ -8,6 +8,7 @@ import java.util.Hashtable;
 
 import org.bouncycastle.crypto.tls.CipherPublisher;
 import org.bouncycastle.crypto.tls.DHParameterInspector;
+import org.bouncycastle.crypto.tls.DHParameterInspector.KexInfo;
 import org.bouncycastle.crypto.tls.SessionParameters;
 import org.bouncycastle.crypto.tls.TlsCipher;
 import org.bouncycastle.crypto.tls.TlsClientProtocol;
@@ -56,11 +57,11 @@ public class TestingTLSClient extends TlsClientProtocol {
         cipherInfo.pfs = false;
         if (keyExchange instanceof TlsDHKeyExchange) {
             cipherInfo.kexType = "DH";
-            cipherInfo.kexSize = DHParameterInspector.inspectDH((TlsDHKeyExchange) keyExchange);
+            cipherInfo.accept(DHParameterInspector.inspectDH((TlsDHKeyExchange) keyExchange, cipherInfo));
             cipherInfo.pfs = keyExchange instanceof TlsDHEKeyExchange;
         } else if (keyExchange instanceof TlsECDHKeyExchange) {
             cipherInfo.kexType = "ECDH";
-            cipherInfo.kexSize = DHParameterInspector.inspectECDH((TlsECDHKeyExchange) keyExchange);
+            cipherInfo.accept(DHParameterInspector.inspectECDH((TlsECDHKeyExchange) keyExchange));
             cipherInfo.pfs = keyExchange instanceof TlsECDHEKeyExchange;
         } else if (keyExchange instanceof TlsRSAKeyExchange) {
             cipherInfo.kexType = "RSA";
@@ -109,7 +110,7 @@ public class TestingTLSClient extends TlsClientProtocol {
         private String kexType;
 
         /** Key Exchange key size */
-        private Integer kexSize;
+        private int kexSize;
 
         /** Authentication Key Format: RSA, DSA, ECDSA */
         private String authKeyType;
@@ -130,6 +131,12 @@ public class TestingTLSClient extends TlsClientProtocol {
 
         public boolean isPFS() {
             return pfs;
+        }
+
+        private void accept(KexInfo ki) {
+            authKeyType = ki.auth;
+            authKeySize = ki.authSize;
+            kexSize = ki.size;
         }
 
         public String getKexType() {
