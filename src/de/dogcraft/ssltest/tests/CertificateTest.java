@@ -23,8 +23,6 @@ import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.DERT61String;
 import org.bouncycastle.asn1.DERT61UTF8String;
 import org.bouncycastle.asn1.DERUTF8String;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.pkcs.RSAPublicKey;
 import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -43,6 +41,10 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x509.TBSCertificate;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
 
 import de.dogcraft.ssltest.utils.JSONUtils;
 
@@ -140,10 +142,12 @@ public class CertificateTest {
         }
 
         for (int i = 0; i < c.length; i++) {
-            SubjectPublicKeyInfo pk = c[i].getTBSCertificate().getSubjectPublicKeyInfo();
-            if (pk.getAlgorithm().getAlgorithm().equals(PKCSObjectIdentifiers.rsaEncryption)) {
-                RSAPublicKey rpk = RSAPublicKey.getInstance(pk.getPublicKeyData().getBytes());
-                pw.outputEvent("certkey", "{ \"index\":" + i + ", \"type\":\"RSA\", \"size\":" + rpk.getModulus().bitLength() + "}");
+            SubjectPublicKeyInfo pkInfo = c[i].getTBSCertificate().getSubjectPublicKeyInfo();
+            AsymmetricKeyParameter pk = PublicKeyFactory.createKey(pkInfo);
+            if (pk instanceof RSAKeyParameters) {
+                pw.outputEvent("certkey", "{ \"index\":" + i + ", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
+            } else if (pk instanceof ECPublicKeyParameters) {
+                pw.outputEvent("certkey", "{ \"index\":" + i + ", \"type\":\"EC\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
             }
             checkCertEncoding(pw, i, c[i]);
             TBSCertificate tbs = c[i].getTBSCertificate();
