@@ -283,6 +283,10 @@ function events() {
 					}
 					tab.appendChild(header)
 				}
+				if(cipher.encsize===0){
+					cipher.encsize = "Stream";
+					cipher.mode = "Stream";
+				}
 				for ( var key in cipher) {
 					var td = document.createElement("td");
 					td.setAttribute("data-value", cipher[key])
