@@ -17,8 +17,11 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1String;
+import org.bouncycastle.asn1.DERBMPString;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DERPrintableString;
+import org.bouncycastle.asn1.DERT61String;
+import org.bouncycastle.asn1.DERT61UTF8String;
 import org.bouncycastle.asn1.DERUTF8String;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.RSAPublicKey;
@@ -207,6 +210,18 @@ public class CertificateTest {
                 } else if (val instanceof DERIA5String) {
                     certificate.append("\"");
                     certificate.append(((DERIA5String) val).getString());
+                    certificate.append("\"");
+                } else if (val instanceof DERT61String) {
+                    certificate.append("\"");
+                    certificate.append(((DERT61String) val).getString());
+                    certificate.append("\"");
+                } else if (val instanceof DERT61UTF8String) {
+                    certificate.append("\"");
+                    certificate.append(((DERT61UTF8String) val).getString());
+                    certificate.append("\"");
+                } else if (val instanceof DERBMPString) {
+                    certificate.append("\"");
+                    certificate.append(((DERBMPString) val).getString());
                     certificate.append("\"");
                 } else {
                     certificate.append("null");
