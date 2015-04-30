@@ -285,6 +285,12 @@ function events() {
 				}
 				for ( var key in cipher) {
 					var td = document.createElement("td");
+					td.setAttribute("data-value", cipher[key])
+					var sfx = "size";
+					if(key.indexOf(sfx, key.length - sfx.length) !== -1){
+						td.setAttribute("data-type", cipher[key.substring(0, key.length - sfx.length) + "type"]);
+					}
+					td.setAttribute("class", "cipher-" + key);
 					td.appendChild(document.createTextNode(cipher[key]));
 					tr.appendChild(td);
 				}
