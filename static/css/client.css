@@ -46,3 +46,157 @@ div.certificate a.rawcert{
 span.unknownVal{
 	color: gray;
 }
+
+table.ciphertable, td.cipher-kextype[data-value="RSA"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-kextype[data-value="DH"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-kextype[data-value="ECDH"] {
+    background-color:#ddf;
+}
+
+table.ciphertable, td.cipher-authtype[data-value="RSA"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-authtype[data-value="DSA"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-authtype[data-value="ECDSA"] {
+    background-color:#ddf;
+}
+
+table.ciphertable, td.cipher-enctype[data-value="RC2"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-enctype[data-value="RC4"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-enctype[data-value="RC5"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-enctype[data-value^="DES"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-enctype[data-value^="Salza20"] {
+    background-color:#ddf;
+}
+table.ciphertable, td.cipher-enctype[data-value^="Chacha20"] {
+    background-color:#ddf;
+}
+table.ciphertable, td.cipher-enctype[data-value="Camellia"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-enctype[data-value="AES"] {
+    background-color:#efd;
+}
+table.ciphertable, td.cipher-enctype[data-value^="GOST"] {
+    background-color:#dff;
+}
+table.ciphertable, td.cipher-enctype[data-value^="SEED"] {
+    background-color:#fed;
+}
+
+table.ciphertable, td.cipher-encsize[data-type="RC2"] {
+    background-color:#fcc;
+}
+table.ciphertable, td.cipher-encsize[data-type="RC4"] {
+    background-color:#fcc;
+}
+table.ciphertable, td.cipher-encsize[data-type="RC5"] {
+    background-color:#fcc;
+}
+table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="40"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="56"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="64"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="112"] {
+    background-color:#fed;
+}
+table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="168"] {
+    background-color:#fed;
+}
+table.ciphertable, td.cipher-encsize[data-type^="Salza20"] {
+    background-color:#eee;
+}
+table.ciphertable, td.cipher-encsize[data-type^="Chacha20"] {
+    background-color:#eee;
+}
+table.ciphertable, td.cipher-encsize[data-type="Camellia"][data-value="128"] {
+    background-color:#ffd;
+}
+table.ciphertable, td.cipher-encsize[data-type="Camellia"][data-value="192"] {
+    background-color:#efd;
+}
+table.ciphertable, td.cipher-encsize[data-type="Camellia"][data-value="256"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-encsize[data-type="AES"][data-value="128"] {
+    background-color:#ffd;
+}
+table.ciphertable, td.cipher-encsize[data-type="AES"][data-value="192"] {
+    background-color:#efd;
+}
+table.ciphertable, td.cipher-encsize[data-type="AES"][data-value="256"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-encsize[data-type^="GOST"] {
+    background-color:#ddf;
+}
+table.ciphertable, td.cipher-encsize[data-type^="SEED"] {
+    background-color:#fed;
+}
+
+table.ciphertable, td.cipher-mode[data-value="CBC"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-mode[data-value="GCM"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-mode[data-value="CCM"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-mode[data-value="EAX"] {
+    background-color:#ddf;
+}
+table.ciphertable, td.cipher-mode[data-value="Stream"] {
+    background-color:#ffd;
+}
+
+table.ciphertable, td.cipher-mactype[data-value^="SHA-1"] {
+    background-color:#ffd;
+}
+table.ciphertable, td.cipher-mactype[data-value^="SHA-256"] {
+    background-color:#efd;
+}
+table.ciphertable, td.cipher-mactype[data-value^="SHA-384"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-mactype[data-value^="SHA-512"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-mactype[data-value^="MD5"] {
+    background-color:#fcc;
+}
+table.ciphertable, td.cipher-mactype[data-value="GCM"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-mactype[data-value="CCM"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-mactype[data-value="Poly1305"] {
+    background-color:#ddf;
+}
+
+table.ciphertable, td.cipher-pfs[data-value="yes"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-pfs[data-value="no"] {
+    background-color:#fdd;
+}
