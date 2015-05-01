@@ -26,6 +26,7 @@ import org.bouncycastle.crypto.tls.TlsKeyExchange;
 import de.dogcraft.ssltest.executor.TaskQueue;
 import de.dogcraft.ssltest.tasks.CertificateChecker;
 import de.dogcraft.ssltest.tests.TestingTLSClient.TLSCipherInfo;
+import de.dogcraft.ssltest.utils.CertificateWrapper;
 import de.dogcraft.ssltest.utils.CipherProbingClient;
 import de.dogcraft.ssltest.utils.JSONUtils;
 import de.dogcraft.ssltest.utils.TruststoreUtil;
@@ -96,7 +97,7 @@ public class TestCipherList {
                     StringBuffer jsonChain = new StringBuffer();
                     for (int i = 0; i < chain.hashes.length; i++) {
                         if ( !map.containsKey(chain.hashes[i])) {
-                            CertificateTest.testCerts(pw, chain.content[i]);
+                            pw.pushCert(chain.content[i]);
                             map.put(chain.hashes[i], null);
                         }
 
@@ -141,54 +142,19 @@ public class TestCipherList {
         return new String[0];
     }
 
-    private static class CertificateWrapper {
-
-        org.bouncycastle.asn1.x509.Certificate c;
-
-        String hash;
-
-        public CertificateWrapper(org.bouncycastle.asn1.x509.Certificate c) throws NoSuchAlgorithmException, IOException {
-            this.c = c;
-            MessageDigest md = MessageDigest.getInstance("SHA1");
-            hash = TruststoreUtil.outputFingerprint(c, md);
-        }
-
-        @Override
-        public int hashCode() {
-            return hash.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            CertificateWrapper other = (CertificateWrapper) obj;
-            if (hash == null) {
-                if (other.hash != null)
-                    return false;
-            } else if ( !hash.equals(other.hash))
-                return false;
-            return true;
-        }
-
-    }
-
     public static class CertificateList {
 
-        org.bouncycastle.asn1.x509.Certificate[] content;
+        CertificateWrapper[] content;
 
         String[] hashes;
 
         public CertificateList(org.bouncycastle.asn1.x509.Certificate[] content) throws NoSuchAlgorithmException, IOException {
-            this.content = content;
+            this.content = new CertificateWrapper[content.length];
             hashes = new String[content.length];
             MessageDigest md = MessageDigest.getInstance("SHA1");
             for (int i = 0; i < content.length; i++) {
                 md.reset();
+                this.content[i] = new CertificateWrapper(content[i]);
                 hashes[i] = TruststoreUtil.outputFingerprint(content[i], md);
             }
         }

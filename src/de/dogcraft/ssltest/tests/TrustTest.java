@@ -30,9 +30,9 @@ public class TrustTest {
 
         HashMap<CertificateWrapper, LinkedList<Truststore>> trust = new HashMap<>();
 
-        public CertificateIndex(Certificate[] toIndex) {
-            for (Certificate certificate : toIndex) {
-                index(new CertificateWrapper(certificate));
+        public CertificateIndex(CertificateWrapper[] content) {
+            for (CertificateWrapper certificate : content) {
+                index(certificate);
             }
         }
 
@@ -99,7 +99,7 @@ public class TrustTest {
     }
 
     public void test(TestOutput out) {
-        Certificate toTrust = chain.content[0];
+        Certificate toTrust = chain.content[0].getC();
         CertificateIndex local = new CertificateIndex(chain.content);
         LinkedHashSet<CertificateWrapper> used = new LinkedHashSet<>();
         used.add(new CertificateWrapper(toTrust));
@@ -129,6 +129,9 @@ public class TrustTest {
     }
 
     private void emitChain(TestOutput out, HashSet<CertificateWrapper> used, List<Truststore> trust) {
+        for (CertificateWrapper c : used) {
+            out.pushCert(c);
+        }
         StringBuffer json = new StringBuffer();
         json.append("{ \"chainId\":");
         json.append(Integer.toString(chain.hashCode()));
