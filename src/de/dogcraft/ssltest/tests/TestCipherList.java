@@ -177,7 +177,7 @@ public class TestCipherList {
 
     }
 
-    public class CertificateList {
+    public static class CertificateList {
 
         org.bouncycastle.asn1.x509.Certificate[] content;
 
@@ -197,7 +197,6 @@ public class TestCipherList {
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + getOuterType().hashCode();
             result = prime * result + Arrays.hashCode(hashes);
             return result;
         }
@@ -211,15 +210,9 @@ public class TestCipherList {
             if (getClass() != obj.getClass())
                 return false;
             CertificateList other = (CertificateList) obj;
-            if ( !getOuterType().equals(other.getOuterType()))
-                return false;
             if ( !Arrays.equals(hashes, other.hashes))
                 return false;
             return true;
-        }
-
-        private TestCipherList getOuterType() {
-            return TestCipherList.this;
         }
 
     }
