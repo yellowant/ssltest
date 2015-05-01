@@ -45,6 +45,7 @@ div.certificate table.certTable td{
 div.certificate a.rawcert{
 	/*margin: 10px;*/
 	vertical-align: super;
+	margin-left: 3px;
 }
 .x500name .rdn{
 	border: 1px gray dotted;

@@ -234,6 +234,17 @@ function events() {
 									+ btoa(certificate.data));
 							raw.setAttribute("target", "_blank");
 							tds.id.appendChild(raw);
+
+							
+							var asn1js = document.createElement("a");
+							asn1js.appendChild(document.createTextNode("asn1.js"));
+							asn1js.setAttribute("class", "rawcert");
+							asn1js.setAttribute("href", "http://lapo.it/asn1js/#"
+									+ certificate.data);
+							asn1js.setAttribute("target", "_blank");
+							tds.id.appendChild(asn1js);
+
+							
 						}
 
 						appendX500Name(tds.subj, certificate.subject, "Subject: ");
