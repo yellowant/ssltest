@@ -112,46 +112,86 @@ table.ciphertable, td.cipher-enctype[data-value^="SEED"] {
     background-color:#fed;
 }
 
-table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="40"] {
+table.ciphertable, td.cipher-encksize[data-type="RC2"] {
     background-color:#fdd;
 }
-table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="56"] {
+table.ciphertable, td.cipher-encksize[data-type="RC4"] {
     background-color:#fdd;
 }
-table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="64"] {
+table.ciphertable, td.cipher-encksize[data-type="RC5"] {
     background-color:#fdd;
 }
-table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="112"] {
+table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="40"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="56"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="112"] {
     background-color:#fed;
 }
-table.ciphertable, td.cipher-encsize[data-type^="DES"][data-value="168"] {
+table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="168"] {
     background-color:#fed;
 }
-table.ciphertable, td.cipher-encsize[data-value="Stream"] {
-    background-color:#eee;
-}
-table.ciphertable, td.cipher-encsize[data-type="Camellia"][data-value="128"] {
+table.ciphertable, td.cipher-encksize[data-type="Camellia"][data-value="128"] {
     background-color:#ffd;
 }
-table.ciphertable, td.cipher-encsize[data-type="Camellia"][data-value="192"] {
+table.ciphertable, td.cipher-encksize[data-type="Camellia"][data-value="192"] {
     background-color:#efd;
 }
-table.ciphertable, td.cipher-encsize[data-type="Camellia"][data-value="256"] {
+table.ciphertable, td.cipher-encksize[data-type="Camellia"][data-value="256"] {
     background-color:#dfd;
 }
-table.ciphertable, td.cipher-encsize[data-type="AES"][data-value="128"] {
+table.ciphertable, td.cipher-encksize[data-type="AES"][data-value="128"] {
     background-color:#ffd;
 }
-table.ciphertable, td.cipher-encsize[data-type="AES"][data-value="192"] {
+table.ciphertable, td.cipher-encksize[data-type="AES"][data-value="192"] {
     background-color:#efd;
 }
-table.ciphertable, td.cipher-encsize[data-type="AES"][data-value="256"] {
+table.ciphertable, td.cipher-encksize[data-type="AES"][data-value="256"] {
     background-color:#dfd;
 }
-table.ciphertable, td.cipher-encsize[data-type^="GOST"] {
+table.ciphertable, td.cipher-encksize[data-type="Chacha20"][data-value="256"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-encksize[data-type="Salsa20"][data-value="256"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-encksize[data-type^="GOST"] {
     background-color:#ddf;
 }
-table.ciphertable, td.cipher-encsize[data-type^="SEED"] {
+table.ciphertable, td.cipher-encksize[data-type^="SEED"] {
+    background-color:#fed;
+}
+
+table.ciphertable, td.cipher-encbsize[data-value="Stream"] {
+    background-color:#eee;
+}
+table.ciphertable, td.cipher-encbsize[data-type^="DES"][data-value="64"] {
+    background-color:#fdd;
+}
+table.ciphertable, td.cipher-encbsize[data-type="Camellia"][data-value="128"] {
+    background-color:#ffd;
+}
+table.ciphertable, td.cipher-encbsize[data-type="Camellia"][data-value="192"] {
+    background-color:#efd;
+}
+table.ciphertable, td.cipher-encbsize[data-type="Camellia"][data-value="256"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-encbsize[data-type="AES"][data-value="128"] {
+    background-color:#ffd;
+}
+table.ciphertable, td.cipher-encbsize[data-type="AES"][data-value="192"] {
+    background-color:#efd;
+}
+table.ciphertable, td.cipher-encbsize[data-type="AES"][data-value="256"] {
+    background-color:#dfd;
+}
+table.ciphertable, td.cipher-encbsize[data-type^="GOST"] {
+    background-color:#ddf;
+}
+table.ciphertable, td.cipher-encbsize[data-type^="SEED"] {
     background-color:#fed;
 }
 

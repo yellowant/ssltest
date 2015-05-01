@@ -282,7 +282,7 @@ public class TestCipherList {
                                 "\"cipherid\": \"%06x\", \"ciphername\": \"%s\", " + //
                                 "\"kextype\": \"%s\", \"kexsize\": %d, " + //
                                 "\"authtype\": \"%s\", \"authsize\": %d, " + //
-                                "\"enctype\": \"%s\", \"encsize\": %d, " + //
+                                "\"enctype\": \"%s\", \"encksize\": %d, \"encbsize\": %d, " + //
                                 "\"mode\": \"%s\", " + //
                                 "\"mactype\": \"%s\", \"macsize\": %d, " + //
                                 "\"pfs\": \"%s\" " + //
@@ -290,7 +290,7 @@ public class TestCipherList {
                         getCipherID(), JSONUtils.jsonEscape(getCipherName()), //
                         JSONUtils.jsonEscape(info.getKexType()), info.getKexSize(), //
                         JSONUtils.jsonEscape(info.getAuthKeyType()), info.getAuthKeySize(), //
-                        JSONUtils.jsonEscape(info.getCipherType()), info.getCipherSize(), //
+                        JSONUtils.jsonEscape(info.getCipherType()), info.getCipherKSize(), info.getCipherBSize(), //
                         JSONUtils.jsonEscape(info.getCipherMode()), //
                         JSONUtils.jsonEscape(info.getMacType()), info.getMacSize(), //
                         info.isPFS() ? "yes" : "no");

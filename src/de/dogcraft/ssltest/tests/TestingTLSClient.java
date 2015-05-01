@@ -123,7 +123,9 @@ public class TestingTLSClient extends TlsClientProtocol {
 
         private String cipherName;
 
-        private int cipherSize;
+        private int cipherBSize;
+
+        private int cipherKSize;
 
         private String macType;
 
@@ -170,8 +172,12 @@ public class TestingTLSClient extends TlsClientProtocol {
             return split[1];
         }
 
-        public int getCipherSize() {
-            return cipherSize;
+        public int getCipherBSize() {
+            return cipherBSize;
+        }
+
+        public int getCipherKSize() {
+            return cipherKSize;
         }
 
         public String getMacType() {
@@ -187,9 +193,10 @@ public class TestingTLSClient extends TlsClientProtocol {
             macSize = macLen * 8;
         }
 
-        public void setCipher(String algorithmName, int blockSize) {
+        public void setCipher(String algorithmName, int blockSize, int keySize) {
             cipherName = algorithmName;
-            cipherSize = blockSize * 8;
+            cipherBSize = blockSize * 8;
+            cipherKSize = keySize * 8;
         }
 
     }

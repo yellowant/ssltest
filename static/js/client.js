@@ -369,6 +369,7 @@ function events() {
 				var cipherpref = JSON.parse(e.data);
 				cipherPreference.textContent = cipherpref.cipherpref;
 			});
+
 			stream.registerEvent("cipher", function(c, s, e) {
 				var cipher = JSON.parse(e.data);
 				var tr = document.createElement("tr");
@@ -382,17 +383,18 @@ function events() {
 					}
 					tab.appendChild(header)
 				}
-				if (cipher.encsize === 0) {
-					cipher.encsize = "Stream";
+				if (cipher.encbsize === 0) {
+					cipher.encbsize = "Stream";
 					cipher.mode = "Stream";
 				}
 				for ( var key in cipher) {
 					var td = document.createElement("td");
 					td.setAttribute("data-value", cipher[key])
 					var sfx = "size";
+					isEnc = "enc" === key.substring(0,3) ? 1 : 0;
 					if (key.indexOf(sfx, key.length - sfx.length) !== -1) {
 						td.setAttribute("data-type", cipher[key.substring(0, key.length
-								- sfx.length)
+								- sfx.length - isEnc)
 								+ "type"]);
 					}
 					td.setAttribute("class", "cipher-" + key);
