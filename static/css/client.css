@@ -30,11 +30,18 @@ legend.host-legend a{
 	vertical-align: super;
 }
 
+
 div.certificate {
-	border: 1px gray dashed;
+	/*border: 1px gray dashed;*/
 	margin: 8px;
 	padding: 3px;
 }
+
+div.certificate table.certTable td{
+	border: 1px solid black;
+	padding: 3px 10px;
+}
+
 div.certificate a.rawcert{
 	/*margin: 10px;*/
 	vertical-align: super;

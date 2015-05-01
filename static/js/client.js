@@ -14,14 +14,14 @@ function createHeader(content) {
 	return h;
 }
 
-function hrefjump(e){
+function hrefjump(e) {
 	var body = document.getElementsByTagName("body")[0];
 	var target = document.getElementById(this.getAttribute("href").substring(1));
 	var left = 0;
 	var top = 0;
-	
+
 	var watch = target;
-	while(watch !== body){
+	while (watch !== body) {
 		left += watch.offsetLeft;
 		top += watch.offsetTop;
 		watch = watch.offsetParent;
@@ -156,8 +156,7 @@ function events() {
 			frame.leg.appendChild(legT);
 		});
 		(function() {
-			function appendX500Name(elem, name, desc) {
-				var div = document.createElement("div");
+			function appendX500Name(div, name, desc) {
 				div.setAttribute("class", "x500name");
 				div.appendChild(document.createTextNode(desc));
 				for (rdn in name) {
@@ -189,52 +188,77 @@ function events() {
 					}
 					div.appendChild(span);
 				}
-				elem.appendChild(div);
 			}
 
 			var certificates = document.createElement("div");
 			certificates.appendChild(createHeader("Certificates"));
 			var certificateLookup = {};
-			stream.registerEvent("certificate", function(c, s, e) {
-				var certificate = JSON.parse(e.data);
-				var certificateElem = document.createElement("div");
-				certificateElem.setAttribute("id", idbase+"cert-"+certificate.hash);
-				certificateElem.setAttribute("class", "certificate");
-				certificateElem.textContent = "#" + certificate.hash + " ";
+			stream.registerEvent("certificate",
+					function(c, s, e) {
+						var certificate = JSON.parse(e.data);
+						var certificateElem = document.createElement("div");
+						var certTable = document.createElement("table");
+						certTable.setAttribute("class", "certTable")
+						certificateElem.appendChild(certTable);
+						var keys = {
+							id : "id",
+							subj : "Subject",
+							issuer : "Issuer",
+							key : "Key",
+							from : "Valid From",
+							to : "Valid To",
+							sig : "Signature"
+						};
+						var tds = {};
+						for ( var i in keys) {
+							var tr = document.createElement("tr");
+							var k = document.createElement("td");
+							k.appendChild(document.createTextNode(keys[i]))
+							tr.appendChild(k);
+							var v = document.createElement("td");
+							tr.appendChild(v);
+							certTable.appendChild(tr);
+							tds[i] = v;
+						}
+						certificateElem.setAttribute("id", idbase + "cert-"
+								+ certificate.hash);
+						certificateElem.setAttribute("class", "certificate");
+						tds.id.appendChild(document.createTextNode(certificate.hash));
 
-				{ // the ^{pem}-link
-					var raw = document.createElement("a");
-					raw.appendChild(document.createTextNode("pem"));
-					raw.setAttribute("class", "rawcert");
-					raw.setAttribute("href", "data:text/plain;base64,"
-							+ btoa(certificate.data));
-					raw.setAttribute("target", "_blank");
-					certificateElem.appendChild(raw);
-				}
+						{ // the ^{pem}-link
+							var raw = document.createElement("a");
+							raw.appendChild(document.createTextNode("pem"));
+							raw.setAttribute("class", "rawcert");
+							raw.setAttribute("href", "data:text/plain;base64,"
+									+ btoa(certificate.data));
+							raw.setAttribute("target", "_blank");
+							tds.id.appendChild(raw);
+						}
 
-				appendX500Name(certificateElem, certificate.subject, "Subject: ");
-				appendX500Name(certificateElem, certificate.issuer, "Issuer: ");
-				certificateLookup[certificate.hash] = {
-					elem : certificateElem
-				};
+						appendX500Name(tds.subj, certificate.subject, "Subject: ");
+						appendX500Name(tds.issuer, certificate.issuer, "Issuer: ");
+						certificateLookup[certificate.hash] = {
+							elem : certificateElem,
+							tab : tds
+						};
 
-				certificates.appendChild(certificateElem);
-			});
+						certificates.appendChild(certificateElem);
+					});
+
 			stream.registerEvent("certkey", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
 				var validitySpan = document.createElement("div");
-				validitySpan.appendChild(document.createTextNode(certificate.type + ":"
-						+ certificate.size + " signed with " + certificate.sig) );
-
-				certificateLookup[certificate.hash].elem.appendChild(validitySpan);
+				certificateLookup[certificate.hash].tab.key.appendChild(document
+						.createTextNode(certificate.type + ":" + certificate.size));
+				certificateLookup[certificate.hash].tab.sig.appendChild(document
+						.createTextNode(certificate.sig));
 			});
 			stream.registerEvent("certvalidity", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
-				var validitySpan = document.createElement("div");
-				validitySpan.appendChild(document.createTextNode(certificate.start
-						+ " => " + certificate.end));
-
-				certificateLookup[certificate.hash].elem.appendChild(validitySpan);
+				certificateLookup[certificate.hash].tab.from.appendChild(document
+						.createTextNode(certificate.start));
+				certificateLookup[certificate.hash].tab.to.appendChild(document
+						.createTextNode(certificate.end));
 			});
 			c.appendChild(certificates);
 		})();
@@ -245,31 +269,40 @@ function events() {
 			stream.registerEvent("chain", function(c, s, e) {
 				var chain = JSON.parse(e.data);
 				var chainElem = document.createElement("div");
-				for(var i in chain.content){
+				for ( var i in chain.content) {
 					var a = document.createElement("a");
 					a.appendChild(document.createTextNode(chain.content[i]));
-					a.setAttribute("href", "#"+idbase+"cert-"+chain.content[i])
+					a.setAttribute("href", "#" + idbase + "cert-" + chain.content[i])
 					a.onclick = hrefjump;
 					chainElem.appendChild(a);
 					chainElem.appendChild(document.createTextNode(", "));
 				}
 				var referencedBy = document.createElement("div");
 				referencedBy.appendChild(document.createTextNode("Set by cipher: "));
-				
+
 				chainElem.appendChild(referencedBy);
 				chains.appendChild(chainElem);
-				chainObjs[chain.id] = {elem:chainElem, ref:referencedBy};
+				chainObjs[chain.id] = {
+					elem : chainElem,
+					ref : referencedBy
+				};
 			});
-			stream.registerEvent("chainFound", function(c, s, e) {
-				var chain = JSON.parse(e.data);
-				var span = document.createElement("a");
-				span.appendChild(document.createTextNode("0x"+chain.cipherId));
-				span.setAttribute("title", chain.cipherName);
-				span.setAttribute("href", "#"+idbase+"cipher-"+chain.cipherId);
-				span.onclick = hrefjump;
-				chainObjs[chain.chainId].ref.appendChild(span);
-				chainObjs[chain.chainId].ref.appendChild(document.createTextNode(", "));
-			});
+			stream
+					.registerEvent(
+							"chainFound",
+							function(c, s, e) {
+								var chain = JSON.parse(e.data);
+								var span = document.createElement("a");
+								span
+										.appendChild(document.createTextNode("0x" + chain.cipherId));
+								span.setAttribute("title", chain.cipherName);
+								span.setAttribute("href", "#" + idbase + "cipher-"
+										+ chain.cipherId);
+								span.onclick = hrefjump;
+								chainObjs[chain.chainId].ref.appendChild(span);
+								chainObjs[chain.chainId].ref.appendChild(document
+										.createTextNode(", "));
+							});
 			chains.appendChild(createHeader("Chains"));
 			c.appendChild(chains);
 		})();
@@ -329,7 +362,7 @@ function events() {
 			stream.registerEvent("cipher", function(c, s, e) {
 				var cipher = JSON.parse(e.data);
 				var tr = document.createElement("tr");
-				tr.setAttribute("id", idbase+"cipher-"+cipher.cipherid);
+				tr.setAttribute("id", idbase + "cipher-" + cipher.cipherid);
 				if (tab.childNodes.length == 0) {
 					var header = document.createElement("tr");
 					for ( var key in cipher) {
@@ -376,7 +409,7 @@ function events() {
 		var node = document.createElement("fieldset");
 		c.appendChild(node);
 
-		var stream = new HostIP(node, hostInfo, "obj-"+(idcounter++)+"-");
+		var stream = new HostIP(node, hostInfo, "obj-" + (idcounter++) + "-");
 	});
 
 }
