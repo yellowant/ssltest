@@ -40,6 +40,9 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
         this.ip = ip;
         this.port = port;
         this.proto = proto;
+        outputEvent("streamID", "{\"host\":\"" + JSONUtils.jsonEscape(host) + "\", "//
+                + (ip == null ? "" : "\"ip\":\"" + JSONUtils.jsonEscape(ip) + "\"")//
+                + "\"port\":" + port + ", \"proto\":\"" + JSONUtils.jsonEscape(proto) + "\"}");
     }
 
     public synchronized void attach(PrintStream target) {

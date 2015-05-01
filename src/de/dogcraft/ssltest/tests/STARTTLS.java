@@ -12,10 +12,12 @@ public class STARTTLS {
         try {
             if (proto.equals("smtp")) {
                 startSMTP(s);
-            }
-            if (proto.equals("xmpp")) {
-                System.out.println("xmpp-ing");
+            } else if (proto.equals("xmpp")) {
                 startXMPP(s, false, domain);
+            } else if (proto.equals("xmpp-server")) {
+                startXMPP(s, true, domain);
+            } else if (proto.equals("imap")) {
+                startIMAP(s);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -23,6 +25,15 @@ public class STARTTLS {
 
         return s;
 
+    }
+
+    private static void startIMAP(Socket s) throws IOException {
+        InputStream is = s.getInputStream();
+        OutputStream os = s.getOutputStream();
+        scanFor(is, "\n");
+        os.write("ENABLE STARTTLS\r\n".getBytes("UTF-8"));
+        os.flush();
+        scanFor(is, "\n");
     }
 
     private static void startSMTP(Socket s) throws IOException {

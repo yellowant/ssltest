@@ -92,11 +92,12 @@ public class Service extends HttpServlet {
             u = URLParsing.parse(req);
             String port = u.getProtocol() + "-" + Integer.toString(u.getPort());
             if ( !u.getHost().equals(req.getParameter("domain")) || !port.equals(req.getParameter("port"))) {
+                // Input has been canonicalized, send redirect.
                 String ip = req.getParameter("ip");
                 String url = req.getPathInfo() + "?domain=" + URLEncoder.encode(u.getHost(), "UTF-8")//
                         + "&port=" + URLEncoder.encode(port, "UTF-8")//
                         + (ip != null ? "&ip" + URLEncoder.encode(ip, "UTF-8") : "");
-                System.out.println(url);
+
                 resp.sendRedirect(url);
                 return;
             }
@@ -134,6 +135,10 @@ public class Service extends HttpServlet {
         ps.println();
 
         if (null == ip) {
+            ps.println("event: streamID");
+            ps.println("data: {\"host\":\"" + JSONUtils.jsonEscape(u.getHost()) + "\", "//
+                    + "\"port\":" + u.getPort() + ", \"proto\":\"" + JSONUtils.jsonEscape(u.getProtocol()) + "\"}");
+            ps.println();
             for (String hostip : iplist) {
                 ps.println("event: hostip");
                 ps.println("data: {");

@@ -1,3 +1,16 @@
+function onLoadHook(){
+	if(window.location.hash !== undefined){
+		var hash = window.location.hash;
+		if(hash.substring(0,3) === "#d="){
+			var spec = hash.substring(3,hash.length);
+			var parts = spec.split(":", 2);
+			document.getElementById("domain").value = parts[0];
+			document.getElementById("port").value = parts[1];
+			events();
+		}
+	}
+}
+
 function generateOIDInfoHref(oid, dict) {
 	var content = dict[oid];
 	if (content === undefined) {
@@ -486,5 +499,11 @@ function events() {
 
 		var stream = new HostIP(node, hostInfo, "obj-" + (idcounter++) + "-");
 	});
+	stream.registerEvent("streamID", function(c, s, e) {
+		var hostInfo = JSON.parse(e.data);
+
+		window.location.hash="#d="+hostInfo.host+":"+hostInfo.proto+"-"+hostInfo.port;
+	});
+	
 
 }

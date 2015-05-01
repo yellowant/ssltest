@@ -105,6 +105,8 @@ public class URLParsing {
             break;
         case "xmpp":
         case "xmpps":
+        case "xmpp-client":
+        case "xmpps-client":
             proto = "xmpp";
             break;
         case "xmpp-server":
@@ -113,35 +115,36 @@ public class URLParsing {
             break;
 
         }
+        if (proto == null) {
+            throw new TestParameterParsingException("protocol could not be determined out of URL");
+        }
         int port = -1;
         if (m.group(3) != null) {
             port = Integer.parseInt(m.group(3));
         }
         if (port == -1) {
-            switch (m.group(1)) {
-            case "https":
+            switch (proto) {
+            case "direct":
                 port = 443;
                 break;
             case "smtp":
-            case "smtps":
                 port = 25;
                 break;
             case "imap":
-            case "imaps":
                 port = 143;
                 break;
-            case "pop":
-            case "pops":
-                port = 110;
+            case "xmpp":
+                port = 5260;
+                break;
+            case "xmpp-server":
+                port = 5222;
                 break;
             }
         }
         if (port == -1) {
             throw new TestParameterParsingException("port could not be determined out of URL");
         }
-        if (proto == null) {
-            throw new TestParameterParsingException("protocol could not be determined out of URL");
-        }
+
         return new TestParameter(proto, m.group(2), port);
     }
 
