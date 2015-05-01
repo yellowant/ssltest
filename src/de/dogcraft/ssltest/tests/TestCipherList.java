@@ -109,9 +109,7 @@ public class TestCipherList {
                     }
                     pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
                 }
-                pw.outputEvent("chainFound", String.format("{ \"cipherId\":\"%06x\", \"cipherName\":\"%s\", \"chainId\":%d}", selection.getCipherID(), JSONUtils.jsonEscape(selection.getCipherName()), chain.hashCode()));
-
-                String cipherDesc = selection.toString();
+                String cipherDesc = selection.toString(chain.hashCode());
 
                 if (pw != null) {
                     pw.outputEvent("cipher", cipherDesc);
@@ -272,7 +270,7 @@ public class TestCipherList {
             this.priority = priority;
         }
 
-        public String toString() {
+        public String toString(int chainHash) {
             StringBuilder sb = new StringBuilder();
             Formatter f = new Formatter(sb);
 
@@ -285,15 +283,15 @@ public class TestCipherList {
                                 "\"enctype\": \"%s\", \"encksize\": %d, \"encbsize\": %d, " + //
                                 "\"mode\": \"%s\", " + //
                                 "\"mactype\": \"%s\", \"macsize\": %d, " + //
-                                "\"pfs\": \"%s\" " + //
-                                "}", //
+                                "\"pfs\": \"%s\", " + //
+                                "\"chain\": %d}", //
                         getCipherID(), JSONUtils.jsonEscape(getCipherName()), //
                         JSONUtils.jsonEscape(info.getKexType()), info.getKexSize(), //
                         JSONUtils.jsonEscape(info.getAuthKeyType()), info.getAuthKeySize(), //
                         JSONUtils.jsonEscape(info.getCipherType()), info.getCipherKSize(), info.getCipherBSize(), //
                         JSONUtils.jsonEscape(info.getCipherMode()), //
                         JSONUtils.jsonEscape(info.getMacType()), info.getMacSize(), //
-                        info.isPFS() ? "yes" : "no");
+                        info.isPFS() ? "yes" : "no", chainHash);
             } finally {
                 f.close();
             }
