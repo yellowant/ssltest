@@ -18,6 +18,10 @@ public class Truststore {
 
     KeyStore ks;
 
+    TruststoreGroup myGroup;
+
+    private String name;
+
     public Truststore() throws GeneralSecurityException, IOException {
         ks = KeyStore.getInstance("JKS");
         ks.load(null);
@@ -41,7 +45,9 @@ public class Truststore {
 
     }
 
-    public Truststore(File f) throws GeneralSecurityException, IOException {
+    public Truststore(File f, TruststoreGroup group, String name) throws GeneralSecurityException, IOException {
+        myGroup = group;
+        this.name = name;
         ks = KeyStore.getInstance("JKS");
         File ksF = new File(f.getAbsolutePath() + ".jks");
         if (ksF.exists()) {
@@ -112,6 +118,10 @@ public class Truststore {
             }
         }
         return true;
+    }
+
+    public String getName() {
+        return name;
     }
 
 }

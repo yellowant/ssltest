@@ -108,6 +108,7 @@ public class TestCipherList {
                         jsonChain.append("\"");
                     }
                     pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
+                    new TrustTest(chain).test(pw);
                 }
                 String cipherDesc = selection.toString(chain.hashCode());
 
@@ -176,7 +177,7 @@ public class TestCipherList {
 
     }
 
-    private class CertificateList {
+    public class CertificateList {
 
         org.bouncycastle.asn1.x509.Certificate[] content;
 

@@ -46,6 +46,10 @@ div.certificate a.rawcert {
 	vertical-align: super;
 	margin-left: 3px;
 }
+div.trust-chain {
+	border: 1px solid black;
+	margin: 5px 0px;
+}
 .x500name .rdn {
 	border: 1px gray dotted;
 	margin: 1px;

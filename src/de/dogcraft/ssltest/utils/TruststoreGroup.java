@@ -52,7 +52,7 @@ public class TruststoreGroup {
         for (int i = 0; i < list.length; i++) {
             if (list[i].isDirectory() && list[i].getName().startsWith(name)) {
                 String[] parts = list[i].getName().split("_", 2);
-                tm.put(parts[1], new Truststore(list[i]));
+                tm.put(parts[1], new Truststore(list[i], this, list[i].getName()));
             }
         }
         Set<String> keys = new TreeSet<>(tm.keySet());
