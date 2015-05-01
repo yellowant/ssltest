@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.CamelliaEngine;
 import org.bouncycastle.crypto.engines.DESEngine;
 import org.bouncycastle.crypto.engines.DESedeEngine;
 import org.bouncycastle.crypto.engines.RC4Engine;
@@ -61,6 +62,12 @@ public class CipherPublisher {
                 } else {
                     System.out.println(raw_cipher.getClass().getCanonicalName());
                 }
+            } else if (cipher instanceof CamelliaEngine) {
+                CamelliaEngine e = (CamelliaEngine) cipher;
+                Field e_f = CamelliaEngine.class.getDeclaredField("_keyIs128");
+                e_f.setAccessible(true);
+                boolean b = e_f.getBoolean(e);
+                return b ? 16 : 32;
             } else if (cipher instanceof AESEngine) {
                 AESEngine e = (AESEngine) cipher;
                 Field e_f = AESEngine.class.getDeclaredField("ROUNDS");
