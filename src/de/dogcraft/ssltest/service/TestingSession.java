@@ -10,7 +10,6 @@ import org.bouncycastle.crypto.tls.ExtensionType;
 
 import de.dogcraft.ssltest.executor.TaskQueue;
 import de.dogcraft.ssltest.executor.TaskQueue.Task;
-import de.dogcraft.ssltest.tests.CertificateTest;
 import de.dogcraft.ssltest.tests.STARTTLS;
 import de.dogcraft.ssltest.tests.TestCipherList;
 import de.dogcraft.ssltest.tests.TestConnectionBuilder;
@@ -135,37 +134,7 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
                 return "Task-bugs";
             }
         };
-        return tq.new Task() {
-
-            {
-                dependsOn(t1);
-                requeue();
-            }
-
-            @Override
-            public void run() {
-                try {
-                    CertificateTest.testCerts(TestingSession.this, b.getCert().getCertificateList());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public String toString() {
-                return "Task-certs";
-            }
-        };
-    }
-
-    private void determineCiphers(TestCipherList c) {
-        c.determineCiphers(this);
-
-        if (c.hasServerPref()) {
-            outputEvent("cipherpref", "{ \"cipherpref\": \"yes\" }");
-        } else {
-            outputEvent("cipherpref", "{ \"cipherpref\": \"no\" }");
-        }
+        return t1;
     }
 
     public void performTest() {
@@ -186,7 +155,13 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
 
             public void run() {
                 TestCipherList c = new TestCipherList(host, TestingSession.this);
-                determineCiphers(c);
+                c.determineCiphers(TestingSession.this, tq);
+
+                if (c.hasServerPref()) {
+                    outputEvent("cipherpref", "{ \"cipherpref\": \"yes\" }");
+                } else {
+                    outputEvent("cipherpref", "{ \"cipherpref\": \"no\" }");
+                }
             }
 
             @Override

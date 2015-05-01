@@ -6,6 +6,7 @@ import java.net.Socket;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.crypto.tls.ExtensionType;
 
+import de.dogcraft.ssltest.executor.TaskQueue;
 import de.dogcraft.ssltest.output.PrintstreamTestOutput;
 import de.dogcraft.ssltest.tests.TestCipherList;
 import de.dogcraft.ssltest.tests.TestConnectionBuilder;
@@ -34,6 +35,8 @@ public class CommandLine {
             port = Integer.parseInt(args[1], 10);
         }
 
+        TaskQueue tq = new TaskQueue();
+
         TestOutput to = new PrintstreamTestOutput(System.out);
         TestConnectionBuilder tcb = new TestConnectionBuilder() {
 
@@ -45,7 +48,8 @@ public class CommandLine {
         TestImplementationBugs bugs = new TestImplementationBugs(host, tcb);
 
         TestCipherList cipherlist = new TestCipherList(host, tcb);
-        String[] ciph = cipherlist.determineCiphers(to);
+
+        String[] ciph = cipherlist.determineCiphers(to, tq);
         for (String string : ciph) {
             System.out.println(string);
         }

@@ -3,6 +3,8 @@ package de.dogcraft.ssltest.tests;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -42,11 +44,13 @@ import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x509.TBSCertificate;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.params.DSAPublicKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
 
 import de.dogcraft.ssltest.utils.JSONUtils;
+import de.dogcraft.ssltest.utils.TruststoreUtil;
 
 public class CertificateTest {
 
@@ -122,63 +126,47 @@ public class CertificateTest {
 
     private static final BigInteger TWO = new BigInteger("2");
 
-    public static void testCerts(TestOutput pw, Certificate[] c) throws IOException {
+    public static void testCerts(TestOutput pw, Certificate cert) throws IOException, NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA1");
+        String hash = TruststoreUtil.outputFingerprint(cert, md);
 
-        int certindex = 0;
-        for (Certificate cert : c) {
-            StringBuffer certificate = new StringBuffer();
-            certificate.append("{ \"index\": ");
-            certificate.append(Integer.toString(certindex++));
-            certificate.append(", \"type\": \"");
-            certificate.append("X.509");
-            certificate.append("\", \"data\": \"");
-            certificate.append(JSONUtils.jsonEscape(convertToPEM(cert)));
-            certificate.append("\", \"subject\": ");
-            appendX500Name(certificate, cert.getSubject());
-            certificate.append(", \"issuer\": ");
-            appendX500Name(certificate, cert.getIssuer());
-            certificate.append("}"); //
-            pw.outputEvent("certificate", certificate.toString());
+        StringBuffer certificate = new StringBuffer();
+        certificate.append("{ \"hash\": \"");
+        certificate.append(hash);
+        certificate.append("\", \"type\": \"");
+        certificate.append("X.509");
+        certificate.append("\", \"data\": \"");
+        certificate.append(JSONUtils.jsonEscape(convertToPEM(cert)));
+        certificate.append("\", \"subject\": ");
+        appendX500Name(certificate, cert.getSubject());
+        certificate.append(", \"issuer\": ");
+        appendX500Name(certificate, cert.getIssuer());
+        certificate.append("}"); //
+        pw.outputEvent("certificate", certificate.toString());
+
+        SubjectPublicKeyInfo pkInfo = cert.getTBSCertificate().getSubjectPublicKeyInfo();
+        AsymmetricKeyParameter pk = PublicKeyFactory.createKey(pkInfo);
+        if (pk instanceof RSAKeyParameters) {
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
+        } else if (pk instanceof ECPublicKeyParameters) {
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"type\":\"EC\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
+        } else if (pk instanceof DSAPublicKeyParameters) {
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"type\":\"DSA\", \"size\":" + ((DSAPublicKeyParameters) pk).getParameters().getP().bitLength() + "}");
         }
+        checkCertEncoding(pw, hash, cert);
+        TBSCertificate tbs = cert.getTBSCertificate();
+        checkValidity(pw, hash, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
 
-        for (int i = 0; i < c.length; i++) {
-            SubjectPublicKeyInfo pkInfo = c[i].getTBSCertificate().getSubjectPublicKeyInfo();
-            AsymmetricKeyParameter pk = PublicKeyFactory.createKey(pkInfo);
-            if (pk instanceof RSAKeyParameters) {
-                pw.outputEvent("certkey", "{ \"index\":" + i + ", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
-            } else if (pk instanceof ECPublicKeyParameters) {
-                pw.outputEvent("certkey", "{ \"index\":" + i + ", \"type\":\"EC\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
-            }
-            checkCertEncoding(pw, i, c[i]);
-            TBSCertificate tbs = c[i].getTBSCertificate();
-            checkValidity(pw, i, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
-            checkRevocation(pw, i, tbs);
+        // TODO re-implement and display
+        // checkRevocation(pw, hash, tbs);
+        //
+        // testBasicConstraints(pw, tbs);
+        // testKeyUsage(pw, tbs);
+        // testExtendedKeyUsage(pw, tbs);
+        // testCRL(pw, tbs);
+        // testSAN(pw, tbs);
+        // testAIA(pw, tbs);
 
-            testBasicConstraints(pw, tbs);
-            testKeyUsage(pw, tbs);
-            testExtendedKeyUsage(pw, tbs);
-            testCRL(pw, tbs);
-            testSAN(pw, tbs);
-            testAIA(pw, tbs);
-        }
-
-        pw.enterTest("Verifying extensions");
-
-        HashMap<String, TestResult> tr = pw.getSubresults();
-        if (tr == null) {
-            tr = new HashMap<String, TestResult>();
-        }
-
-        float val = 0;
-        for (Entry<String, TestResult> e : tr.entrySet()) {
-            val += e.getValue().getRes();
-        }
-
-        if (tr.size() > 0) {
-            val /= tr.size();
-        }
-
-        pw.exitTest("Verifying extensions", new TestResult(val));
     }
 
     private static void appendX500Name(StringBuffer certificate, X500Name subject) {
@@ -237,7 +225,7 @@ public class CertificateTest {
 
     }
 
-    private static void checkRevocation(TestOutput pw, int index, TBSCertificate tbs) {
+    private static void checkRevocation(TestOutput pw, String hash, TBSCertificate tbs) {
         Extension ext = extractCertExtension(tbs, Extension.cRLDistributionPoints);
         pw.enterTest("Revocation");
         int crlCount = 0;
@@ -247,7 +235,7 @@ public class CertificateTest {
 
             DistributionPoint[] points = CRLDistPoint.getInstance(ext.getParsedValue()).getDistributionPoints();
             for (DistributionPoint distributionPoint : points) {
-                pw.outputEvent("certcrl", String.format("{ \"index\": %d, \"crl\": \"%s\" }", index, distributionPoint.getDistributionPoint().toString()));
+                pw.outputEvent("certcrl", String.format("{ \"index\": \"%s\", \"crl\": \"%s\" }", hash, distributionPoint.getDistributionPoint().toString()));
 
                 DistributionPointName point = distributionPoint.getDistributionPoint();
                 if (point.getType() == DistributionPointName.FULL_NAME) {
@@ -278,25 +266,25 @@ public class CertificateTest {
         pw.exitTest("Revocation", TestResult.FAILED);
     }
 
-    private static void checkCertEncoding(TestOutput pw, int index, Certificate cert) {
+    private static void checkCertEncoding(TestOutput pw, String hash, Certificate cert) {
         pw.enterTest("Encoding");
         BigInteger v = cert.getVersion().getValue();
         if (v.equals(BigInteger.ZERO)) {
-            pw.outputEvent("certtype", String.format("{ \"index\": %d, \"type\": \"v1-Certificate\", \"points\": %d }", index, -3));
+            pw.outputEvent("certtype", String.format("{ \"hash\": \"%s\", \"type\": \"v1-Certificate\", \"points\": %d }", hash, -3));
         } else if (v.equals(BigInteger.ONE)) {
-            pw.outputEvent("certtype", String.format("{ \"index\": %d, \"type\": \"v2-Certificate\", \"points\": %d }", index, -1));
+            pw.outputEvent("certtype", String.format("{ \"hash\": \"%s\", \"type\": \"v2-Certificate\", \"points\": %d }", hash, -1));
         } else if (v.equals(TWO)) {
-            pw.outputEvent("certtype", String.format("{ \"index\": %d, \"type\": \"v3-Certificate\", \"points\": %d }", index, 1));
+            pw.outputEvent("certtype", String.format("{ \"hash\": \"%s\", \"type\": \"v3-Certificate\", \"points\": %d }", hash, 1));
         }
         pw.exitTest("Encoding", TestResult.IGNORE);
     }
 
     private static final long MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
-    private static void checkValidity(TestOutput pw, int index, Date start, Date end) {
+    private static void checkValidity(TestOutput pw, String hash, Date start, Date end) {
         pw.enterTest("Validity Period");
         SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'UTC'");
-        pw.outputEvent("certvalidity", String.format("{ \"index\": %d, \"start\": \"%s\", \"end\": \"%s\" }", index, sdf.format(start), sdf.format(end)));
+        pw.outputEvent("certvalidity", String.format("{ \"hash\": \"%s\", \"start\": \"%s\", \"end\": \"%s\" }", hash, sdf.format(start), sdf.format(end)));
         Date now = new Date();
         if (start.before(now) && end.after(now)) {
             pw.output("Certificate is currently valid.");

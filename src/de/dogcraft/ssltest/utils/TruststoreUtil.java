@@ -114,7 +114,7 @@ public class TruststoreUtil {
         return outputFingerprint(c.getEncoded(), md);
     }
 
-    public static String outputFingerprint(byte[] der, MessageDigest md) throws NoSuchAlgorithmException, CertificateEncodingException {
+    public static String outputFingerprint(byte[] der, MessageDigest md) {
         md.update(der);
         byte[] digest = md.digest();
         StringBuffer res = new StringBuffer(64);
@@ -134,6 +134,14 @@ public class TruststoreUtil {
             return;
         }
         read();
+    }
+
+    public static String outputPKFingerprint(org.bouncycastle.asn1.x509.Certificate certificate, MessageDigest md) throws IOException {
+        return outputFingerprint(certificate.getSubjectPublicKeyInfo().getEncoded(), md);
+    }
+
+    public static String outputFingerprint(org.bouncycastle.asn1.x509.Certificate certificate, MessageDigest md) throws IOException {
+        return outputFingerprint(certificate.getEncoded(), md);
     }
 
 }

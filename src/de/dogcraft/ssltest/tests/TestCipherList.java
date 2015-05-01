@@ -3,23 +3,32 @@ package de.dogcraft.ssltest.tests;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.bouncycastle.crypto.tls.BugTestingTLSClient.CertificateObserver;
+import org.bouncycastle.crypto.tls.Certificate;
 import org.bouncycastle.crypto.tls.CipherSuite;
 import org.bouncycastle.crypto.tls.CompressionMethod;
 import org.bouncycastle.crypto.tls.TlsCipher;
 import org.bouncycastle.crypto.tls.TlsCompression;
 import org.bouncycastle.crypto.tls.TlsKeyExchange;
 
+import de.dogcraft.ssltest.executor.TaskQueue;
+import de.dogcraft.ssltest.tasks.CertificateChecker;
 import de.dogcraft.ssltest.tests.TestingTLSClient.TLSCipherInfo;
 import de.dogcraft.ssltest.utils.CipherProbingClient;
 import de.dogcraft.ssltest.utils.JSONUtils;
+import de.dogcraft.ssltest.utils.TruststoreUtil;
 
 public class TestCipherList {
 
@@ -67,9 +76,11 @@ public class TestCipherList {
         return serverPref;
     }
 
-    public String[] determineCiphers(TestOutput pw) {
+    public String[] determineCiphers(TestOutput pw, TaskQueue tq) {
         LinkedList<TestResultCipher> yourCiphers = new LinkedList<>();
         Collection<Integer> ciphers = getAllCiphers();
+        HashSet<CertificateList> chains = new HashSet<>();
+        HashMap<String, CertificateChecker> map = new HashMap<>();
 
         try {
             for (int n = 0; n < ciphers.size(); n++) {
@@ -80,6 +91,25 @@ public class TestCipherList {
                 yourCiphers.add(selection);
 
                 selection.priority = n;
+                CertificateList chain = new CertificateList(selection.chain.getCertificateList());
+                if (chains.add(chain)) {
+                    StringBuffer jsonChain = new StringBuffer();
+                    for (int i = 0; i < chain.hashes.length; i++) {
+                        if ( !map.containsKey(chain.hashes[i])) {
+                            CertificateTest.testCerts(pw, chain.content[i]);
+                            map.put(chain.hashes[i], null);
+                        }
+
+                        if (i != 0) {
+                            jsonChain.append(", ");
+                        }
+                        jsonChain.append("\"");
+                        jsonChain.append(JSONUtils.jsonEscape(chain.hashes[i]));
+                        jsonChain.append("\"");
+                    }
+                    pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
+                }
+                pw.outputEvent("chainFound", String.format("{ \"cipherId\":\"%06x\", \"cipherName\":\"%s\", \"chainId\":%d}", selection.getCipherID(), JSONUtils.jsonEscape(selection.getCipherName()), chain.hashCode()));
 
                 String cipherDesc = selection.toString();
 
@@ -112,13 +142,96 @@ public class TestCipherList {
         return new String[0];
     }
 
+    private static class CertificateWrapper {
+
+        org.bouncycastle.asn1.x509.Certificate c;
+
+        String hash;
+
+        public CertificateWrapper(org.bouncycastle.asn1.x509.Certificate c) throws NoSuchAlgorithmException, IOException {
+            this.c = c;
+            MessageDigest md = MessageDigest.getInstance("SHA1");
+            hash = TruststoreUtil.outputFingerprint(c, md);
+        }
+
+        @Override
+        public int hashCode() {
+            return hash.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            CertificateWrapper other = (CertificateWrapper) obj;
+            if (hash == null) {
+                if (other.hash != null)
+                    return false;
+            } else if ( !hash.equals(other.hash))
+                return false;
+            return true;
+        }
+
+    }
+
+    private class CertificateList {
+
+        org.bouncycastle.asn1.x509.Certificate[] content;
+
+        String[] hashes;
+
+        public CertificateList(org.bouncycastle.asn1.x509.Certificate[] content) throws NoSuchAlgorithmException, IOException {
+            this.content = content;
+            hashes = new String[content.length];
+            MessageDigest md = MessageDigest.getInstance("SHA1");
+            for (int i = 0; i < content.length; i++) {
+                md.reset();
+                hashes[i] = TruststoreUtil.outputFingerprint(content[i], md);
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + Arrays.hashCode(hashes);
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            CertificateList other = (CertificateList) obj;
+            if ( !getOuterType().equals(other.getOuterType()))
+                return false;
+            if ( !Arrays.equals(hashes, other.hashes))
+                return false;
+            return true;
+        }
+
+        private TestCipherList getOuterType() {
+            return TestCipherList.this;
+        }
+
+    }
+
     public class TestResultCipher {
 
-        public Integer cipherID;
+        public int cipherID;
 
-        public Boolean supported;
+        public boolean supported;
 
-        public Integer priority;
+        public int priority;
 
         public TlsKeyExchange kex;
 
@@ -128,7 +241,9 @@ public class TestCipherList {
 
         public TLSCipherInfo info;
 
-        public Integer getCipherID() {
+        public Certificate chain;
+
+        public int getCipherID() {
             return cipherID;
         }
 
@@ -137,11 +252,11 @@ public class TestCipherList {
             return resolved;
         }
 
-        public Boolean getSupported() {
+        public boolean getSupported() {
             return supported;
         }
 
-        public Integer getPriority() {
+        public int getPriority() {
             return priority;
         }
 
@@ -189,10 +304,23 @@ public class TestCipherList {
 
     private TestResultCipher choose(final Collection<Integer> ciphers) throws IOException {
         Socket sock = tcb.spawn();
+        final TestResultCipher resultCipher = new TestResultCipher();
+
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, ciphers, new short[] {
             CompressionMethod._null
-        }, null);
+        }, new CertificateObserver() {
+
+            @Override
+            public void onServerExtensionsReceived(Hashtable<Integer, byte[]> extensions) {
+
+            }
+
+            @Override
+            public void onCertificateReceived(Certificate cert) {
+                resultCipher.chain = cert;
+            }
+        });
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();
@@ -210,7 +338,6 @@ public class TestCipherList {
             System.out.println("--- failed ---: " + cipherNames.get(selectedCipherSuite));
         }
 
-        TestResultCipher resultCipher = new TestResultCipher();
         resultCipher.cipherID = selectedCipherSuite;
         resultCipher.priority = 0;
         resultCipher.supported = true;
