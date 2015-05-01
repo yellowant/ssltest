@@ -224,7 +224,7 @@ function events() {
 				var certificate = JSON.parse(e.data);
 				var validitySpan = document.createElement("div");
 				validitySpan.appendChild(document.createTextNode(certificate.type + ":"
-						+ certificate.size));
+						+ certificate.size + " signed with " + certificate.sig) );
 
 				certificateLookup[certificate.hash].elem.appendChild(validitySpan);
 			});
