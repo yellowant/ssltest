@@ -33,13 +33,13 @@
 	<div class="container" id="container" role="main">
 		<div class="jumbotron">
 			<h1>Test a webserver!</h1>
-			<form method="POST" onSubmit="return false">
+			<form method="POST" onSubmit="void(events()); return false">
 				<div class="input-group space-below">
 					<span class="input-group-addon">@</span>
 					<input type="text" class="form-control" name="domain" id="domain" placeholder="Domain" />
 					<input type="text" class="form-control" name="port" id="port" placeholder="Port - leave blank for 443" />
 				</div>
-				<input type="submit" value="Check!" class="btn btn-primary btn-lg" onclick="events()">
+				<input type="submit" value="Check!" class="btn btn-primary btn-lg">
 			</form>
 		</div>
 		<div id="output"></div>
