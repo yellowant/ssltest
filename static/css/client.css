@@ -246,3 +246,37 @@ table.ciphertable, td.cipher-pfs[data-value="yes"] {
 table.ciphertable, td.cipher-pfs[data-value="no"] {
     background-color:#fdd;
 }
+
+table.ciphertable, td.symmeq-unknown {
+    background-color:#ddd;
+}
+table.ciphertable, td.symmeq-none {
+    background-color:#f44;
+}
+table.ciphertable, td.symmeq-40less {
+    background-color:#f88;
+}
+table.ciphertable, td.symmeq-40 {
+    background-color:#faa;
+}
+table.ciphertable, td.symmeq-64 {
+    background-color:#fbb;
+}
+table.ciphertable, td.symmeq-112 {
+    background-color:#fcc;
+}
+table.ciphertable, td.symmeq-128 {
+    background-color:#fdd;
+}
+table.ciphertable, td.symmeq-160 {
+    background-color:#fed;
+}
+table.ciphertable, td.symmeq-192 {
+    background-color:#ffd;
+}
+table.ciphertable, td.symmeq-224 {
+    background-color:#efd;
+}
+table.ciphertable, td.symmeq-256 {
+    background-color:#dfd;
+}

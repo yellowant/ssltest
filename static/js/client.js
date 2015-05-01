@@ -415,6 +415,51 @@ function events() {
 								+ "type"]);
 					}
 					td.setAttribute("class", "cipher-" + key);
+
+					if (key === "kexsize" || key == "authsize" ) {
+						var sizeval = cipher[key];
+
+						var sizeclass = "unknown";
+
+						if (
+							(cipher[key.substring(0, key.length - 4) + "type"] === "ECDH") ||
+							(cipher[key.substring(0, key.length - 4) + "type"] === "ECDSA")
+							) {
+							sizeval /= 2;
+						} else if (
+							(cipher[key.substring(0, key.length - 4) + "type"] === "RSA") ||
+							(cipher[key.substring(0, key.length - 4) + "type"] === "DSA")
+							) {
+							sizeval = 8 * Math.sqrt(sizeval / 15);
+						} else {
+							sizeval = -1;
+						}
+
+						if (sizeval === 0) {
+							sizeclass = "none";
+						} else if (sizeval < 40) {
+							sizeclass = "40less";
+						} else if (sizeval < 64) {
+							sizeclass = "40";
+						} else if (sizeval < 112) {
+							sizeclass = "64";
+						} else if (sizeval < 128) {
+							sizeclass = "112";
+						} else if (sizeval < 160) {
+							sizeclass = "128";
+						} else if (sizeval < 192) {
+							sizeclass = "160";
+						} else if (sizeval < 224) {
+							sizeclass = "192";
+						} else if (sizeval < 256) {
+							sizeclass = "224";
+						} else if (sizeval >= 256) {
+							sizeclass = "256";
+						}
+
+						td.setAttribute("class", "cipher-" + key + " symmeq-" + sizeclass);
+					}
+
 					td.appendChild(document.createTextNode(cipher[key]));
 					tr.appendChild(td);
 				}
