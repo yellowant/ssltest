@@ -114,10 +114,10 @@ public class CertificateTest {
         String sigStr = sigalg.toString();
         if (pk instanceof RSAKeyParameters) {
             pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
-        } else if (pk instanceof ECPublicKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"EC\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
         } else if (pk instanceof DSAPublicKeyParameters) {
             pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"DSA\", \"size\":" + ((DSAPublicKeyParameters) pk).getParameters().getP().bitLength() + "}");
+        } else if (pk instanceof ECPublicKeyParameters) {
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"ECDSA\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
         }
         checkCertEncoding(pw, hash, cert);
         TBSCertificate tbs = cert.getTBSCertificate();
