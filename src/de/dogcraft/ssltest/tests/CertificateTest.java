@@ -10,10 +10,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -25,7 +22,6 @@ import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.DERT61String;
 import org.bouncycastle.asn1.DERT61UTF8String;
 import org.bouncycastle.asn1.DERUTF8String;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -81,40 +77,6 @@ public class CertificateTest {
         }
     }
 
-    public static String generateDNOids() {
-        try {
-            Field f = org.bouncycastle.asn1.x500.style.BCStyle.class.getDeclaredField("DefaultSymbols");
-            f.setAccessible(true);
-            Hashtable symbols = (Hashtable) f.get(null); // ASN1ObjectIdentifier
-                                                         // -> String
-            Set<Map.Entry<ASN1ObjectIdentifier, String>> set = symbols.entrySet();
-            StringBuffer buf = new StringBuffer();
-            buf.append("{");
-            boolean fst = true;
-            for (Entry<ASN1ObjectIdentifier, String> entry : set) {
-                if (fst) {
-                    fst = false;
-                } else {
-                    buf.append(", ");
-                }
-                String oid = entry.getKey().toString();
-                String text = entry.getValue();
-                buf.append("\"");
-                buf.append(JSONUtils.jsonEscape(oid));
-                buf.append("\":\"");
-                buf.append(JSONUtils.jsonEscape(text));
-                buf.append("\"");
-
-            }
-            buf.append("}");
-            return buf.toString();
-
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     protected static String convertToPEM(Certificate cert) throws IOException {
         final String cert_begin = "-----BEGIN CERTIFICATE-----\n";
         final String end_cert = "\n-----END CERTIFICATE-----\n";
@@ -147,31 +109,15 @@ public class CertificateTest {
 
         SubjectPublicKeyInfo pkInfo = cert.getTBSCertificate().getSubjectPublicKeyInfo();
         AsymmetricKeyParameter pk = PublicKeyFactory.createKey(pkInfo);
-        String sigStr = null;
 
         ASN1ObjectIdentifier sigalg = cert.getSignatureAlgorithm().getAlgorithm();
-        if (sigalg.equals(PKCSObjectIdentifiers.sha1WithRSAEncryption)) {
-            sigStr = "SHA1-RSA";
-        } else if (sigalg.equals(PKCSObjectIdentifiers.sha224WithRSAEncryption)) {
-            sigStr = "SHA224-RSA";
-        } else if (sigalg.equals(PKCSObjectIdentifiers.sha256WithRSAEncryption)) {
-            sigStr = "SHA256-RSA";
-        } else if (sigalg.equals(PKCSObjectIdentifiers.sha384WithRSAEncryption)) {
-            sigStr = "SHA348-RSA";
-        } else if (sigalg.equals(PKCSObjectIdentifiers.sha512WithRSAEncryption)) {
-            sigStr = "SHA512-RSA";
-        }
-        if (sigStr != null) {
-            sigStr = "\"" + sigStr + "\"";
-        } else {
-            sigStr = "null";
-        }
+        String sigStr = sigalg.toString();
         if (pk instanceof RSAKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":" + sigStr + ", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
         } else if (pk instanceof ECPublicKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":" + sigStr + ", \"type\":\"EC\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"EC\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
         } else if (pk instanceof DSAPublicKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":" + sigStr + ", \"type\":\"DSA\", \"size\":" + ((DSAPublicKeyParameters) pk).getParameters().getP().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"DSA\", \"size\":" + ((DSAPublicKeyParameters) pk).getParameters().getP().bitLength() + "}");
         }
         checkCertEncoding(pw, hash, cert);
         TBSCertificate tbs = cert.getTBSCertificate();

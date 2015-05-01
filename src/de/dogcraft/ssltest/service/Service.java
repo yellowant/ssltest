@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.URLEncoder;
@@ -18,7 +17,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import de.dogcraft.ssltest.tests.CertificateTest;
 import de.dogcraft.ssltest.utils.JSONUtils;
 import de.dogcraft.ssltest.utils.URLParsing;
 import de.dogcraft.ssltest.utils.URLParsing.TestParameter;
@@ -71,11 +69,7 @@ public class Service extends HttpServlet {
                 stream(req, resp, false);
             }
         } else if (path.equals("/oid.js")) {
-            resp.setContentType("text/javascript");
-            PrintWriter out = resp.getWriter();
-            out.print("var dnOIDs = ");
-            out.print(CertificateTest.generateDNOids());
-            out.println(";");
+            OIDs.outputOids(resp);
         } else {
             resp.sendError(404, "Fuck off");
         }

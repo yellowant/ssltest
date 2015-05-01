@@ -1,4 +1,9 @@
-function generateOIDInfoHref(oid, content) {
+function generateOIDInfoHref(oid, dict) {
+	var content = dict[oid];
+	if (content === undefined) {
+		content = oid;
+	}
+
 	var a = document.createElement("a");
 	a.appendChild(document.createTextNode(content));
 	a.setAttribute("href", "http://www.oid-info.com/cgi-bin/display?tree="
@@ -165,12 +170,8 @@ function events() {
 					for (ava in name[rdn]) {
 						var avaspan = document.createElement("span");
 						avaspan.setAttribute("class", "ava");
-						var lookup = dnOIDs[ava];
-						if (lookup === undefined) {
-							lookup = ava;
-						}
 						var keySpan = document.createElement("span");
-						keySpan.appendChild(generateOIDInfoHref(ava, lookup));
+						keySpan.appendChild(generateOIDInfoHref(ava, dnOIDs));
 
 						var valSpan = document.createElement("span");
 						var val = name[rdn][ava];
@@ -250,8 +251,7 @@ function events() {
 				var validitySpan = document.createElement("div");
 				certificateLookup[certificate.hash].tab.key.appendChild(document
 						.createTextNode(certificate.type + ":" + certificate.size));
-				certificateLookup[certificate.hash].tab.sig.appendChild(document
-						.createTextNode(certificate.sig));
+				certificateLookup[certificate.hash].tab.sig.appendChild(generateOIDInfoHref(certificate.sig, sigOIDs));
 			});
 			stream.registerEvent("certvalidity", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
