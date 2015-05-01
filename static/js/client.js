@@ -161,9 +161,8 @@ function events() {
 			frame.leg.appendChild(legT);
 		});
 		(function() {
-			function appendX500Name(div, name, desc) {
+			function appendX500Name(div, name) {
 				div.setAttribute("class", "x500name");
-				div.appendChild(document.createTextNode(desc));
 				for (rdn in name) {
 					var span = document.createElement("span");
 					span.setAttribute("class", "rdn");
@@ -247,8 +246,8 @@ function events() {
 							
 						}
 
-						appendX500Name(tds.subj, certificate.subject, "Subject: ");
-						appendX500Name(tds.issuer, certificate.issuer, "Issuer: ");
+						appendX500Name(tds.subj, certificate.subject);
+						appendX500Name(tds.issuer, certificate.issuer);
 						certificateLookup[certificate.hash] = {
 							elem : certificateElem,
 							tab : tds
