@@ -51,6 +51,8 @@ function hrefjump(e) {
 var idcounter = 0;
 
 function events() {
+	document.getElementById('domain').blur();
+	document.getElementById('port').blur();
 	var domain = document.getElementById('domain').value;
 	var port = document.getElementById('port').value;
 
