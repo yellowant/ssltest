@@ -65,10 +65,10 @@ span.unknownVal {
 	color: gray;
 }
 
-span.trust:after {
+.enumeration :after {
 	content: ", ";
 }
-span.trust:last-child:after {
+.enumeration :last-child:after {
 	content: "";
 }
 

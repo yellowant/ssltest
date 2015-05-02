@@ -56,6 +56,7 @@ function TrustDisplay(){
 	var trusts  = {};
 	var trustGroup = {};
 	var elem = document.createElement("div");
+	elem.setAttribute("class", "enumeration");
 	this.render = function(){
 		return elem;
 	};
@@ -207,7 +208,10 @@ function events() {
 				var cert = certificateLookup[hash];
 				var name = hash;
 				if(cert !== undefined){
-					name = cert.cn;
+					name = cert.dn["2.5.4.3"]; // "CN"
+					if(name == undefined){
+						name = cert.dn["2.5.4.10"]; // "O"
+					}
 				}
 				a.appendChild(document.createTextNode(name));
 				a.setAttribute("href", "#" + idbase + "cert-" + hash);
@@ -215,15 +219,13 @@ function events() {
 				return a;
 			}
 			function appendX500Name(div, name) {
-				var res = undefined;
+				var res = {};
 				div.setAttribute("class", "x500name");
 				for (rdn in name) {
 					var span = document.createElement("span");
 					span.setAttribute("class", "rdn");
 					for (ava in name[rdn]) {
-						if(ava === "2.5.4.3"){
-							res = name[rdn][ava];
-						}
+						res[ava] = name[rdn][ava];
 						var avaspan = document.createElement("span");
 						avaspan.setAttribute("class", "ava");
 						var keySpan = document.createElement("span");
@@ -306,7 +308,7 @@ function events() {
 						appendX500Name(tds.issuer, certificate.issuer);
 						certificateLookup[certificate.hash] = {
 							elem : certificateElem,
-							cn: name,
+							dn: name,
 							tab : tds
 						};
 
@@ -359,9 +361,9 @@ function events() {
 				}
 
 				var certs = document.createElement("div");
+				certs.setAttribute("class", "enumeration");
 				for ( var i in chain.certs) {
 					certs.appendChild(certsModule.reference(chain.certs[i]));
-					certs.appendChild(document.createTextNode(", "));
 				}
 				trustChain.appendChild(certs);
 				trustChain.appendChild(stores.render());
