@@ -1,11 +1,11 @@
-function onLoadHook(){
-	if(window.location.hash !== undefined){
+function onLoadHook() {
+	if (window.location.hash !== undefined) {
 		var hash = window.location.hash;
-		if(hash.substring(0,3) === "#d="){
-			var spec = hash.substring(3,hash.length);
+		if (hash.substring(0, 3) === "#d=") {
+			var spec = hash.substring(3, hash.length);
 			var parts = spec.split(":", 2);
 			document.getElementById("domain").value = parts[0];
-			if(parts[1] !== undefined){
+			if (parts[1] !== undefined) {
 				document.getElementById("port").value = parts[1];
 			}
 			events();
@@ -52,25 +52,28 @@ function hrefjump(e) {
 
 var idcounter = 0;
 
-function TrustDisplay(){
-	var trusts  = {};
+function TrustDisplay() {
+	var trusts = {};
 	var trustGroup = {};
 	var elem = document.createElement("div");
 	elem.setAttribute("class", "enumeration");
-	this.render = function(){
+	this.render = function() {
 		return elem;
 	};
-	this.add = function(trust){
+	this.add = function(trust) {
 		var str = trust.split("_");
-		if(trustGroup[str[0]] === undefined){
+		if (trustGroup[str[0]] === undefined) {
 			var span = document.createElement("span");
 			span.appendChild(document.createTextNode(str[0]));
-			span.setAttribute("class", "trust trust-"+str[0]);
+			span.setAttribute("class", "trust trust-" + str[0]);
 			elem.appendChild(span);
 			span.setAttribute("title", trust);
-			trustGroup[str[0]] = {span:span, title: trust};
+			trustGroup[str[0]] = {
+				span : span,
+				title : trust
+			};
 		} else {
-			trustGroup[str[0]].title += ", "+trust;
+			trustGroup[str[0]].title += ", " + trust;
 			trustGroup[str[0]].span.setAttribute("title", trustGroup[str[0]].title);
 		}
 		trusts[trust] = "yes";
@@ -203,13 +206,13 @@ function events() {
 			frame.leg.appendChild(legT);
 		});
 		var certsModule = new (function() {
-			this.reference = function(hash){
+			this.reference = function(hash) {
 				var a = document.createElement("a");
 				var cert = certificateLookup[hash];
 				var name = hash;
-				if(cert !== undefined){
+				if (cert !== undefined) {
 					name = cert.dn["2.5.4.3"]; // "CN"
-					if(name == undefined){
+					if (name == undefined) {
 						name = cert.dn["2.5.4.10"]; // "O"
 					}
 				}
@@ -308,7 +311,7 @@ function events() {
 						appendX500Name(tds.issuer, certificate.issuer);
 						certificateLookup[certificate.hash] = {
 							elem : certificateElem,
-							dn: name,
+							dn : name,
 							tab : tds
 						};
 
@@ -319,7 +322,8 @@ function events() {
 				var certificate = JSON.parse(e.data);
 				var validitySpan = document.createElement("div");
 				certificateLookup[certificate.hash].tab.key.appendChild(document
-						.createTextNode(certificate.type + ":" + certificate.size));
+						.createTextNode(certificate.type + ":" + certificate.size + " ("
+								+ certificate.pkhash.substring(0, 8) + ")"));
 				certificateLookup[certificate.hash].tab.sig
 						.appendChild(generateOIDInfoHref(certificate.sig, sigOIDs));
 			});
@@ -354,7 +358,7 @@ function events() {
 				var chain = JSON.parse(e.data);
 				var trustChain = document.createElement("div");
 				trustChain.setAttribute("class", "trust-chain");
-				
+
 				var stores = new TrustDisplay();
 				for ( var i in chain.stores) {
 					stores.add(chain.stores[i]);
@@ -426,85 +430,86 @@ function events() {
 				cipherPreference.textContent = cipherpref.cipherpref;
 			});
 
-			stream.registerEvent("cipher", function(c, s, e) {
-				var cipher = JSON.parse(e.data);
-				var tr = document.createElement("tr");
-				tr.setAttribute("id", idbase + "cipher-" + cipher.cipherid);
-				if (tab.childNodes.length == 0) {
-					var header = document.createElement("tr");
-					for ( var key in cipher) {
-						var td = document.createElement("th");
-						td.appendChild(document.createTextNode(key));
-						header.appendChild(td);
-					}
-					tab.appendChild(header)
-				}
-				if (cipher.encbsize === 0) {
-					cipher.encbsize = "Stream";
-					cipher.mode = "Stream";
-				}
-				for ( var key in cipher) {
-					var td = document.createElement("td");
-					td.setAttribute("data-value", cipher[key])
-					var sfx = "size";
-					isEnc = "enc" === key.substring(0, 3) ? 1 : 0;
-					if (key.indexOf(sfx, key.length - sfx.length) !== -1) {
-						td.setAttribute("data-type", cipher[key.substring(0, key.length
-								- sfx.length - isEnc)
-								+ "type"]);
-					}
-					td.setAttribute("class", "cipher-" + key);
+			stream
+					.registerEvent(
+							"cipher",
+							function(c, s, e) {
+								var cipher = JSON.parse(e.data);
+								var tr = document.createElement("tr");
+								tr.setAttribute("id", idbase + "cipher-" + cipher.cipherid);
+								if (tab.childNodes.length == 0) {
+									var header = document.createElement("tr");
+									for ( var key in cipher) {
+										var td = document.createElement("th");
+										td.appendChild(document.createTextNode(key));
+										header.appendChild(td);
+									}
+									tab.appendChild(header)
+								}
+								if (cipher.encbsize === 0) {
+									cipher.encbsize = "Stream";
+									cipher.mode = "Stream";
+								}
+								for ( var key in cipher) {
+									var td = document.createElement("td");
+									td.setAttribute("data-value", cipher[key])
+									var sfx = "size";
+									isEnc = "enc" === key.substring(0, 3) ? 1 : 0;
+									if (key.indexOf(sfx, key.length - sfx.length) !== -1) {
+										td.setAttribute("data-type", cipher[key.substring(0,
+												key.length - sfx.length - isEnc)
+												+ "type"]);
+									}
+									td.setAttribute("class", "cipher-" + key);
 
-					if (key === "kexsize" || key == "authsize" ) {
-						var sizeval = cipher[key];
+									if (key === "kexsize" || key == "authsize") {
+										var sizeval = cipher[key];
 
-						var sizeclass = "unknown";
+										var sizeclass = "unknown";
 
-						if (
-							(cipher[key.substring(0, key.length - 4) + "type"] === "ECDSA") ||
-							(cipher[key.substring(0, key.length - 4) + "type"] === "ECDH")
-							) {
-							sizeval /= 2;
-						} else if (
-							(cipher[key.substring(0, key.length - 4) + "type"] === "RSA") ||
-							(cipher[key.substring(0, key.length - 4) + "type"] === "DSA") ||
-							(cipher[key.substring(0, key.length - 4) + "type"] === "DH")
-							) {
-							sizeval = 8 * Math.sqrt(sizeval / 15);
-						} else {
-							sizeval = -1;
-						}
+										if ((cipher[key.substring(0, key.length - 4) + "type"] === "ECDSA")
+												|| (cipher[key.substring(0, key.length - 4) + "type"] === "ECDH")) {
+											sizeval /= 2;
+										} else if ((cipher[key.substring(0, key.length - 4)
+												+ "type"] === "RSA")
+												|| (cipher[key.substring(0, key.length - 4) + "type"] === "DSA")
+												|| (cipher[key.substring(0, key.length - 4) + "type"] === "DH")) {
+											sizeval = 8 * Math.sqrt(sizeval / 15);
+										} else {
+											sizeval = -1;
+										}
 
-						if (sizeval === 0) {
-							sizeclass = "none";
-						} else if (sizeval >= 256) {
-							sizeclass = "256";
-						} else if (sizeval >= 224) {
-							sizeclass = "224";
-						} else if (sizeval >= 192) {
-							sizeclass = "192";
-						} else if (sizeval >= 160) {
-							sizeclass = "160";
-						} else if (sizeval >= 128) {
-							sizeclass = "128";
-						} else if (sizeval >= 112) {
-							sizeclass = "112";
-						} else if (sizeval >= 64) {
-							sizeclass = "64";
-						} else if (sizeval >= 40) {
-							sizeclass = "40";
-						} else if (sizeval > 0) {
-							sizeclass = "40less";
-						}
+										if (sizeval === 0) {
+											sizeclass = "none";
+										} else if (sizeval >= 256) {
+											sizeclass = "256";
+										} else if (sizeval >= 224) {
+											sizeclass = "224";
+										} else if (sizeval >= 192) {
+											sizeclass = "192";
+										} else if (sizeval >= 160) {
+											sizeclass = "160";
+										} else if (sizeval >= 128) {
+											sizeclass = "128";
+										} else if (sizeval >= 112) {
+											sizeclass = "112";
+										} else if (sizeval >= 64) {
+											sizeclass = "64";
+										} else if (sizeval >= 40) {
+											sizeclass = "40";
+										} else if (sizeval > 0) {
+											sizeclass = "40less";
+										}
 
-						td.setAttribute("class", "cipher-" + key + " symmeq-" + sizeclass);
-					}
+										td.setAttribute("class", "cipher-" + key + " symmeq-"
+												+ sizeclass);
+									}
 
-					td.appendChild(document.createTextNode(cipher[key]));
-					tr.appendChild(td);
-				}
-				tab.appendChild(tr);
-			});
+									td.appendChild(document.createTextNode(cipher[key]));
+									tr.appendChild(td);
+								}
+								tab.appendChild(tr);
+							});
 		})();
 	}
 
@@ -528,8 +533,8 @@ function events() {
 	stream.registerEvent("streamID", function(c, s, e) {
 		var hostInfo = JSON.parse(e.data);
 
-		window.location.hash="#d="+hostInfo.host+":"+hostInfo.proto+"-"+hostInfo.port;
+		window.location.hash = "#d=" + hostInfo.host + ":" + hostInfo.proto + "-"
+				+ hostInfo.port;
 	});
-	
 
 }

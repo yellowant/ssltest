@@ -3,7 +3,6 @@ package de.dogcraft.ssltest.tests;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
@@ -46,8 +45,8 @@ import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
 
+import de.dogcraft.ssltest.utils.CertificateWrapper;
 import de.dogcraft.ssltest.utils.JSONUtils;
-import de.dogcraft.ssltest.utils.TruststoreUtil;
 
 public class CertificateTest {
 
@@ -89,9 +88,8 @@ public class CertificateTest {
 
     private static final BigInteger TWO = new BigInteger("2");
 
-    public static void testCerts(TestOutput pw, Certificate cert) throws IOException, NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        String hash = TruststoreUtil.outputFingerprint(cert, md);
+    public static void testCerts(TestOutput pw, CertificateWrapper cert) throws IOException, NoSuchAlgorithmException {
+        String hash = cert.getHash();
 
         StringBuffer certificate = new StringBuffer();
         certificate.append("{ \"hash\": \"");
@@ -99,28 +97,28 @@ public class CertificateTest {
         certificate.append("\", \"type\": \"");
         certificate.append("X.509");
         certificate.append("\", \"data\": \"");
-        certificate.append(JSONUtils.jsonEscape(convertToPEM(cert)));
+        certificate.append(JSONUtils.jsonEscape(convertToPEM(cert.getC())));
         certificate.append("\", \"subject\": ");
-        appendX500Name(certificate, cert.getSubject());
+        appendX500Name(certificate, cert.getC().getSubject());
         certificate.append(", \"issuer\": ");
-        appendX500Name(certificate, cert.getIssuer());
+        appendX500Name(certificate, cert.getC().getIssuer());
         certificate.append("}"); //
         pw.outputEvent("certificate", certificate.toString());
 
-        SubjectPublicKeyInfo pkInfo = cert.getTBSCertificate().getSubjectPublicKeyInfo();
+        SubjectPublicKeyInfo pkInfo = cert.getC().getTBSCertificate().getSubjectPublicKeyInfo();
         AsymmetricKeyParameter pk = PublicKeyFactory.createKey(pkInfo);
 
-        ASN1ObjectIdentifier sigalg = cert.getSignatureAlgorithm().getAlgorithm();
+        ASN1ObjectIdentifier sigalg = cert.getC().getSignatureAlgorithm().getAlgorithm();
         String sigStr = sigalg.toString();
         if (pk instanceof RSAKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
         } else if (pk instanceof DSAPublicKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"DSA\", \"size\":" + ((DSAPublicKeyParameters) pk).getParameters().getP().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"DSA\", \"size\":" + ((DSAPublicKeyParameters) pk).getParameters().getP().bitLength() + "}");
         } else if (pk instanceof ECPublicKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"sig\":\"" + sigStr + "\", \"type\":\"ECDSA\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"ECDSA\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
         }
-        checkCertEncoding(pw, hash, cert);
-        TBSCertificate tbs = cert.getTBSCertificate();
+        checkCertEncoding(pw, hash, cert.getC());
+        TBSCertificate tbs = cert.getC().getTBSCertificate();
         checkValidity(pw, hash, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
 
         // TODO re-implement and display

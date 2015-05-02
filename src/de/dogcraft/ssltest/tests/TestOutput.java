@@ -102,7 +102,7 @@ public abstract class TestOutput {
         }
         knownCerts.add(certificate.getHash());
         try {
-            CertificateTest.testCerts(this, certificate.getC());
+            CertificateTest.testCerts(this, certificate);
         } catch (NoSuchAlgorithmException e) {
             throw new Error(e);
         } catch (IOException e) {

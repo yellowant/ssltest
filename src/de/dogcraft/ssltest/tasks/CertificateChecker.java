@@ -26,14 +26,6 @@ public class CertificateChecker extends Task {
 
     @Override
     public void run() {
-        System.out.println("checking " + cert);
-        try {
-            CertificateTest.testCerts(out, cert);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public class ValidityChecker extends Task {
