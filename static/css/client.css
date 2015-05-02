@@ -65,6 +65,13 @@ span.unknownVal {
 	color: gray;
 }
 
+span.trust:after {
+	content: ", ";
+}
+span.trust:last-child:after {
+	content: "";
+}
+
 table.ciphertable, td.cipher-kextype[data-value="RSA"] {
     background-color:#fdd;
 }

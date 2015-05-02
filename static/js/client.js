@@ -52,6 +52,30 @@ function hrefjump(e) {
 
 var idcounter = 0;
 
+function TrustDisplay(){
+	var trusts  = {};
+	var trustGroup = {};
+	var elem = document.createElement("div");
+	this.render = function(){
+		return elem;
+	};
+	this.add = function(trust){
+		var str = trust.split("_");
+		if(trustGroup[str[0]] === undefined){
+			var span = document.createElement("span");
+			span.appendChild(document.createTextNode(str[0]));
+			span.setAttribute("class", "trust trust-"+str[0]);
+			elem.appendChild(span);
+			span.setAttribute("title", trust);
+			trustGroup[str[0]] = {span:span, title: trust};
+		} else {
+			trustGroup[str[0]].title += ", "+trust;
+			trustGroup[str[0]].span.setAttribute("title", trustGroup[str[0]].title);
+		}
+		trusts[trust] = "yes";
+	};
+}
+
 function events() {
 	document.getElementById('domain').blur();
 	document.getElementById('port').blur();
@@ -329,13 +353,9 @@ function events() {
 				var trustChain = document.createElement("div");
 				trustChain.setAttribute("class", "trust-chain");
 				
-				var stores = document.createElement("div");
+				var stores = new TrustDisplay();
 				for ( var i in chain.stores) {
-					var a = document.createElement("a");
-					a.setAttribute("href", "/trust#" + chain.stores[i])
-					a.appendChild(document.createTextNode(chain.stores[i]));
-					stores.appendChild(a);
-					stores.appendChild(document.createTextNode(", "));
+					stores.add(chain.stores[i]);
 				}
 
 				var certs = document.createElement("div");
@@ -344,7 +364,7 @@ function events() {
 					certs.appendChild(document.createTextNode(", "));
 				}
 				trustChain.appendChild(certs);
-				trustChain.appendChild(stores);
+				trustChain.appendChild(stores.render());
 				chainObjs[chain.chainId].elem.appendChild(trustChain);
 			});
 			chains.appendChild(createHeader("Chains"));
