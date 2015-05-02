@@ -5,7 +5,9 @@ function onLoadHook(){
 			var spec = hash.substring(3,hash.length);
 			var parts = spec.split(":", 2);
 			document.getElementById("domain").value = parts[0];
-			document.getElementById("port").value = parts[1];
+			if(parts[1] !== undefined){
+				document.getElementById("port").value = parts[1];
+			}
 			events();
 		}
 	}
