@@ -446,7 +446,7 @@ function events() {
 									}
 									tab.appendChild(header)
 								}
-								if (cipher.encbsize === 0) {
+								if (cipher.encbsize === 0 && (cipher.enctype == "RC4" || cipher.enctype == "DES" || cipher.enctype == "3DES")) {
 									cipher.encbsize = "Stream";
 									cipher.mode = "Stream";
 								}

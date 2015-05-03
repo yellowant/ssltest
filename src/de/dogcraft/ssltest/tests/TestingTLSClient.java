@@ -121,7 +121,7 @@ public class TestingTLSClient extends TlsClientProtocol {
         /** Raw information on this particular Key Exchange */
         private TlsKeyExchange raw;
 
-        private String cipherName;
+        private String cipherName = "";
 
         private int cipherBSize;
 

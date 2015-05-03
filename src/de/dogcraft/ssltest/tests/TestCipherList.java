@@ -46,6 +46,10 @@ public class TestCipherList {
         initCipherNames();
     }
 
+    public static String resolveCipher(Integer i) {
+        return cipherNames.get(i);
+    }
+
     public TestCipherList(String host, TestConnectionBuilder tcb) {
         this.host = host;
         this.tcb = tcb;
@@ -84,40 +88,45 @@ public class TestCipherList {
         HashMap<String, CertificateChecker> map = new HashMap<>();
 
         try {
-            for (int n = 0; n < ciphers.size(); n++) {
+            for (int n = 0; 0 < ciphers.size(); n++) {
                 TestResultCipher selection = choose(ciphers);
                 if (selection == null) {
                     break;
                 }
                 yourCiphers.add(selection);
+                ciphers.remove(selection.cipherID);
 
                 selection.priority = n;
-                CertificateList chain = new CertificateList(selection.chain.getCertificateList());
-                if (chains.add(chain)) {
-                    StringBuffer jsonChain = new StringBuffer();
-                    for (int i = 0; i < chain.hashes.length; i++) {
-                        if ( !map.containsKey(chain.hashes[i])) {
-                            pw.pushCert(chain.content[i]);
-                            map.put(chain.hashes[i], null);
-                        }
+                int hash = 0;
+                if (selection.getSupported()) {
+                    CertificateList chain = new CertificateList(selection.chain.getCertificateList());
+                    if (chains.add(chain)) {
+                        StringBuffer jsonChain = new StringBuffer();
+                        for (int i = 0; i < chain.hashes.length; i++) {
+                            if ( !map.containsKey(chain.hashes[i])) {
+                                pw.pushCert(chain.content[i]);
+                                map.put(chain.hashes[i], null);
+                            }
 
-                        if (i != 0) {
-                            jsonChain.append(", ");
+                            if (i != 0) {
+                                jsonChain.append(", ");
+                            }
+                            jsonChain.append("\"");
+                            jsonChain.append(JSONUtils.jsonEscape(chain.hashes[i]));
+                            jsonChain.append("\"");
                         }
-                        jsonChain.append("\"");
-                        jsonChain.append(JSONUtils.jsonEscape(chain.hashes[i]));
-                        jsonChain.append("\"");
+                        pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
+                        new TrustTest(chain).test(pw);
                     }
-                    pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
-                    new TrustTest(chain).test(pw);
+                    hash = chain.hashCode();
                 }
-                String cipherDesc = selection.toString(chain.hashCode());
+
+                String cipherDesc = selection.toString(hash);
 
                 if (pw != null) {
                     pw.outputEvent("cipher", cipherDesc);
                 }
 
-                ciphers.remove(selection.cipherID);
             }
         } catch (Throwable t) {
             t.printStackTrace();
@@ -279,6 +288,7 @@ public class TestCipherList {
                 resultCipher.chain = cert;
             }
         });
+        boolean brokenCipher = false;
         try {
             tcp.connect(tc);
             sock.getOutputStream().flush();
@@ -286,6 +296,7 @@ public class TestCipherList {
             sock.close();
         } catch (IOException e) {
         }
+        brokenCipher = tc.isBrokenCipher();
 
         int selectedCipherSuite = tc.getSelectedCipherSuite();
         if (selectedCipherSuite == 0) {
@@ -298,8 +309,10 @@ public class TestCipherList {
 
         resultCipher.cipherID = selectedCipherSuite;
         resultCipher.priority = 0;
-        resultCipher.supported = true;
-        resultCipher.kex = tc.getKeyExchange();
+        resultCipher.supported = !tc.isBrokenCipher();
+        if ( !brokenCipher) {
+            resultCipher.kex = tc.getKeyExchange();
+        }
         resultCipher.compress = tc.getCompression();
         // resultCipher.cipher = tc.getCipher();
         resultCipher.info = tcp.getCipherInfo();

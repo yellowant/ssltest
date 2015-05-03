@@ -61,7 +61,7 @@ public class TestImplementationBugs {
 
         };
         BugTestingTLSClient tcp = new BugTestingTLSClient(observer, sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
+        CipherProbingClient tc = new CipherProbingClient(host, null, new short[] {
             CompressionMethod._null
         }, observer);
         tcp.connect(tc);

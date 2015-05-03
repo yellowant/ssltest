@@ -18,8 +18,16 @@ import org.bouncycastle.crypto.tls.ServerNameList;
 import org.bouncycastle.crypto.tls.ServerOnlyTlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
+import org.bouncycastle.crypto.tls.TlsFatalAlert;
+import org.bouncycastle.crypto.tls.TlsKeyExchange;
+
+import de.dogcraft.ssltest.tests.TestCipherList;
 
 public class CipherProbingClient extends DefaultTlsClient {
+
+    public static class BrokenCipherException extends RuntimeException {
+
+    }
 
     private final String host;
 
@@ -32,19 +40,41 @@ public class CipherProbingClient extends DefaultTlsClient {
     public CipherProbingClient(String host, Collection<Integer> ciphers, short[] comp, CertificateObserver observer) {
         this.host = host;
         this.observer = observer;
-
-        Integer[] tmpI = ciphers.toArray(new Integer[ciphers.size()]);
-        int[] tmp = new int[tmpI.length];
-        for (int idx = 0; idx < tmpI.length; idx++) {
-            tmp[idx] = tmpI[idx];
+        if (ciphers != null) {
+            Integer[] tmpI = ciphers.toArray(new Integer[ciphers.size()]);
+            int[] tmp = new int[tmpI.length];
+            for (int idx = 0; idx < tmpI.length; idx++) {
+                tmp[idx] = tmpI[idx];
+            }
+            this.ciphers = tmp;
+        } else {
+            this.ciphers = null;
         }
-        this.ciphers = tmp;
 
         this.comp = comp;
     }
 
+    boolean brokenCipher = false;
+
+    @Override
+    public TlsKeyExchange getKeyExchange() throws IOException {
+        try {
+            return super.getKeyExchange();
+        } catch (TlsFatalAlert t) {
+            String s = TestCipherList.resolveCipher(selectedCipherSuite);
+            if (s.startsWith("TLS_RSA_EXPORT")) {
+                brokenCipher = true;
+                throw new BrokenCipherException();
+            }
+            throw t;
+        }
+    }
+
     @Override
     public int[] getCipherSuites() {
+        if (ciphers == null) {
+            return super.getCipherSuites();
+        }
         return ciphers;
     }
 
@@ -94,6 +124,10 @@ public class CipherProbingClient extends DefaultTlsClient {
 
     public int getSelectedCipherSuite() {
         return selectedCipherSuite;
+    }
+
+    public boolean isBrokenCipher() {
+        return brokenCipher;
     }
 
 }
