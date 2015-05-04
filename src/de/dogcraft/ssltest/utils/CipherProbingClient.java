@@ -62,7 +62,7 @@ public class CipherProbingClient extends DefaultTlsClient {
             return super.getKeyExchange();
         } catch (TlsFatalAlert t) {
             String s = TestCipherList.resolveCipher(selectedCipherSuite);
-            if (s.startsWith("TLS_RSA_EXPORT")) {
+            if (s.startsWith("TLS_RSA_EXPORT_") || s.startsWith("TLS_DH_anon_") || s.startsWith("TLS_ECDH_anon_") || s.startsWith("TLS_PSK_") || s.startsWith("TLS_SRP_")) {
                 brokenCipher = true;
                 throw new BrokenCipherException();
             }
