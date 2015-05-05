@@ -76,8 +76,7 @@ public class OIDs {
         try {
             Field f = org.bouncycastle.asn1.x500.style.BCStyle.class.getDeclaredField("DefaultSymbols");
             f.setAccessible(true);
-            Hashtable symbols = (Hashtable) f.get(null); // ASN1ObjectIdentifier
-                                                         // -> String
+            Hashtable<ASN1ObjectIdentifier, String> symbols = (Hashtable<ASN1ObjectIdentifier, String>) f.get(null); // ASN1ObjectIdentifier -> String
             Set<Map.Entry<ASN1ObjectIdentifier, String>> set = symbols.entrySet();
             StringBuffer buf = new StringBuffer();
             buf.append("{");
