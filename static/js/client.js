@@ -446,11 +446,11 @@ function events() {
 									}
 									tab.appendChild(header)
 								}
-								if (cipher.encbsize === 0 && (cipher.enctype == "RC4" || cipher.enctype == "DES" || cipher.enctype == "3DES")) {
+								if (cipher.encbsize === 0) {
 									cipher.encbsize = "Stream";
 									cipher.mode = "Stream";
 								}
-								for ( var key in cipher) {
+								for ( var key in cipher ) {
 									var td = document.createElement("td");
 									td.setAttribute("data-value", cipher[key])
 									var sfx = "size";
