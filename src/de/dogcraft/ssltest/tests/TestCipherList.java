@@ -132,18 +132,26 @@ public class TestCipherList {
             t.printStackTrace();
         }
 
-        int best = yourCiphers.get(0).getCipherID();
-        int worst = yourCiphers.get(yourCiphers.size() - 1).getCipherID();
+        if (yourCiphers.size() > 2) {
+            int best = yourCiphers.get(0).getCipherID();
+            int worst = yourCiphers.get(yourCiphers.size() - 1).getCipherID();
 
-        int choice;
-        try {
-            choice = choose(Arrays.asList(worst, best)).getCipherID();
-        } catch (IOException e) {
-            choice = worst;
-            e.printStackTrace();
+            int choice;
+            try {
+                choice = choose(Arrays.asList(worst, best)).getCipherID();
+            } catch (IOException e) {
+                choice = worst;
+                e.printStackTrace();
+            }
+
+            if (choice != worst) {
+                pw.outputEvent("cipherpref", "{ \"cipherpref\": \"yes\" }");
+            } else {
+                pw.outputEvent("cipherpref", "{ \"cipherpref\": \"no\" }");
+            }
+        } else {
+            pw.outputEvent("cipherpref", "{ \"cipherpref\": \"unknown\" }");
         }
-
-        serverPref = choice != worst;
 
         // TODO output was already made to the test output;
         // return chosen.toArray(new TestResultCipher[chosen.size()]);

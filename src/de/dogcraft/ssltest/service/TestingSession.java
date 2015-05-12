@@ -159,12 +159,6 @@ public class TestingSession extends TestOutput implements TestConnectionBuilder 
             public void run() {
                 TestCipherList c = new TestCipherList(host, TestingSession.this);
                 c.determineCiphers(TestingSession.this, tq);
-
-                if (c.hasServerPref()) {
-                    outputEvent("cipherpref", "{ \"cipherpref\": \"yes\" }");
-                } else {
-                    outputEvent("cipherpref", "{ \"cipherpref\": \"no\" }");
-                }
             }
 
             @Override
