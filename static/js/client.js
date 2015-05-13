@@ -338,7 +338,90 @@ function events() {
 		})();
 		var chainModule = new (function() {
 			var chains = document.createElement("div");
+			var ChainGraphics = function (){
+				var trustGraph = {};
+				var first = "";
+				var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+				svg.style.width = "100%";
+				
+				this.render = function(){
+					return svg;
+				};
+				var update = function(){
 
+					svg.innerHTML="";
+					var lines = document.createElementNS("http://www.w3.org/2000/svg", "g");
+					svg.appendChild(lines);
+					
+					var order = {};
+					var found = {};
+					var set = {};
+					order[first] = 0;
+					found[first] = 'y';
+					set[first] = 'y';
+					var ctr = 1;
+					var len = 1;
+					var maxheight = 1;
+					var positions = {};
+					while(len > 0){
+						var next = {};
+						len = 0;
+						var height = 0;
+						for(key in set){
+							var rect = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+							var x=63 + ctr * 200;
+							var y = 63 + (height++) * 170;
+							rect.setAttribute("cx", x);
+							rect.setAttribute("cy", y);
+							rect.setAttribute("r","60");
+							rect.setAttribute("style","fill: white; stroke: black; stroke-width: 3px");
+							svg.appendChild(rect);
+							
+							var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+							text.setAttribute("x",x);
+							text.setAttribute("y",y);
+							text.setAttribute("style","fill: black; text-anchor: middle; font-size: 10px; dominant-baseline: middle");
+							text.appendChild(document.createTextNode(certsModule.reference(key).textContent));
+							svg.appendChild(text);
+							positions[key] = [x,y];
+							for(target in trustGraph[key]){
+								if(found[target] !== undefined || target === "undefined") continue;
+								found[target] = 'y';
+								next[target] = 'y';
+								order[target] = ctr;
+								len++;
+							}
+						}
+						maxheight = Math.max(maxheight, height);
+						set = next;
+						ctr++;
+					}
+					svg.style.height = maxheight * 170 + "px";
+					for( key in trustGraph){
+						for (i in trustGraph[key]){
+							if(i==="undefined") continue;
+							var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+							line.setAttribute("x1", positions[key][0]);
+							line.setAttribute("y1", positions[key][1]);
+							line.setAttribute("x2", positions[i][0]);
+							line.setAttribute("y2", positions[i][1]);
+							line.setAttribute("style","stroke:black; stroke-width:2px");
+							lines.appendChild(line);
+						}
+					}
+				};
+				this.add = function(chain){
+					first = chain.certs[0];
+					for( var i in chain.certs ){
+						var cert = chain.certs[i];
+						if(trustGraph[cert] === undefined){
+							trustGraph[cert] = {};
+						}
+						(trustGraph[cert])[chain.certs[(i|0)+1]] = 'y';
+					}
+					update();
+				};
+			};
 			var chainObjs = {};
 			stream.registerEvent("chain", function(c, s, e) {
 				var chain = JSON.parse(e.data);
@@ -347,10 +430,12 @@ function events() {
 					chainElem.appendChild(certsModule.reference(chain.content[i]));
 					chainElem.appendChild(document.createTextNode(", "));
 				}
-
+				var graphics = new ChainGraphics();
+				chains.appendChild(graphics.render());
 				chains.appendChild(chainElem);
 				chainObjs[chain.id] = {
 					elem : chainElem,
+					graphics : graphics
 				};
 			});
 
@@ -372,6 +457,7 @@ function events() {
 				trustChain.appendChild(certs);
 				trustChain.appendChild(stores.render());
 				chainObjs[chain.chainId].elem.appendChild(trustChain);
+				chainObjs[chain.chainId].graphics.add(chain);
 			});
 			chains.appendChild(createHeader("Chains"));
 			c.appendChild(chains);
