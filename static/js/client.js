@@ -470,11 +470,10 @@ function events() {
 										if ((cipher[key.substring(0, key.length - 4) + "type"] === "ECDSA")
 												|| (cipher[key.substring(0, key.length - 4) + "type"] === "ECDH")) {
 											sizeval /= 2;
-										} else if ((cipher[key.substring(0, key.length - 4)
-												+ "type"] === "RSA")
+										} else if ((cipher[key.substring(0, key.length - 4) + "type"] === "RSA")
 												|| (cipher[key.substring(0, key.length - 4) + "type"] === "DSA")
 												|| (cipher[key.substring(0, key.length - 4) + "type"] === "DH")) {
-											sizeval = 8 * Math.sqrt(sizeval / 15);
+											sizeval = 1.1875 * Math.sqrt(sizeval) + 4.45 * Math.pow(sizeval, 1 / 3);
 										} else {
 											sizeval = -1;
 										}
