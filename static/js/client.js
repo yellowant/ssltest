@@ -206,8 +206,7 @@ function events() {
 			frame.leg.appendChild(legT);
 		});
 		var certsModule = new (function() {
-			this.reference = function(hash) {
-				var a = document.createElement("a");
+			this.refData = function(hash) {
 				var cert = certificateLookup[hash];
 				var name = hash;
 				if (cert !== undefined) {
@@ -216,8 +215,14 @@ function events() {
 						name = cert.dn["2.5.4.10"]; // "O"
 					}
 				}
-				a.appendChild(document.createTextNode(name));
-				a.setAttribute("href", "#" + idbase + "cert-" + hash);
+				return [name,  "#" + idbase + "cert-" + hash];
+			};
+			var refData = this.refData;
+			this.reference = function(hash) {
+				var nam = refData(hash);
+				var a = document.createElement("a");
+				a.appendChild(document.createTextNode(nam[0]));
+				a.setAttribute("href", nam[1]);
 				a.onclick = hrefjump;
 				return a;
 			}
@@ -377,12 +382,17 @@ function events() {
 							rect.setAttribute("style","fill: white; stroke: black; stroke-width: 3px");
 							svg.appendChild(rect);
 							
+							var ref = certsModule.refData(key);
+							var anc = document.createElementNS("http://www.w3.org/2000/svg", "a");
+							anc.setAttributeNS("http://www.w3.org/1999/xlink", "href", ref[1]);
+							anc.onclick = hrefjump;
 							var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
 							text.setAttribute("x",x);
 							text.setAttribute("y",y);
 							text.setAttribute("style","fill: black; text-anchor: middle; font-size: 10px; dominant-baseline: middle");
-							text.appendChild(document.createTextNode(certsModule.reference(key).textContent));
-							svg.appendChild(text);
+							text.appendChild(document.createTextNode(ref[0]));
+							anc.appendChild(text);
+							svg.appendChild(anc);
 							positions[key] = [x,y];
 							for(target in trustGraph[key]){
 								if(found[target] !== undefined || target === "undefined") continue;
