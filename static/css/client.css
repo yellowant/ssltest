@@ -255,35 +255,41 @@ table.ciphertable, td.cipher-pfs[data-value="no"] {
 }
 
 table.ciphertable, td.symmeq-unknown {
-    background-color:#ddd;
+    background-color:#dddddd;
 }
 table.ciphertable, td.symmeq-none {
-    background-color:#f44;
+    background-color:#ff4444;
 }
 table.ciphertable, td.symmeq-40less {
-    background-color:#f88;
+    background-color:#ff6666;
 }
 table.ciphertable, td.symmeq-40 {
-    background-color:#faa;
+    background-color:#ff8888;
 }
 table.ciphertable, td.symmeq-64 {
-    background-color:#fbb;
+    background-color:#ffaaaa;
+}
+table.ciphertable, td.symmeq-80 {
+    background-color:#ffcccc;
+}
+table.ciphertable, td.symmeq-96 {
+    background-color:#ffdddd;
 }
 table.ciphertable, td.symmeq-112 {
-    background-color:#fcc;
+    background-color:#ffeedd;
 }
 table.ciphertable, td.symmeq-128 {
-    background-color:#fdd;
+    background-color:#ffffdd;
 }
 table.ciphertable, td.symmeq-160 {
-    background-color:#fed;
+    background-color:#f7ffdd;
 }
 table.ciphertable, td.symmeq-192 {
-    background-color:#ffd;
+    background-color:#eeffdd;
 }
 table.ciphertable, td.symmeq-224 {
-    background-color:#efd;
+    background-color:#e6ffdd;
 }
 table.ciphertable, td.symmeq-256 {
-    background-color:#dfd;
+    background-color:#ddffdd;
 }

@@ -492,6 +492,10 @@ function events() {
 											sizeclass = "128";
 										} else if (sizeval >= 112) {
 											sizeclass = "112";
+										} else if (sizeval >= 96) {
+											sizeclass = "96";
+										} else if (sizeval >= 80) {
+											sizeclass = "80";
 										} else if (sizeval >= 64) {
 											sizeclass = "64";
 										} else if (sizeval >= 40) {
