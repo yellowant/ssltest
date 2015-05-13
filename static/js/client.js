@@ -371,7 +371,7 @@ function events() {
 				var first = "";
 				var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 				svg.style.width = "100%";
-				
+
 				this.render = function(){
 					return svg;
 				};
@@ -380,7 +380,7 @@ function events() {
 					svg.innerHTML="";
 					var lines = document.createElementNS("http://www.w3.org/2000/svg", "g");
 					svg.appendChild(lines);
-					
+
 					var order = {};
 					var found = {};
 					var set = {};
@@ -404,7 +404,7 @@ function events() {
 							rect.setAttribute("r","60");
 							rect.setAttribute("style","fill: white; stroke: black; stroke-width: 3px");
 							svg.appendChild(rect);
-							
+
 							var ref = certsModule.refData(key);
 							var anc = document.createElementNS("http://www.w3.org/2000/svg", "a");
 							anc.setAttributeNS("http://www.w3.org/1999/xlink", "href", ref[1]);
