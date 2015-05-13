@@ -49,6 +49,13 @@ function hrefjump(e) {
 	window.scroll(left, top - 55)
 	return false;
 }
+function newAnchor(name, anchor){
+	var a = document.createElement("a");
+	a.appendChild(document.createTextNode(name));
+	a.setAttribute("href", anchor);
+	a.onclick = hrefjump;
+	return a;
+}
 
 var idcounter = 0;
 
@@ -81,6 +88,20 @@ function TrustDisplay() {
 }
 
 function events() {
+	var overview = new(function (){
+		var outline = document.getElementById("outline");
+		var ui = document.createElement("ul");
+		outline.appendChild(ui);
+		this.addTest = function(name, anchor){
+			var li = document.createElement("li");
+			var span = document.createElement("span");
+			li.appendChild(newAnchor(name, anchor));
+			li.appendChild(span);
+			ui.appendChild(li);
+			return span;
+		};
+	})();
+
 	document.getElementById('domain').blur();
 	document.getElementById('port').blur();
 	var domain = document.getElementById('domain').value;
@@ -145,6 +166,8 @@ function events() {
 		var domain = hostinfo.domain;
 		var port = hostinfo.port;
 		var ip = hostinfo.ip;
+		c.setAttribute("id", idbase+"-main");
+		var isRunning2 = overview.addTest(domain+":"+port+" ("+ip+")", "#"+idbase+"-main");
 
 		var url = hostInfoToURL(hostinfo);
 		var stream = new Stream(c, url);
@@ -170,16 +193,20 @@ function events() {
 			legend.appendChild(hr);
 			isRunning.appendChild(document.createTextNode("*"));
 			isRunning.style.backgroundColor = '#FF0';
+			isRunning2.appendChild(document.createTextNode("*"));
+			isRunning2.style.backgroundColor = '#FF0';
 			legend.appendChild(isRunning);
 			c.appendChild(legend);
 		})();
 
 		stream.registerEvent("open", function(container, stream, event) {
 			isRunning.style.backgroundColor = '#F00';
+			isRunning2.style.backgroundColor = '#F00';
 		});
 		stream.registerEvent("eof", function(container, stream, event) {
 			console.log("ending");
 			isRunning.style.backgroundColor = '#0F0';
+			isRunning2.style.backgroundColor = '#0F0';
 		});
 		stream.registerEvent("enter", function(c, s, e) {
 			return;
@@ -220,11 +247,7 @@ function events() {
 			var refData = this.refData;
 			this.reference = function(hash) {
 				var nam = refData(hash);
-				var a = document.createElement("a");
-				a.appendChild(document.createTextNode(nam[0]));
-				a.setAttribute("href", nam[1]);
-				a.onclick = hrefjump;
-				return a;
+				return newAnchor(nam[0], nam[1]);
 			}
 			function appendX500Name(div, name) {
 				var res = {};

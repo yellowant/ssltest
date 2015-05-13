@@ -72,6 +72,26 @@ span.unknownVal {
 	content: "";
 }
 
+div#outline{
+	position: fixed;
+	top: 80px;
+	border: 1px solid black;
+	margin: 10px;
+	padding: 5px;
+	
+	max-height: 80%;
+	overflow: auto;
+	max-width: 330px;
+}
+@media (max-width: 1850px){
+div#outline{
+	visibility:hidden;
+}
+}
+div#outline ul{
+	padding: 15px;
+}
+
 table.ciphertable, td.cipher-kextype[data-value="RSA"] {
     background-color:#fdd;
 }
