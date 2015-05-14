@@ -13,50 +13,6 @@ function onLoadHook() {
 	}
 }
 
-
-function calculateSymmeq(type, sizeval, elem, clazz){
-	var sizeclass = "unknown";
-	if ((type === "ECDSA")
-			|| (type === "ECDH")) {
-		sizeval /= 2;
-	} else if ((type === "RSA")
-			|| (type === "DSA")
-			|| (type === "DH")) {
-		sizeval = 1.1875 * Math.sqrt(sizeval) + 4.45 * Math.pow(sizeval, 1 / 3);
-	} else {
-		sizeval = -1;
-	}
-
-	if (sizeval === 0) {
-		sizeclass = "none";
-	} else if (sizeval >= 256) {
-		sizeclass = "256";
-	} else if (sizeval >= 224) {
-		sizeclass = "224";
-	} else if (sizeval >= 192) {
-		sizeclass = "192";
-	} else if (sizeval >= 160) {
-		sizeclass = "160";
-	} else if (sizeval >= 128) {
-		sizeclass = "128";
-	} else if (sizeval >= 112) {
-		sizeclass = "112";
-	} else if (sizeval >= 96) {
-		sizeclass = "96";
-	} else if (sizeval >= 80) {
-		sizeclass = "80";
-	} else if (sizeval >= 64) {
-		sizeclass = "64";
-	} else if (sizeval >= 40) {
-		sizeclass = "40";
-	} else if (sizeval > 0) {
-		sizeclass = "40less";
-	}
-
-	elem.setAttribute("class", clazz + " symmeq-"
-			+ sizeclass);
-}
-
 function generateOIDInfoHref(oid, dict) {
 	var content = dict[oid];
 	if (content === undefined) {
@@ -294,9 +250,18 @@ function events() {
 				return newAnchor(nam[0], nam[1]);
 			}
 			this.setKeyClass = function(hash, elem, clazz) {
-				elem.setAttribute("data-type", certificateLookup[hash].key.type);
-				elem.setAttribute("data-value", certificateLookup[hash].key.size);
-				calculateSymmeq(certificateLookup[hash].key.type, certificateLookup[hash].key.size, elem, clazz);
+				var type = certificateLookup[hash].key.type;
+				var size = certificateLookup[hash].key.size;
+				elem.setAttribute("data-type", type);
+				elem.setAttribute("data-value", size);
+				elem.setAttribute("title", type+":"+size);
+				calculateSymmeq(type, size, elem, clazz);
+			}
+			this.rateSig = function(hash, elem) {
+				var sig0 = sigOIDs[certificateLookup[hash].key.sig];
+				var sig = sig0.split("WITH");
+				elem.style.stroke = rater.colorizeFG(rater.rateSignature(sig[0], sig[1]));
+				elem.setAttribute("title", sig0);
 			}
 			function appendX500Name(div, name) {
 				var res = {};
@@ -491,7 +456,8 @@ function events() {
 							line.setAttribute("y1", positions[key][1]);
 							line.setAttribute("x2", positions[i][0]);
 							line.setAttribute("y2", positions[i][1]);
-							line.setAttribute("style","stroke:black; stroke-width:2px");
+							line.setAttribute("style","stroke-width:2px");
+							certsModule.rateSig(key, line);
 							lines.appendChild(line);
 						}
 					}

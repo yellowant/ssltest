@@ -7,13 +7,14 @@ import javax.servlet.http.HttpServletResponse;
 
 public class CipherRater {
 
+    private static final String unknown = "#dddddd";
+
     public static void generateRateCSS(HttpServletResponse resp) throws IOException {
         resp.setContentType("text/css");
         generateSymmeq(resp.getWriter());
     }
 
     public static void generateSymmeq(PrintWriter out) {
-        String unknown = "#dddddd";
         String none = "#ff4444";
         String[] names = new String[] {
                 "40less", "40", "64", "80", "96", "112", "128", "160", "192", "224", "256"
