@@ -13,6 +13,50 @@ function onLoadHook() {
 	}
 }
 
+
+function calculateSymmeq(type, sizeval, elem, clazz){
+	var sizeclass = "unknown";
+	if ((type === "ECDSA")
+			|| (type === "ECDH")) {
+		sizeval /= 2;
+	} else if ((type === "RSA")
+			|| (type === "DSA")
+			|| (type === "DH")) {
+		sizeval = 1.1875 * Math.sqrt(sizeval) + 4.45 * Math.pow(sizeval, 1 / 3);
+	} else {
+		sizeval = -1;
+	}
+
+	if (sizeval === 0) {
+		sizeclass = "none";
+	} else if (sizeval >= 256) {
+		sizeclass = "256";
+	} else if (sizeval >= 224) {
+		sizeclass = "224";
+	} else if (sizeval >= 192) {
+		sizeclass = "192";
+	} else if (sizeval >= 160) {
+		sizeclass = "160";
+	} else if (sizeval >= 128) {
+		sizeclass = "128";
+	} else if (sizeval >= 112) {
+		sizeclass = "112";
+	} else if (sizeval >= 96) {
+		sizeclass = "96";
+	} else if (sizeval >= 80) {
+		sizeclass = "80";
+	} else if (sizeval >= 64) {
+		sizeclass = "64";
+	} else if (sizeval >= 40) {
+		sizeclass = "40";
+	} else if (sizeval > 0) {
+		sizeclass = "40less";
+	}
+
+	elem.setAttribute("class", clazz + " symmeq-"
+			+ sizeclass);
+}
+
 function generateOIDInfoHref(oid, dict) {
 	var content = dict[oid];
 	if (content === undefined) {
@@ -249,6 +293,11 @@ function events() {
 				var nam = refData(hash);
 				return newAnchor(nam[0], nam[1]);
 			}
+			this.setKeyClass = function(hash, elem, clazz) {
+				elem.setAttribute("data-type", certificateLookup[hash].key.type);
+				elem.setAttribute("data-value", certificateLookup[hash].key.size);
+				calculateSymmeq(certificateLookup[hash].key.type, certificateLookup[hash].key.size, elem, clazz);
+			}
 			function appendX500Name(div, name) {
 				var res = {};
 				div.setAttribute("class", "x500name");
@@ -340,7 +389,8 @@ function events() {
 						certificateLookup[certificate.hash] = {
 							elem : certificateElem,
 							dn : name,
-							tab : tds
+							tab : tds,
+							data: certificate
 						};
 
 						certificates.appendChild(certificateElem);
@@ -354,6 +404,7 @@ function events() {
 								+ certificate.pkhash.substring(0, 8) + ")"));
 				certificateLookup[certificate.hash].tab.sig
 						.appendChild(generateOIDInfoHref(certificate.sig, sigOIDs));
+				certificateLookup[certificate.hash].key=certificate;
 			});
 			stream.registerEvent("certvalidity", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
@@ -396,13 +447,15 @@ function events() {
 						len = 0;
 						var height = 0;
 						for(key in set){
-							var rect = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-							var x=63 + ctr * 200;
+							var rect = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+							var x= 115 + (ctr-1) * 270;
 							var y = 63 + (height++) * 170;
 							rect.setAttribute("cx", x);
 							rect.setAttribute("cy", y);
-							rect.setAttribute("r","60");
-							rect.setAttribute("style","fill: white; stroke: black; stroke-width: 3px");
+							rect.setAttribute("rx","110");
+							rect.setAttribute("ry","40");
+							rect.setAttribute("style","stroke: black; stroke-width: 3px");
+							certsModule.setKeyClass(key, rect, "cert-trust");
 							svg.appendChild(rect);
 
 							var ref = certsModule.refData(key);
@@ -412,7 +465,7 @@ function events() {
 							var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
 							text.setAttribute("x",x);
 							text.setAttribute("y",y);
-							text.setAttribute("style","fill: black; text-anchor: middle; font-size: 10px; dominant-baseline: middle");
+							text.setAttribute("style","fill: black; text-anchor: middle; dominant-baseline: middle");
 							text.appendChild(document.createTextNode(ref[0]));
 							anc.appendChild(text);
 							svg.appendChild(anc);
@@ -584,47 +637,7 @@ function events() {
 									if (key === "kexsize" || key == "authsize") {
 										var sizeval = cipher[key];
 
-										var sizeclass = "unknown";
-
-										if ((cipher[key.substring(0, key.length - 4) + "type"] === "ECDSA")
-												|| (cipher[key.substring(0, key.length - 4) + "type"] === "ECDH")) {
-											sizeval /= 2;
-										} else if ((cipher[key.substring(0, key.length - 4) + "type"] === "RSA")
-												|| (cipher[key.substring(0, key.length - 4) + "type"] === "DSA")
-												|| (cipher[key.substring(0, key.length - 4) + "type"] === "DH")) {
-											sizeval = 1.1875 * Math.sqrt(sizeval) + 4.45 * Math.pow(sizeval, 1 / 3);
-										} else {
-											sizeval = -1;
-										}
-
-										if (sizeval === 0) {
-											sizeclass = "none";
-										} else if (sizeval >= 256) {
-											sizeclass = "256";
-										} else if (sizeval >= 224) {
-											sizeclass = "224";
-										} else if (sizeval >= 192) {
-											sizeclass = "192";
-										} else if (sizeval >= 160) {
-											sizeclass = "160";
-										} else if (sizeval >= 128) {
-											sizeclass = "128";
-										} else if (sizeval >= 112) {
-											sizeclass = "112";
-										} else if (sizeval >= 96) {
-											sizeclass = "96";
-										} else if (sizeval >= 80) {
-											sizeclass = "80";
-										} else if (sizeval >= 64) {
-											sizeclass = "64";
-										} else if (sizeval >= 40) {
-											sizeclass = "40";
-										} else if (sizeval > 0) {
-											sizeclass = "40less";
-										}
-
-										td.setAttribute("class", "cipher-" + key + " symmeq-"
-												+ sizeclass);
+										calculateSymmeq(cipher[key.substring(0, key.length - 4) + "type"], sizeval, td,"cipher-" + key);
 									}
 
 									td.appendChild(document.createTextNode(cipher[key]));

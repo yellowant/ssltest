@@ -70,6 +70,8 @@ public class Service extends HttpServlet {
             }
         } else if (path.equals("/oid.js")) {
             OIDs.outputOids(resp);
+        } else if (path.equals("/cipherRater.css")) {
+            CipherRater.generateRateCSS(resp);
         } else {
             resp.sendError(404, "Fuck off");
         }
