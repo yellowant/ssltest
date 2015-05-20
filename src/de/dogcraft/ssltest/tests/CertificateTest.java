@@ -121,7 +121,8 @@ public class CertificateTest {
         checkCertEncoding(pw, hash, cert.getC());
         TBSCertificate tbs = cert.getC().getTBSCertificate();
         checkValidity(pw, hash, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
-        testSAN(pw, tbs, hash);
+        if (tbs.getExtensions() != null)
+            testSAN(pw, tbs, hash);
         // TODO re-implement and display
         // checkRevocation(pw, hash, tbs);
         //

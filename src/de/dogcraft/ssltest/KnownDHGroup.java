@@ -39,6 +39,8 @@ public class KnownDHGroup {
                 res.append(line);
             } else {
                 handleHeader(res);
+                res = res.delete(0, res.length());
+                res.append(line);
             }
         }
         handleHeader(res);
@@ -52,7 +54,10 @@ public class KnownDHGroup {
         } else if (key.equals("G")) {
             g = new BigInteger(header[1].replace(" ", ""), 16);
         } else if (key.equals("Type")) {
-
+            if ( !header[1].trim().equals("modp")) {
+                throw new Error(header[1]);
+            }
+        } else if (key.equals("Name")) {
         } else {
             throw new Error();
         }
@@ -101,8 +106,12 @@ public class KnownDHGroup {
     private static HashMap<KnownDHGroup, KnownDHGroup> set = new HashMap<KnownDHGroup, KnownDHGroup>();
 
     static {
-        File f = new File("dhGroups");
+        File f = new File("params/dh");
         for (File f1 : f.listFiles()) {
+            if ( !f1.getName().contains("modp") && !f1.getName().contains("oakley")) {
+                continue;
+            }
+            System.out.println(f1);
             try {
                 KnownDHGroup gr = new KnownDHGroup(f1);
                 set.put(gr, gr);
