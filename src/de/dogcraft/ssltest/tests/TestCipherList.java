@@ -255,7 +255,7 @@ public class TestCipherList {
                 f.format(//
                         "{ " + //
                                 "\"cipherid\": \"%06x\", \"ciphername\": \"%s\", " + //
-                                "\"kextype\": \"%s\", \"kexsize\": %d, " + //
+                                "\"kextype\": \"%s\", \"kexsize\": {\"size\": %d%s}, " + //
                                 "\"authtype\": \"%s\", \"authsize\": %d, " + //
                                 "\"enctype\": \"%s\", \"encksize\": %d, \"encbsize\": %d, " + //
                                 "\"mode\": \"%s\", " + //
@@ -263,7 +263,7 @@ public class TestCipherList {
                                 "\"pfs\": \"%s\", " + //
                                 "\"chain\": %d}", //
                         getCipherID(), JSONUtils.jsonEscape(getCipherName()), //
-                        JSONUtils.jsonEscape(info.getKexType()), info.getKexSize(), //
+                        JSONUtils.jsonEscape(info.getKexType()), info.getKexSize(), info.getKnownKexGroup() == null ? "" : ", \"name\":\"" + JSONUtils.jsonEscape(info.getKnownKexGroup()) + "\"", //
                         JSONUtils.jsonEscape(info.getAuthKeyType()), info.getAuthKeySize(), //
                         JSONUtils.jsonEscape(info.getCipherType()), info.getCipherKSize(), info.getCipherBSize(), //
                         JSONUtils.jsonEscape(info.getCipherMode()), //

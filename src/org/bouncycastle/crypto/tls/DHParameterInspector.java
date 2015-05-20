@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.params.DSAKeyParameters;
 import org.bouncycastle.crypto.params.ECKeyParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 
+import de.dogcraft.ssltest.KnownDHGroup;
 import de.dogcraft.ssltest.tests.TestingTLSClient.TLSCipherInfo;
 
 public class DHParameterInspector {
@@ -17,6 +18,8 @@ public class DHParameterInspector {
         public String auth;
 
         public int authSize;
+
+        public String authName;
     }
 
     public static KexInfo inspectDH(TlsDHKeyExchange ex, TLSCipherInfo cipherInfo) {
@@ -28,6 +31,8 @@ public class DHParameterInspector {
         }
         int len = params.getP().bitLength();
         ki.size = len;
+        String name = KnownDHGroup.lookup(new KnownDHGroup(params.getP(), params.getG()));
+        ki.authName = name;
         return ki;
     }
 

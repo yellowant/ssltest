@@ -109,6 +109,8 @@ public class TestingTLSClient extends TlsClientProtocol {
         /** Key Exchange format: DH, ECDH, RSA, CK, PSK, SRP, NULL */
         private String kexType;
 
+        private String knownKexGroup;
+
         /** Key Exchange key size */
         private int kexSize;
 
@@ -139,6 +141,11 @@ public class TestingTLSClient extends TlsClientProtocol {
             authKeyType = ki.auth;
             authKeySize = ki.authSize;
             kexSize = ki.size;
+            knownKexGroup = ki.authName;
+        }
+
+        public String getKnownKexGroup() {
+            return knownKexGroup;
         }
 
         public String getKexType() {

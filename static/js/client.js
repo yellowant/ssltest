@@ -601,12 +601,20 @@ function events() {
 									td.setAttribute("class", "cipher-" + key);
 
 									if (key === "kexsize" || key == "authsize") {
-										var sizeval = cipher[key];
+										var sizeval = key==="kexsize"?cipher[key].name:cipher[key];
 
 										calculateSymmeq(cipher[key.substring(0, key.length - 4) + "type"], sizeval, td,"cipher-" + key);
 									}
 
-									td.appendChild(document.createTextNode(cipher[key]));
+									if(key === "kexsize"){
+										td.appendChild(document.createTextNode(cipher[key].size));
+										if(cipher[key].name !== undefined){
+											td.setAttribute("title", cipher[key].name);
+											td.appendChild(document.createTextNode("(known)"));
+										}
+									}else{
+										td.appendChild(document.createTextNode(cipher[key]));
+									}
 									tr.appendChild(td);
 								}
 								tab.appendChild(tr);
