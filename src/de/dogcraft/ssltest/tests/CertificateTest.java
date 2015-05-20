@@ -15,6 +15,7 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1String;
+import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERBMPString;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DERPrintableString;
@@ -120,7 +121,7 @@ public class CertificateTest {
         checkCertEncoding(pw, hash, cert.getC());
         TBSCertificate tbs = cert.getC().getTBSCertificate();
         checkValidity(pw, hash, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
-
+        testSAN(pw, tbs, hash);
         // TODO re-implement and display
         // checkRevocation(pw, hash, tbs);
         //
@@ -329,11 +330,13 @@ public class CertificateTest {
         }
     }
 
-    private static void testSAN(TestOutput pw, TBSCertificate tbs) {
+    private static void testSAN(TestOutput pw, TBSCertificate tbs, String hash) {
         Extension ext = extractCertExtension(tbs, Extension.subjectAlternativeName);
 
         pw.enterTest("SubjectAltNames");
+        StringBuffer text = new StringBuffer("{hash:\"" + hash + "\", value:");
         if (ext != null) {
+            text.append("[");
             float mult = testCrit(false, pw, "subjectAlternativeNames", ext);
             outputCritical(pw, ext);
 
@@ -341,22 +344,30 @@ public class CertificateTest {
 
             @SuppressWarnings("unchecked")
             Enumeration<ASN1Encodable> obj = ds.getObjects();
-
             while (obj.hasMoreElements()) {
                 GeneralName genName = GeneralName.getInstance(obj.nextElement());
+                text.append("{ type: \"" + genName.getTagNo() + "\"");
                 if (genName.getTagNo() == GeneralName.dNSName) {
-                    pw.output("DNS: " + ((ASN1String) genName.getName()).getString());
-                } else if (genName.getTagNo() != 0) {
-                    pw.output("Unknown SAN name tag" + genName.getTagNo());
-                } else {
-                    pw.output("Unknown SAN name " + genName.getName());
+                    text.append(", value: \"" + ((ASN1String) genName.getName()).getString() + "\"");
+                } else if (genName.getTagNo() == GeneralName.otherName) {
+                    ASN1Sequence seq = (ASN1Sequence) genName.getName();
+                    System.out.println("OtherName");
+                    ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier) seq.getObjectAt(0);
+                    text.append(", typeOID: \"" + oid.toString() + "\"");
+                    String name = ((ASN1String) ((ASN1TaggedObject) seq.getObjectAt(1)).getObject()).getString();
+                    text.append(", value: \"" + name + "\"");
+                }
+                text.append("}");
+                if (obj.hasMoreElements()) {
+                    text.append(", ");
                 }
             }
-
-            pw.exitTest("SubjectAltNames", new TestResult(mult));
+            text.append("]}");
+            pw.outputEvent("certSANs", text.toString());
         } else {
-            pw.exitTest("SubjectAltNames", TestResult.FAILED);
+            text.append("undefined}");
         }
+        pw.outputEvent("certSANs", text.toString());
     }
 
     private static void testCRL(TestOutput pw, TBSCertificate tbs) {
