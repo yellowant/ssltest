@@ -59,7 +59,7 @@ public class KnownDHGroup {
             }
         } else if (key.equals("Name")) {
         } else {
-            throw new Error();
+            throw new Error(header[1]);
         }
     }
 
@@ -108,7 +108,7 @@ public class KnownDHGroup {
     static {
         File f = new File("params/dh");
         for (File f1 : f.listFiles()) {
-            if ( !f1.getName().contains("modp") && !f1.getName().contains("oakley")) {
+            if ( !f1.getName().contains("modp")) {
                 continue;
             }
             System.out.println(f1);
