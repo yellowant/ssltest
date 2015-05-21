@@ -568,57 +568,71 @@ function events() {
 				cipherPreference.textContent = cipherpref.cipherpref;
 			});
 
-			stream
-					.registerEvent(
-							"cipher",
-							function(c, s, e) {
-								var cipher = JSON.parse(e.data);
-								var tr = document.createElement("tr");
-								tr.setAttribute("id", idbase + "cipher-" + cipher.cipherid);
-								if (tab.childNodes.length == 0) {
-									var header = document.createElement("tr");
-									for ( var key in cipher) {
-										var td = document.createElement("th");
-										td.appendChild(document.createTextNode(key));
-										header.appendChild(td);
-									}
-									tab.appendChild(header)
-								}
-								if (cipher.encbsize === 0) {
-									cipher.encbsize = "Stream";
-									cipher.mode = "Stream";
-								}
-								for ( var key in cipher ) {
-									var td = document.createElement("td");
-									td.setAttribute("data-value", key==="kexsize"?cipher[key].size:cipher[key]);
-									var sfx = "size";
-									isEnc = "enc" === key.substring(0, 3) ? 1 : 0;
-									if (key.indexOf(sfx, key.length - sfx.length) !== -1) {
-										td.setAttribute("data-type", cipher[key.substring(0,
-												key.length - sfx.length - isEnc)
-												+ "type"]);
-									}
-									td.setAttribute("class", "cipher-" + key);
+			stream.registerEvent("cipher", function(c, s, e) {
+				var cipher = JSON.parse(e.data);
+				var tr = document.createElement("tr");
+				tr.setAttribute("id", idbase + "cipher-" + cipher.cipherid);
+				if (tab.childNodes.length == 0) {
+					var header = document.createElement("tr");
 
-									if (key === "kexsize" || key == "authsize") {
-										var sizeval = key==="kexsize"?cipher[key].size:cipher[key];
+					for ( var key in cipher) {
+						var td = document.createElement("th");
+						td.appendChild(document.createTextNode(key));
+						header.appendChild(td);
+					}
 
-										calculateSymmeq(cipher[key.substring(0, key.length - 4) + "type"], sizeval, td,"cipher-" + key);
-									}
+					tab.appendChild(header)
+				}
 
-									if(key === "kexsize"){
-										td.appendChild(document.createTextNode(cipher[key].size));
-										if(cipher[key].name !== undefined){
-											td.setAttribute("title", cipher[key].name);
-											td.appendChild(document.createTextNode("(known)"));
-										}
-									}else{
-										td.appendChild(document.createTextNode(cipher[key]));
-									}
-									tr.appendChild(td);
-								}
-								tab.appendChild(tr);
-							});
+				if (cipher.encbsize === 0) {
+					cipher.encbsize = "Stream";
+					cipher.mode = "Stream";
+				}
+
+				for ( var key in cipher ) {
+					var td = document.createElement("td");
+					td.setAttribute("data-value", key==="kexsize"?cipher[key].size:cipher[key]);
+					var sfx = "size";
+					isEnc = "enc" === key.substring(0, 3) ? 1 : 0;
+
+					if (key.indexOf(sfx, key.length - sfx.length) !== -1) {
+						td.setAttribute("data-type", cipher[key.substring(0, key.length - sfx.length - isEnc) + "type"]);
+					}
+					td.setAttribute("class", "cipher-" + key);
+
+					if (key === "kexsize" || key == "authsize") {
+						var sizeval = key==="kexsize"?cipher[key].size:cipher[key];
+
+						calculateSymmeq(cipher[key.substring(0, key.length - 4) + "type"], sizeval, td,"cipher-" + key);
+					}
+
+					if(key === "kexsize") {
+						td.appendChild(document.createTextNode(cipher[key].size));
+
+						if(cipher[key].weak !== undefined){
+							td.appendChild(document.createTextNode("w"));
+						}
+
+						if(cipher[key].name !== undefined){
+							td.setAttribute("title", cipher[key].name);
+							td.appendChild(document.createTextNode("k"));
+						}
+
+						if(cipher[key].safeprime !== undefined){
+							td.appendChild(document.createTextNode("s"));
+						}
+
+						if(cipher[key].prime !== undefined){
+							td.appendChild(document.createTextNode("p"));
+						}
+					} else {
+						td.appendChild(document.createTextNode(cipher[key]));
+					}
+
+					tr.appendChild(td);
+				}
+				tab.appendChild(tr);
+			});
 		})();
 	}
 
