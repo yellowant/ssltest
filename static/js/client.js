@@ -590,7 +590,7 @@ function events() {
 								}
 								for ( var key in cipher ) {
 									var td = document.createElement("td");
-									td.setAttribute("data-value", cipher[key])
+									td.setAttribute("data-value", key==="kexsize"?cipher[key].size:cipher[key]);
 									var sfx = "size";
 									isEnc = "enc" === key.substring(0, 3) ? 1 : 0;
 									if (key.indexOf(sfx, key.length - sfx.length) !== -1) {
@@ -601,7 +601,7 @@ function events() {
 									td.setAttribute("class", "cipher-" + key);
 
 									if (key === "kexsize" || key == "authsize") {
-										var sizeval = key==="kexsize"?cipher[key].name:cipher[key];
+										var sizeval = key==="kexsize"?cipher[key].size:cipher[key];
 
 										calculateSymmeq(cipher[key.substring(0, key.length - 4) + "type"], sizeval, td,"cipher-" + key);
 									}
