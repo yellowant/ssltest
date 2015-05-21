@@ -59,7 +59,6 @@ public class KnownDHGroup {
             }
         } else if (key.equals("Name")) {
         } else {
-            throw new Error(header[1]);
         }
     }
 
