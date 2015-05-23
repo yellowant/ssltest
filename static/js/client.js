@@ -610,20 +610,28 @@ function events() {
 						td.appendChild(document.createTextNode(cipher[key].size));
 
 						if(cipher[key].weak !== undefined){
-							td.appendChild(document.createTextNode("w"));
+							var e = document.createElement("sup")
+							e.appendChild(document.createTextNode("w"));
+							td.appendChild(e);
 						}
 
 						if(cipher[key].name !== undefined){
-							td.setAttribute("title", cipher[key].name);
-							td.appendChild(document.createTextNode("k"));
+							var e = document.createElement("sup")
+							e.setAttribute("title", cipher[key].name);
+							e.appendChild(document.createTextNode("k"));
+							td.appendChild(e);
 						}
 
 						if(cipher[key].safeprime !== undefined){
-							td.appendChild(document.createTextNode("s"));
+							var e = document.createElement("sup")
+							e.appendChild(document.createTextNode("s"));
+							td.appendChild(e);
 						}
 
 						if(cipher[key].prime !== undefined){
-							td.appendChild(document.createTextNode("p"));
+							var e = document.createElement("sup")
+							e.appendChild(document.createTextNode("p"));
+							td.appendChild(e);
 						}
 					} else {
 						td.appendChild(document.createTextNode(cipher[key]));
