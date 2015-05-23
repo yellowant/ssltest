@@ -92,10 +92,13 @@ function events() {
 		var outline = document.getElementById("outline");
 		var ui = document.createElement("ul");
 		outline.appendChild(ui);
-		this.addTest = function(name, anchor){
+		this.addTest = function(hostname, port, ip, anchor){
 			var li = document.createElement("li");
 			var span = document.createElement("span");
-			li.appendChild(newAnchor(name, anchor));
+			var name = newAnchor(hostname + ":" + port, anchor);
+			name.appendChild(document.createElement("br"));
+			name.appendChild(document.createTextNode("(" + ip + ")"));
+			li.appendChild(name);
 			li.appendChild(span);
 			ui.appendChild(li);
 			return span;
@@ -167,7 +170,7 @@ function events() {
 		var port = hostinfo.port;
 		var ip = hostinfo.ip;
 		c.setAttribute("id", idbase+"-main");
-		var isRunning2 = overview.addTest(domain+":"+port+" ("+ip+")", "#"+idbase+"-main");
+		var isRunning2 = overview.addTest(domain, port, ip, "#"+idbase+"-main");
 
 		var url = hostInfoToURL(hostinfo);
 		var stream = new Stream(c, url);
