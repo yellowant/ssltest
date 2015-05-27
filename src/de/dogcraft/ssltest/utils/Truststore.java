@@ -72,7 +72,9 @@ public class Truststore {
                 }
 
                 for (File f1 : fl) {
-                    X509Certificate crt = (X509Certificate) cf.generateCertificate(new FileInputStream(f1));
+                    FileInputStream inStream = new FileInputStream(f1);
+                    X509Certificate crt = (X509Certificate) cf.generateCertificate(inStream);
+                    inStream.close();
                     md.reset();
                     ks.setCertificateEntry(TruststoreUtil.outputFingerprint(crt, md), crt);
                 }
