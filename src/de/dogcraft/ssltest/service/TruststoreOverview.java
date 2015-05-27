@@ -337,7 +337,7 @@ public class TruststoreOverview extends HttpServlet {
         pw.println(".osx{ background-color: #DDDDFF; }");
         pw.println(".android{ background-color: #adf260; }");
         pw.println(".win{ background-color: #42affe; }");
-        pw.println("th.rotate {" + "border: none; height: 240px;" + "white-space: nowrap;" + "}" + "th.rotate > div {" + "transform: translate(18px, 103px) rotate(315deg);" + "width: 30px;" + "}" + "th.rotate > div > span {" + "border-bottom: 1px solid #ccc;" + "padding: 5px 10px;" + "}");
+        pw.println("th.rotate { height: 240px;" + "white-space: nowrap;" + "}" + "th.rotate > div {" + "transform: translate(0, 116px) rotate(270deg);" + "width: 15px;" + "}" + "th.rotate > div > span {" + "font-size: 12px; " + "padding: 5px 10px;" + "}");
         pw.println("</style>");
         pw.println("</head>");
         pw.println("<body>");
