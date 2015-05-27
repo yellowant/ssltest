@@ -66,8 +66,9 @@ public class URLParsing {
             port = 443;
         } else {
             if (portStr.indexOf('-') != -1) {
-                proto = portStr.split("-", 2)[0];
-                portStr = portStr.split("-", 2)[1];
+                int idx = portStr.lastIndexOf('-');
+                proto = portStr.substring(0, idx);
+                portStr = portStr.substring(idx + 1);
             }
             try {
                 port = Integer.parseInt(portStr);
@@ -134,10 +135,10 @@ public class URLParsing {
                 port = 143;
                 break;
             case "xmpp":
-                port = 5260;
+                port = 5222;
                 break;
             case "xmpp-server":
-                port = 5222;
+                port = 5269;
                 break;
             }
         }
