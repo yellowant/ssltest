@@ -337,6 +337,7 @@ public class TruststoreOverview extends HttpServlet {
         pw.println(".osx{ background-color: #DDDDFF; }");
         pw.println(".android{ background-color: #adf260; }");
         pw.println(".win{ background-color: #42affe; }");
+        pw.println("th.rotate {" + "border: none; height: 240px;" + "white-space: nowrap;" + "}" + "th.rotate > div {" + "transform: translate(25px, 102px) rotate(315deg);" + "width: 30px;" + "}" + "th.rotate > div > span {" + "border-bottom: 1px solid #ccc;" + "padding: 5px 10px;" + "}");
         pw.println("</style>");
         pw.println("</head>");
         pw.println("<body>");
@@ -344,9 +345,11 @@ public class TruststoreOverview extends HttpServlet {
         pw.print("<tr><th>C</th><th>O</th><th>OU</th><th>CN</th><th>other dn</th><th>signature</th><th>keyType</th><th>keySize</th><th>keyDetail</th><th>pubkey ID</th><th>#</th><th>from</th><th>to</th><th><span title='selfsigned'>S</span>");
         for (Entry<String, TruststoreGroup> truststore : TruststoreGroup.getStores().entrySet()) {
             for (Entry<String, Truststore> entry : truststore.getValue().getContainedTables().entrySet()) {
-                pw.print("<th><span title='");
+                pw.print("<th class='rotate'><div><span title='");
                 pw.print(truststore.getKey() + "/" + entry.getKey());
-                pw.print("'>?</span></th>");
+                pw.print("'>");
+                pw.print(truststore.getKey() + "/" + entry.getKey());
+                pw.print("</span></div></th>");
             }
         }
         pw.println("</tr>");
