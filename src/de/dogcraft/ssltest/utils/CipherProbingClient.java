@@ -9,6 +9,7 @@ import java.util.Vector;
 import org.bouncycastle.crypto.tls.AlertDescription;
 import org.bouncycastle.crypto.tls.AlertLevel;
 import org.bouncycastle.crypto.tls.BugTestingTLSClient.CertificateObserver;
+import org.bouncycastle.crypto.tls.CipherSuite;
 import org.bouncycastle.crypto.tls.DefaultTlsClient;
 import org.bouncycastle.crypto.tls.HeartbeatExtension;
 import org.bouncycastle.crypto.tls.HeartbeatMode;
@@ -73,7 +74,9 @@ public class CipherProbingClient extends DefaultTlsClient {
     @Override
     public int[] getCipherSuites() {
         if (ciphers == null) {
-            return super.getCipherSuites();
+            return new int[] {
+                    CipherSuite.TLS_RSA_WITH_AES_256_GCM_SHA384, CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256, CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA, CipherSuite.TLS_RSA_WITH_AES_128_GCM_SHA256, CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256, CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA,
+            };
         }
         return ciphers;
     }
