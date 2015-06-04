@@ -335,7 +335,7 @@ public class CertificateTest {
         Extension ext = extractCertExtension(tbs, Extension.subjectAlternativeName);
 
         pw.enterTest("SubjectAltNames");
-        StringBuffer text = new StringBuffer("{hash:\"" + hash + "\", value:");
+        StringBuffer text = new StringBuffer("{\"hash\":\"" + hash + "\", \"value\":");
         if (ext != null) {
             text.append("[");
             float mult = testCrit(false, pw, "subjectAlternativeNames", ext);
@@ -347,16 +347,19 @@ public class CertificateTest {
             Enumeration<ASN1Encodable> obj = ds.getObjects();
             while (obj.hasMoreElements()) {
                 GeneralName genName = GeneralName.getInstance(obj.nextElement());
-                text.append("{ type: \"" + genName.getTagNo() + "\"");
+                text.append("{ \"type\": \"" + genName.getTagNo() + "\"");
                 if (genName.getTagNo() == GeneralName.dNSName) {
-                    text.append(", value: \"" + ((ASN1String) genName.getName()).getString() + "\"");
+                    text.append(", \"value\": \"" + ((ASN1String) genName.getName()).getString() + "\"");
+                } else if (genName.getTagNo() == GeneralName.directoryName) {
+                    text.append(", \"value\": ");
+                    appendX500Name(text, (X500Name) genName.getName());
                 } else if (genName.getTagNo() == GeneralName.otherName) {
                     ASN1Sequence seq = (ASN1Sequence) genName.getName();
                     System.out.println("OtherName");
                     ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier) seq.getObjectAt(0);
-                    text.append(", typeOID: \"" + oid.toString() + "\"");
+                    text.append(", \"typeOID\": \"" + oid.toString() + "\"");
                     String name = ((ASN1String) ((ASN1TaggedObject) seq.getObjectAt(1)).getObject()).getString();
-                    text.append(", value: \"" + name + "\"");
+                    text.append(", \"value\": \"" + name + "\"");
                 }
                 text.append("}");
                 if (obj.hasMoreElements()) {
@@ -364,9 +367,8 @@ public class CertificateTest {
                 }
             }
             text.append("]}");
-            pw.outputEvent("certSANs", text.toString());
         } else {
-            text.append("undefined}");
+            text.append("\"undefined\"}");
         }
         pw.outputEvent("certSANs", text.toString());
     }

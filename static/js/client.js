@@ -315,7 +315,8 @@ function events() {
 							key : "Key",
 							from : "Valid From",
 							to : "Valid To",
-							sig : "Signature"
+							sig : "Signature",
+							sans : "SubjectAltNames"
 						};
 						var tds = {};
 						for ( var i in keys) {
@@ -363,7 +364,27 @@ function events() {
 
 						certificates.appendChild(certificateElem);
 					});
-
+			stream.registerEvent("certSANs", function(c, s, e) {
+				var certificate = JSON.parse(e.data);
+				var validitySpan = document.createElement("div");
+				if(certificate.value === "undefined"){
+					var td = certificateLookup[certificate.hash].tab.sans;
+					td.parentNode.parentNode.removeChild(td.parentNode);
+					return;
+				}
+				for(var san in certificate.value){
+					var val = certificate.value[san];
+					var div = document.createElement("div");
+					if(val.type==2){
+						div.appendChild(document.createTextNode("DNS: "));
+						div.appendChild(document.createTextNode(val.value));
+					}else if(val.type==4){
+						div.appendChild(document.createTextNode("DirectoryName: "));
+						appendX500Name(div, val.value);
+					}
+					certificateLookup[certificate.hash].tab.sans.appendChild(div);
+				}
+			});
 			stream.registerEvent("certkey", function(c, s, e) {
 				var certificate = JSON.parse(e.data);
 				var validitySpan = document.createElement("div");

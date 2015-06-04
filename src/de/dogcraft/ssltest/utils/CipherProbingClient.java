@@ -75,7 +75,16 @@ public class CipherProbingClient extends DefaultTlsClient {
     public int[] getCipherSuites() {
         if (ciphers == null) {
             return new int[] {
-                    CipherSuite.TLS_RSA_WITH_AES_256_GCM_SHA384, CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256, CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA, CipherSuite.TLS_RSA_WITH_AES_128_GCM_SHA256, CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256, CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA,
+                    CipherSuite.TLS_RSA_WITH_AES_256_GCM_SHA384, CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256, CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA, //
+                    CipherSuite.TLS_RSA_WITH_AES_128_GCM_SHA256,
+                    CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256,
+                    CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA, //
+                    CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+                    CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+                    CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,//
+                    CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+                    CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+                    CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
             };
         }
         return ciphers;
@@ -131,6 +140,14 @@ public class CipherProbingClient extends DefaultTlsClient {
 
     public boolean isBrokenCipher() {
         return brokenCipher;
+    }
+
+    @Override
+    public void notifySecureRenegotiation(boolean secureRenegotiation) throws IOException {
+        if (secureRenegotiation)
+            return;
+        // TODO : interesting... broken? what?
+        System.err.println("Something might be broken (see " + CipherProbingClient.class.getName() + ".notifySecureRenegotiation");
     }
 
 }
