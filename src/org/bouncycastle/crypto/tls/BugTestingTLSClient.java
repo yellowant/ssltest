@@ -58,14 +58,7 @@ public class BugTestingTLSClient extends TlsClientProtocol {
     @SuppressWarnings("unchecked")
     @Override
     protected void cleanupHandshake() {
-        if (tlsSession != null) {
-            SessionParameters sp = tlsSession.exportSessionParameters();
-            try {
-                this.certObserver.onServerExtensionsReceived(sp.readServerExtensions());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        this.certObserver.onServerExtensionsReceived(serverExtensions);
     }
 
     public interface CertificateObserver {
