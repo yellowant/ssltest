@@ -21,13 +21,20 @@ import org.bouncycastle.crypto.tls.CipherSuite;
 import org.bouncycastle.crypto.tls.CompressionMethod;
 import org.bouncycastle.crypto.tls.TlsCipher;
 import org.bouncycastle.crypto.tls.TlsCompression;
+import org.bouncycastle.crypto.tls.TlsDHEKeyExchange;
+import org.bouncycastle.crypto.tls.TlsDHKeyExchange;
+import org.bouncycastle.crypto.tls.TlsECDHEKeyExchange;
+import org.bouncycastle.crypto.tls.TlsECDHKeyExchange;
 import org.bouncycastle.crypto.tls.TlsKeyExchange;
+import org.bouncycastle.crypto.tls.TlsPSKKeyExchange;
+import org.bouncycastle.crypto.tls.TlsSRPKeyExchange;
 
 import de.dogcraft.ssltest.executor.TaskQueue;
 import de.dogcraft.ssltest.tasks.CertificateChecker;
 import de.dogcraft.ssltest.tests.TestingTLSClient.TLSCipherInfo;
 import de.dogcraft.ssltest.utils.CertificateWrapper;
 import de.dogcraft.ssltest.utils.CipherProbingClient;
+import de.dogcraft.ssltest.utils.CipherProbingClient.BrokenCipherException;
 import de.dogcraft.ssltest.utils.JSONUtils;
 import de.dogcraft.ssltest.utils.TruststoreUtil;
 
@@ -283,7 +290,7 @@ public class TestCipherList {
 
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, ciphers, new short[] {
-            CompressionMethod._null
+                CompressionMethod._null
         }, new CertificateObserver() {
 
             @Override
@@ -303,6 +310,7 @@ public class TestCipherList {
             tcp.close();
             sock.close();
         } catch (IOException e) {
+        } catch (BrokenCipherException e) {
         }
         brokenCipher = tc.isBrokenCipher();
 
@@ -320,6 +328,66 @@ public class TestCipherList {
         resultCipher.supported = !tc.isBrokenCipher();
         if ( !brokenCipher) {
             resultCipher.kex = tc.getKeyExchange();
+        } else {
+            // So we know things are borked, let's try to recover as much as
+            // possible ;-)
+            if ( -1 != Arrays.binarySearch(new int[] {
+                    0x00000B, 0x00000C, 0x00000D, 0x00000E, 0x00000F, 0x000010, 0x000017, 0x000018,
+                    0x000019, 0x00001A, 0x00001B, 0x000030, 0x000031, 0x000034, 0x000036, 0x000037,
+                    0x00003A, 0x00003E, 0x00003F, 0x000042, 0x000043, 0x000046, 0x000068, 0x000069,
+                    0x00006C, 0x00006D, 0x000085, 0x000086, 0x000089, 0x000097, 0x000098, 0x00009B,
+                    0x0000A0, 0x0000A1, 0x0000A4, 0x0000A5, 0x0000A6, 0x0000A7, 0x0000BB, 0x0000BC,
+                    0x0000BF, 0x0000C1, 0x0000C2, 0x0000C5, 0x00C03E, 0x00C03F, 0x00C040, 0x00C041,
+                    0x00C046, 0x00C047, 0x00C054, 0x00C055, 0x00C058, 0x00C059, 0x00C05A, 0x00C05B,
+                    0x00C07E, 0x00C07F, 0x00C082, 0x00C083, 0x00C084, 0x00C085
+            }, selectedCipherSuite)) {
+                resultCipher.kex = new TlsDHKeyExchange(9, null, null);
+            } else if ( -1 != Arrays.binarySearch(new int[] {
+                    0x000011, 0x000012, 0x000013, 0x000014, 0x000015, 0x000016, 0x000032, 0x000033,
+                    0x000038, 0x000039, 0x000040, 0x000044, 0x000045, 0x000067, 0x00006A, 0x00006B,
+                    0x000087, 0x000088, 0x000099, 0x00009A, 0x00009E, 0x00009F, 0x0000A2, 0x0000A3,
+                    0x0000BD, 0x0000BE, 0x0000C3, 0x0000C4, 0x00C042, 0x00C043, 0x00C044, 0x00C045,
+                    0x00C052, 0x00C053, 0x00C056, 0x00C057, 0x00C07C, 0x00C07D, 0x00C080, 0x00C081,
+                    0x00C09E, 0x00C09F, 0x00C0A2, 0x00C0A3
+            }, selectedCipherSuite)) {
+                resultCipher.kex = new TlsDHEKeyExchange(9, null, null);
+            } else if ( -1 != Arrays.binarySearch(new int[] {
+                    0x00C001, 0x00C002, 0x00C003, 0x00C004, 0x00C005, 0x00C00B, 0x00C00C, 0x00C00D,
+                    0x00C00E, 0x00C00F, 0x00C015, 0x00C016, 0x00C017, 0x00C018, 0x00C019, 0x00C025,
+                    0x00C026, 0x00C029, 0x00C02A, 0x00C02D, 0x00C02E, 0x00C031, 0x00C032, 0x00C04A,
+                    0x00C04B, 0x00C04E, 0x00C04F, 0x00C05E, 0x00C05F, 0x00C062, 0x00C063, 0x00C074,
+                    0x00C075, 0x00C078, 0x00C079, 0x00C088, 0x00C089, 0x00C08C, 0x00C08D
+            }, selectedCipherSuite)) {
+                resultCipher.kex = new TlsECDHKeyExchange(16, null, null, null, null);
+            } else if ( -1 != Arrays.binarySearch(new int[] {
+                    0x00C006, 0x00C007, 0x00C008, 0x00C009, 0x00C00A, 0x00C010, 0x00C011, 0x00C012,
+                    0x00C013, 0x00C014, 0x00C023, 0x00C024, 0x00C027, 0x00C028, 0x00C02B, 0x00C02C,
+                    0x00C02F, 0x00C030, 0x00C048, 0x00C049, 0x00C04C, 0x00C04D, 0x00C05C, 0x00C05D,
+                    0x00C060, 0x00C061, 0x00C072, 0x00C073, 0x00C076, 0x00C077, 0x00C086, 0x00C087,
+                    0x00C08A, 0x00C08B, 0x00C0AC, 0x00C0AD, 0x00C0AE, 0x00C0AF
+            }, selectedCipherSuite)) {
+                resultCipher.kex = new TlsECDHEKeyExchange(16, null, null, null, null);
+            } else if ( -1 != Arrays.binarySearch(new int[] {
+                    0x00002C, 0x00002D, 0x00002E, 0x00008A, 0x00008B, 0x00008C, 0x00008D, 0x00008E,
+                    0x00008F, 0x000090, 0x000091, 0x000092, 0x000093, 0x000094, 0x000095, 0x0000A8,
+                    0x0000A9, 0x0000AA, 0x0000AB, 0x0000AC, 0x0000AD, 0x0000AE, 0x0000AF, 0x0000B0,
+                    0x0000B1, 0x0000B2, 0x0000B3, 0x0000B4, 0x0000B5, 0x0000B6, 0x0000B7, 0x0000B8,
+                    0x0000B9, 0x00C033, 0x00C034, 0x00C035, 0x00C036, 0x00C037, 0x00C038, 0x00C039,
+                    0x00C03A, 0x00C03B, 0x00C064, 0x00C065, 0x00C066, 0x00C067, 0x00C068, 0x00C069,
+                    0x00C06A, 0x00C06B, 0x00C06C, 0x00C06D, 0x00C06E, 0x00C06F, 0x00C070, 0x00C071,
+                    0x00C08E, 0x00C08F, 0x00C090, 0x00C091, 0x00C092, 0x00C093, 0x00C094, 0x00C095,
+                    0x00C096, 0x00C097, 0x00C098, 0x00C099, 0x00C09A, 0x00C09B, 0x00C0A4, 0x00C0A5,
+                    0x00C0A6, 0x00C0A7, 0x00C0A8, 0x00C0A9, 0x00C0AA, 0x00C0AB
+            }, selectedCipherSuite)) {
+                resultCipher.kex = new TlsPSKKeyExchange(24, null, null, null, null, null, null);
+            } else if ( -1 != Arrays.binarySearch(new int[] {
+                    0x00C01A, 0x00C01B, 0x00C01C, 0x00C01D, 0x00C01E, 0x00C01F, 0x00C020, 0x00C021,
+                    0x00C022
+            }, selectedCipherSuite)) {
+                resultCipher.kex = new TlsSRPKeyExchange(21, null, null, null);
+            } else {
+                resultCipher.kex = null;
+            }
         }
         resultCipher.compress = tc.getCompression();
         // resultCipher.cipher = tc.getCipher();
