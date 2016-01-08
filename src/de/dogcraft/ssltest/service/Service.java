@@ -60,13 +60,13 @@ public class Service extends HttpServlet {
             resp.setContentType("text/html");
             resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
             copyStream(Service.class.getResourceAsStream("../res/index.htm"), resp.getOutputStream());
-        } else if (path.equals("/test.event")) {
+        } else if (path.equals("/server.event")) {
             if (req.getParameter("domain") != null) {
-                stream(req, resp, true);
+                reqTestServer(req, resp, true);
             }
-        } else if (path.equals("/test.txt")) {
+        } else if (path.equals("/server.txt")) {
             if (req.getParameter("domain") != null) {
-                stream(req, resp, false);
+                reqTestServer(req, resp, false);
             }
         } else if (path.equals("/oid.js")) {
             OIDs.outputOids(resp);
@@ -82,7 +82,7 @@ public class Service extends HttpServlet {
     HashMap<String, TestingSession> cacheTestSession = new HashMap<>();
 
     @SuppressWarnings("deprecation")
-    private void stream(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
+    private void reqTestServer(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
         if (useEventStream) {
             resp.setContentType("text/event-stream");
         } else {
@@ -192,4 +192,5 @@ public class Service extends HttpServlet {
 
         to.performTest();
     }
+
 }

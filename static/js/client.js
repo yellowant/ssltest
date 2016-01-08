@@ -131,7 +131,7 @@ function events() {
 
 	function hostInfoToURL(hostinfo, base) {
 		if (base === undefined) {
-			base = "/test.event"
+			base = "/server.event"
 		}
 		return base + '?domain=' + encodeURIComponent(hostinfo.domain)
 				+ (hostinfo.ip ? '&ip=' + encodeURIComponent(hostinfo.ip) : '')
@@ -190,7 +190,7 @@ function events() {
 			legend.setAttribute("class", "host-legend");
 			legend.appendChild(document.createTextNode(ip));
 			var hr = document.createElement("a");
-			hr.setAttribute("href", hostInfoToURL(hostinfo, "/test.txt"));
+			hr.setAttribute("href", hostInfoToURL(hostinfo, "/server.txt"));
 			hr.setAttribute("target", "_blank");
 			hr.appendChild(document.createTextNode("raw"));
 			legend.appendChild(hr);
