@@ -9,19 +9,22 @@ public class CipherRater {
 
     private static final String unknown = "#dddddd";
 
+    private static final String none = "#ff4444";
+
+    private static final String[] names = new String[] {
+            "40less", "40", "64", "80", "96", "112", "128", "160", "192", "224", "256"
+    };
+
+    private static final String[] colors = new String[] {
+            "#ff6666", "#ff8888", "#ffaaaa", "#ffcccc", "#ffdddd", "#ffeedd", "#ffffdd", "#f7ffdd", "#eeffdd", "#e6ffdd", "#ddffdd"
+    };
+
     public static void generateRateCSS(HttpServletResponse resp) throws IOException {
         resp.setContentType("text/css");
         generateSymmeq(resp.getWriter());
     }
 
     public static void generateSymmeq(PrintWriter out) {
-        String none = "#ff4444";
-        String[] names = new String[] {
-                "40less", "40", "64", "80", "96", "112", "128", "160", "192", "224", "256"
-        };
-        String[] colors = new String[] {
-                "#ff6666", "#ff8888", "#ffaaaa", "#ffcccc", "#ffdddd", "#ffeedd", "#ffffdd", "#f7ffdd", "#eeffdd", "#e6ffdd", "#ddffdd"
-        };
         outputSymmeqRule(out, unknown, "unknown");
         outputSymmeqRule(out, none, "none");
         for (int i = 0; i < names.length; i++) {
@@ -37,4 +40,5 @@ public class CipherRater {
         out.println("\tfill: " + color);
         out.println("}");
     }
+
 }
