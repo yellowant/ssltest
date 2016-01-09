@@ -175,7 +175,7 @@ public class TestCipherList {
         public CertificateList(org.bouncycastle.asn1.x509.Certificate[] content) throws NoSuchAlgorithmException, IOException {
             this.content = new CertificateWrapper[content.length];
             hashes = new String[content.length];
-            MessageDigest md = MessageDigest.getInstance("SHA1");
+            MessageDigest md = MessageDigest.getInstance(CertificateWrapper.HASH_TYPE);
             for (int i = 0; i < content.length; i++) {
                 md.reset();
                 this.content[i] = new CertificateWrapper(content[i], content[i + 1 >= content.length ? i : i + 1]);

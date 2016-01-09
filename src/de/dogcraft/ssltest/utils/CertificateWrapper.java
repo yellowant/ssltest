@@ -4,15 +4,21 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 
-import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.Certificate;
 
 public class CertificateWrapper {
 
-    public static final String HASH_TYPE = "SHA1";
+    /*
+     * public static final String HASH_TYPE = "SHA1"; public static final
+     * AlgorithmIdentifier HASH_OID = new
+     * AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1);
+     */
 
-    public static final AlgorithmIdentifier HASH_OID = new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1);
+    public static final String HASH_TYPE = "SHA-512";
+
+    public static final AlgorithmIdentifier HASH_OID = new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha512);
 
     Certificate c;
 

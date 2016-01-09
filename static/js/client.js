@@ -1,3 +1,9 @@
+function abbrevHash(hash){
+	if(hash.length <= 32){
+		return hash;
+	}
+	return hash.substring(0,16)+"..."+hash.substring(hash.length-16);
+}
 function onLoadHook() {
 	if (window.location.hash !== undefined) {
 		var hash = window.location.hash;
@@ -381,8 +387,10 @@ function events() {
 					certificateElem.setAttribute("id", idbase + "cert-"
 							+ c.hash);
 					certificateElem.setAttribute("class", "certificate");
-					
-					tds.id.appendChild(document.createTextNode(c.hash));
+					var idspan = document.createElement("span");
+					idspan.appendChild(document.createTextNode(abbrevHash(c.hash)))
+					idspan.setAttribute("title", c.hash);
+					tds.id.appendChild(idspan);
 
 					{ // the ^{pem}-link
 						var raw = document.createElement("a");
