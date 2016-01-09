@@ -243,12 +243,13 @@ function events() {
 			this.refData = function(hash) {
 				var cert = certificateLookup[hash];
 				if (cert === undefined) {
-					var str = new Stream(hash, "/cert.event?fp=" + hash);
 					cert = {
-						stream : str,
-						updates : [],
-						ctr : 0
-					};
+							updates : [],
+							ctr : 0,
+							hash: hash
+						};
+					var str = new Stream(cert, "/cert.event?fp=" + hash);
+					cert.stream = str;
 					cert.updated = function() {
 						for (var i = 0; i < cert.ctr; i++) {
 							cert.updates[i](cert);
@@ -368,10 +369,10 @@ function events() {
 						tds[i] = v;
 					}
 					certificateElem.setAttribute("id", idbase + "cert-"
-							+ certificate.hash);
+							+ c.hash);
 					certificateElem.setAttribute("class", "certificate");
 					
-					tds.id.appendChild(document.createTextNode(certificate.hash));
+					tds.id.appendChild(document.createTextNode(c.hash));
 
 					{ // the ^{pem}-link
 						var raw = document.createElement("a");
@@ -394,7 +395,7 @@ function events() {
 						raw.appendChild(document.createTextNode("raw"));
 						raw.setAttribute("class", "rawcert");
 						raw.setAttribute("href", "/cert.txt?fp="
-								+ certificate.hash);
+								+ c.hash);
 						raw.setAttribute("target", "_blank");
 						tds.id.appendChild(raw);
 
@@ -402,20 +403,19 @@ function events() {
 
 					var name = appendX500Name(tds.subj, certificate.subject);
 					appendX500Name(tds.issuer, certificate.issuer);
-					var c = certificateLookup[certificate.hash];
 					c.elem = certificateElem;
 					c.dn = name;
 					c.tab = tds;
 					c.data = certificate;
 
 					certificates.appendChild(certificateElem);
-					certificateLookup[certificate.hash].updated();
+					c.updated();
 				});
 				stream.registerEvent("certSANs", function(c, s, e) {
 					var certificate = JSON.parse(e.data);
 					var validitySpan = document.createElement("div");
 					if (certificate.value === "undefined") {
-						var td = certificateLookup[certificate.hash].tab.sans;
+						var td = c.tab.sans;
 						td.parentNode.parentNode.removeChild(td.parentNode);
 						return;
 					}
@@ -429,28 +429,28 @@ function events() {
 							div.appendChild(document.createTextNode("DirectoryName: "));
 							appendX500Name(div, val.value);
 						}
-						certificateLookup[certificate.hash].tab.sans.appendChild(div);
+						c.tab.sans.appendChild(div);
 					}
-					certificateLookup[certificate.hash].updated();
+					c.updated();
 				});
 				stream.registerEvent("certkey", function(c, s, e) {
 					var certificate = JSON.parse(e.data);
 					var validitySpan = document.createElement("div");
-					certificateLookup[certificate.hash].tab.key.appendChild(document
+					c.tab.key.appendChild(document
 							.createTextNode(certificate.type + ":" + certificate.size + " ("
 									+ certificate.pkhash.substring(0, 8) + ")"));
-					certificateLookup[certificate.hash].tab.sig
+					c.tab.sig
 							.appendChild(generateOIDInfoHref(certificate.sig, sigOIDs));
-					certificateLookup[certificate.hash].key = certificate;
-					certificateLookup[certificate.hash].updated();
+					c.key = certificate;
+					c.updated();
 				});
 				stream.registerEvent("certvalidity", function(c, s, e) {
 					var certificate = JSON.parse(e.data);
-					certificateLookup[certificate.hash].tab.from.appendChild(document
+					c.tab.from.appendChild(document
 							.createTextNode(certificate.start));
-					certificateLookup[certificate.hash].tab.to.appendChild(document
+					c.tab.to.appendChild(document
 							.createTextNode(certificate.end));
-					certificateLookup[certificate.hash].updated();
+					c.updated();
 				});
 			};
 			c.appendChild(certificates);

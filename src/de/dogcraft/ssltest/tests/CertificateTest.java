@@ -93,9 +93,7 @@ public class CertificateTest {
         String hash = cert.getHash();
 
         StringBuffer certificate = new StringBuffer();
-        certificate.append("{ \"hash\": \"");
-        certificate.append(hash);
-        certificate.append("\", \"type\": \"");
+        certificate.append("{ \"type\": \"");
         certificate.append("X.509");
         certificate.append("\", \"data\": \"");
         certificate.append(JSONUtils.jsonEscape(convertToPEM(cert.getC())));
@@ -112,11 +110,11 @@ public class CertificateTest {
         ASN1ObjectIdentifier sigalg = cert.getC().getSignatureAlgorithm().getAlgorithm();
         String sigStr = sigalg.toString();
         if (pk instanceof RSAKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"RSA\", \"size\":" + ((RSAKeyParameters) pk).getModulus().bitLength() + "}");
         } else if (pk instanceof DSAPublicKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"DSA\", \"size\":" + ((DSAPublicKeyParameters) pk).getParameters().getP().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"DSA\", \"size\":" + ((DSAPublicKeyParameters) pk).getParameters().getP().bitLength() + "}");
         } else if (pk instanceof ECPublicKeyParameters) {
-            pw.outputEvent("certkey", "{ \"hash\":\"" + hash + "\", \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"ECDSA\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
+            pw.outputEvent("certkey", "{ \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"ECDSA\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
         }
         checkCertEncoding(pw, hash, cert.getC());
         TBSCertificate tbs = cert.getC().getTBSCertificate();
@@ -236,11 +234,11 @@ public class CertificateTest {
         pw.enterTest("Encoding");
         BigInteger v = cert.getVersion().getValue();
         if (v.equals(BigInteger.ZERO)) {
-            pw.outputEvent("certtype", String.format("{ \"hash\": \"%s\", \"type\": \"v1-Certificate\", \"points\": %d }", hash, -3));
+            pw.outputEvent("certtype", String.format("{ \"type\": \"v1-Certificate\", \"points\": %d }", -3));
         } else if (v.equals(BigInteger.ONE)) {
-            pw.outputEvent("certtype", String.format("{ \"hash\": \"%s\", \"type\": \"v2-Certificate\", \"points\": %d }", hash, -1));
+            pw.outputEvent("certtype", String.format("{ \"type\": \"v2-Certificate\", \"points\": %d }", -1));
         } else if (v.equals(TWO)) {
-            pw.outputEvent("certtype", String.format("{ \"hash\": \"%s\", \"type\": \"v3-Certificate\", \"points\": %d }", hash, 1));
+            pw.outputEvent("certtype", String.format("{ \"type\": \"v3-Certificate\", \"points\": %d }", 1));
         }
         pw.exitTest("Encoding", TestResult.IGNORE);
     }
@@ -250,7 +248,7 @@ public class CertificateTest {
     private static void checkValidity(TestOutput pw, String hash, Date start, Date end) {
         pw.enterTest("Validity Period");
         SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'UTC'");
-        pw.outputEvent("certvalidity", String.format("{ \"hash\": \"%s\", \"start\": \"%s\", \"end\": \"%s\" }", hash, sdf.format(start), sdf.format(end)));
+        pw.outputEvent("certvalidity", String.format("{ \"start\": \"%s\", \"end\": \"%s\" }", sdf.format(start), sdf.format(end)));
         Date now = new Date();
         if (start.before(now) && end.after(now)) {
             pw.output("Certificate is currently valid.");
@@ -335,7 +333,7 @@ public class CertificateTest {
         Extension ext = extractCertExtension(tbs, Extension.subjectAlternativeName);
 
         pw.enterTest("SubjectAltNames");
-        StringBuffer text = new StringBuffer("{\"hash\":\"" + hash + "\", \"value\":");
+        StringBuffer text = new StringBuffer("{ \"value\":");
         if (ext != null) {
             text.append("[");
             float mult = testCrit(false, pw, "subjectAlternativeNames", ext);
