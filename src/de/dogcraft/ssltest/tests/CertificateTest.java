@@ -38,10 +38,12 @@ import org.bouncycastle.asn1.ocsp.OCSPResponse;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
 import org.bouncycastle.asn1.ocsp.Request;
 import org.bouncycastle.asn1.ocsp.TBSRequest;
+import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AccessDescription;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
@@ -353,12 +355,17 @@ public class CertificateTest {
     }
 
     private static void doOCSP(TestOutput pw, TBSCertificate tbs, CertificateWrapper c, String url) {
+
+        String HASH_TYPE = "SHA-1";
+
+        AlgorithmIdentifier HASH_OID = new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1);
+        // TODO test other algorithms
         try {
-            MessageDigest md = MessageDigest.getInstance(CertificateWrapper.HASH_TYPE);
+            MessageDigest md = MessageDigest.getInstance(HASH_TYPE);
             byte[] nameHash = md.digest(c.getIssuer().getSubject().getEncoded());
             md.reset();
             byte[] keyHash = md.digest(c.getIssuer().getSubjectPublicKeyInfo().getPublicKeyData().getBytes());
-            CertID ci = new CertID(CertificateWrapper.HASH_OID, new DEROctetString(nameHash), new DEROctetString(keyHash), tbs.getSerialNumber());
+            CertID ci = new CertID(HASH_OID, new DEROctetString(nameHash), new DEROctetString(keyHash), tbs.getSerialNumber());
             Request r = new Request(ci, null);
             TBSRequest tbsr = new TBSRequest(null, new DERSequence(new ASN1Encodable[] {
                 r
