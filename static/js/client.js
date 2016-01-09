@@ -1,8 +1,8 @@
-function abbrevHash(hash){
-	if(hash.length <= 32){
+function abbrevHash(hash) {
+	if (hash.length <= 32) {
 		return hash;
 	}
-	return hash.substring(0,16)+"..."+hash.substring(hash.length-16);
+	return hash.substring(0, 16) + "..." + hash.substring(hash.length - 16);
 }
 function onLoadHook() {
 	if (window.location.hash !== undefined) {
@@ -19,12 +19,11 @@ function onLoadHook() {
 	}
 }
 
-function createASN1JS(name, data){
+function createASN1JS(name, data) {
 	var asn1js = document.createElement("a");
 	asn1js.appendChild(document.createTextNode(name));
 	asn1js.setAttribute("class", "rawcert");
-	asn1js.setAttribute("href", "http://lapo.it/asn1js/#"
-			+ data);
+	asn1js.setAttribute("href", "http://lapo.it/asn1js/#" + data);
 	asn1js.setAttribute("target", "_blank");
 	return asn1js;
 }
@@ -37,8 +36,7 @@ function generateOIDInfoHref(oid, dict) {
 
 	var a = document.createElement("a");
 	a.appendChild(document.createTextNode(content));
-	a.setAttribute("href", "http://www.oid-info.com/cgi-bin/display?tree="
-			+ encodeURIComponent(oid));
+	a.setAttribute("href", "http://www.oid-info.com/cgi-bin/display?tree=" + encodeURIComponent(oid));
 	a.setAttribute("title", oid);
 	a.setAttribute("target", "_blank");
 	return a;
@@ -149,8 +147,7 @@ function events() {
 		if (base === undefined) {
 			base = "/server.event"
 		}
-		return base + '?domain=' + encodeURIComponent(hostinfo.domain)
-				+ (hostinfo.ip ? '&ip=' + encodeURIComponent(hostinfo.ip) : '')
+		return base + '?domain=' + encodeURIComponent(hostinfo.domain) + (hostinfo.ip ? '&ip=' + encodeURIComponent(hostinfo.ip) : '')
 				+ '&port=' + encodeURIComponent(hostinfo.port);
 	}
 
@@ -260,10 +257,10 @@ function events() {
 				var cert = certificateLookup[hash];
 				if (cert === undefined) {
 					cert = {
-							updates : [],
-							ctr : 0,
-							hash: hash
-						};
+						updates : [],
+						ctr : 0,
+						hash : hash
+					};
 					var str = new Stream(cert, "/cert.event?fp=" + hash);
 					cert.stream = str;
 					cert.updated = function() {
@@ -289,7 +286,7 @@ function events() {
 					}
 					txt.data = name;
 				});
-				return [txt, "#" + idbase + "cert-" + hash];
+				return [ txt, "#" + idbase + "cert-" + hash ];
 			};
 			var refData = this.refData;
 			this.reference = function(hash) {
@@ -301,8 +298,8 @@ function events() {
 				return a;
 			}
 			this.setKeyClass = function(hash, elem, clazz) {
-				certificateLookup[hash].addUpdate(function(c){
-					if(c.key === undefined)
+				certificateLookup[hash].addUpdate(function(c) {
+					if (c.key === undefined)
 						return;
 					var type = c.key.type;
 					var size = c.key.size;
@@ -313,14 +310,13 @@ function events() {
 				});
 			}
 			this.rateSig = function(hash, elem) {
-				certificateLookup[hash].addUpdate(function(c){
-					if(c.key === undefined){
+				certificateLookup[hash].addUpdate(function(c) {
+					if (c.key === undefined) {
 						return;
 					}
 					var sig0 = sigOIDs[c.key.sig];
 					var sig = sig0.split("WITH");
-					elem.style.stroke = rater.colorizeFG(rater
-							.rateSignature(sig[0], sig[1]));
+					elem.style.stroke = rater.colorizeFG(rater.rateSignature(sig[0], sig[1]));
 					elem.setAttribute("title", sig0);
 				});
 			}
@@ -356,7 +352,7 @@ function events() {
 				return res;
 			}
 
-		  var registerOn = function(stream) {
+			var registerOn = function(stream) {
 				stream.registerEvent("certificate", function(c, s, e) {
 					var certificate = JSON.parse(e.data);
 					var certificateElem = document.createElement("div");
@@ -384,8 +380,7 @@ function events() {
 						certTable.appendChild(tr);
 						tds[i] = v;
 					}
-					certificateElem.setAttribute("id", idbase + "cert-"
-							+ c.hash);
+					certificateElem.setAttribute("id", idbase + "cert-" + c.hash);
 					certificateElem.setAttribute("class", "certificate");
 					var idspan = document.createElement("span");
 					idspan.appendChild(document.createTextNode(abbrevHash(c.hash)))
@@ -396,18 +391,16 @@ function events() {
 						var raw = document.createElement("a");
 						raw.appendChild(document.createTextNode("pem"));
 						raw.setAttribute("class", "rawcert");
-						raw.setAttribute("href", "data:text/plain;base64,"
-								+ btoa(certificate.data));
+						raw.setAttribute("href", "data:text/plain;base64," + btoa(certificate.data));
 						raw.setAttribute("target", "_blank");
 						tds.id.appendChild(raw);
 
 						tds.id.appendChild(createASN1JS("asn1.js", certificate.data));
-						
+
 						var raw = document.createElement("a");
 						raw.appendChild(document.createTextNode("raw"));
 						raw.setAttribute("class", "rawcert");
-						raw.setAttribute("href", "/cert.txt?fp="
-								+ c.hash);
+						raw.setAttribute("href", "/cert.txt?fp=" + c.hash);
 						raw.setAttribute("target", "_blank");
 						tds.id.appendChild(raw);
 
@@ -449,20 +442,16 @@ function events() {
 				stream.registerEvent("certkey", function(c, s, e) {
 					var certificate = JSON.parse(e.data);
 					var validitySpan = document.createElement("div");
-					c.tab.key.appendChild(document
-							.createTextNode(certificate.type + ":" + certificate.size + " ("
-									+ certificate.pkhash.substring(0, 8) + ")"));
-					c.tab.sig
-							.appendChild(generateOIDInfoHref(certificate.sig, sigOIDs));
+					c.tab.key.appendChild(document.createTextNode(certificate.type + ":" + certificate.size + " ("
+							+ certificate.pkhash.substring(0, 8) + ")"));
+					c.tab.sig.appendChild(generateOIDInfoHref(certificate.sig, sigOIDs));
 					c.key = certificate;
 					c.updated();
 				});
 				stream.registerEvent("certvalidity", function(c, s, e) {
 					var certificate = JSON.parse(e.data);
-					c.tab.from.appendChild(document
-							.createTextNode(certificate.start));
-					c.tab.to.appendChild(document
-							.createTextNode(certificate.end));
+					c.tab.from.appendChild(document.createTextNode(certificate.start));
+					c.tab.to.appendChild(document.createTextNode(certificate.end));
 					c.updated();
 				});
 				stream.registerEvent("authorityInfoAccess", function(c, s, e) {
@@ -473,20 +462,20 @@ function events() {
 					tr.appendChild(key);
 					var value = document.createElement("td");
 					value.appendChild(generateOIDInfoHref(dt.type, AIAOIDs));
-					value.appendChild(document.createTextNode(": "+dt.loc));
+					value.appendChild(document.createTextNode(": " + dt.loc));
 					c.ocsp = value;
 					tr.appendChild(value);
 					c.tabObj.appendChild(tr);
 				});
 				stream.registerEvent("OCSP", function(c, s, e) {
 					var dt = JSON.parse(e.data);
-					if(c.ocsp === undefined){
+					if (c.ocsp === undefined) {
 						return;
 					}
-					c.ocsp.appendChild(document.createTextNode(", result: "+dt.state));
+					c.ocsp.appendChild(document.createTextNode(", result: " + dt.state));
 					c.ocsp.appendChild(createASN1JS("req", dt.request));
 					c.ocsp.appendChild(createASN1JS("resp", dt.response));
-					
+
 				});
 			};
 			c.appendChild(certificates);
@@ -505,8 +494,7 @@ function events() {
 				var update = function() {
 
 					svg.innerHTML = "";
-					var lines = document.createElementNS("http://www.w3.org/2000/svg",
-							"g");
+					var lines = document.createElementNS("http://www.w3.org/2000/svg", "g");
 					svg.appendChild(lines);
 
 					var order = {};
@@ -524,8 +512,7 @@ function events() {
 						len = 0;
 						var height = 0;
 						for (key in set) {
-							var rect = document.createElementNS("http://www.w3.org/2000/svg",
-									"ellipse");
+							var rect = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
 							var x = 115 + (ctr - 1) * 270;
 							var y = 63 + (height++) * 170;
 							rect.setAttribute("cx", x);
@@ -536,20 +523,14 @@ function events() {
 							certsModule.setKeyClass(key, rect, "cert-trust");
 							svg.appendChild(rect);
 
-							var anc = document.createElementNS("http://www.w3.org/2000/svg",
-							"a");
+							var anc = document.createElementNS("http://www.w3.org/2000/svg", "a");
 							var ref = certsModule.refData(key);
-							anc
-							.setAttributeNS("http://www.w3.org/1999/xlink", "href",
-									ref[1]);
+							anc.setAttributeNS("http://www.w3.org/1999/xlink", "href", ref[1]);
 							anc.onclick = hrefjump;
-							var text = document.createElementNS("http://www.w3.org/2000/svg",
-									"text");
+							var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
 							text.setAttribute("x", x);
 							text.setAttribute("y", y);
-							text
-									.setAttribute("style",
-											"fill: black; text-anchor: middle; dominant-baseline: middle");
+							text.setAttribute("style", "fill: black; text-anchor: middle; dominant-baseline: middle");
 							text.appendChild(ref[0]);
 							anc.appendChild(text);
 							svg.appendChild(anc);
@@ -572,8 +553,7 @@ function events() {
 						for (i in trustGraph[key]) {
 							if (i === "undefined")
 								continue;
-							var line = document.createElementNS("http://www.w3.org/2000/svg",
-									"line");
+							var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
 							line.setAttribute("x1", positions[key][0]);
 							line.setAttribute("y1", positions[key][1]);
 							line.setAttribute("x2", positions[i][0]);
@@ -657,16 +637,13 @@ function events() {
 				return renego.secure_renego;
 			});
 			addElem("heartbeat", function(heartbeat) {
-				return heartbeat.heartbeat + ", test results ... beat: "
-						+ heartbeat.test.heartbeat + ", bleed: "
-						+ heartbeat.test.heartbleed;
+				return heartbeat.heartbeat + ", test results ... beat: " + heartbeat.test.heartbeat + ", bleed: " + heartbeat.test.heartbleed;
 			});
 			addElem("sni", function(sni) {
 				return sni.sni;
 			});
 			addElem("compression", function(compression) {
-				return compression.supported + " test results ... accept: "
-						+ compression.accepted;
+				return compression.supported + " test results ... accept: " + compression.accepted;
 			});
 			c.appendChild(bugs);
 		})();
@@ -675,8 +652,7 @@ function events() {
 			c.appendChild(certificateObservations);
 
 			var cipherPreferenceW = document.createElement("div");
-			cipherPreferenceW.appendChild(document
-					.createTextNode("Server has cipher preference: "));
+			cipherPreferenceW.appendChild(document.createTextNode("Server has cipher preference: "));
 			var cipherPreference = document.createElement("span");
 			cipherPreference.appendChild(document.createTextNode("unknown"));
 			cipherPreferenceW.appendChild(cipherPreference);
@@ -713,23 +689,19 @@ function events() {
 
 				for ( var key in cipher) {
 					var td = document.createElement("td");
-					td.setAttribute("data-value", key === "kexsize" ? cipher[key].size
-							: cipher[key]);
+					td.setAttribute("data-value", key === "kexsize" ? cipher[key].size : cipher[key]);
 					var sfx = "size";
 					isEnc = "enc" === key.substring(0, 3) ? 1 : 0;
 
 					if (key.indexOf(sfx, key.length - sfx.length) !== -1) {
-						td.setAttribute("data-type", cipher[key.substring(0, key.length
-								- sfx.length - isEnc)
-								+ "type"]);
+						td.setAttribute("data-type", cipher[key.substring(0, key.length - sfx.length - isEnc) + "type"]);
 					}
 					td.setAttribute("class", "cipher-" + key);
 
 					if (key === "kexsize" || key == "authsize") {
 						var sizeval = key === "kexsize" ? cipher[key].size : cipher[key];
 
-						calculateSymmeq(cipher[key.substring(0, key.length - 4) + "type"],
-								sizeval, td, "cipher-" + key);
+						calculateSymmeq(cipher[key.substring(0, key.length - 4) + "type"], sizeval, td, "cipher-" + key);
 					}
 
 					if (key === "kexsize") {
@@ -790,8 +762,7 @@ function events() {
 	stream.registerEvent("streamID", function(c, s, e) {
 		var hostInfo = JSON.parse(e.data);
 
-		window.location.hash = "#d=" + hostInfo.host + ":" + hostInfo.proto + "-"
-				+ hostInfo.port;
+		window.location.hash = "#d=" + hostInfo.host + ":" + hostInfo.proto + "-" + hostInfo.port;
 	});
 
 }
