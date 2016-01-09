@@ -88,6 +88,7 @@ public class STARTTLS {
         final OutputStream os = s.getOutputStream();
         os.write(("<stream:stream to=\"" + domain + "\" xmlns=\"jabber:" + (server ? "server" : "client") + "\"" + " xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">").getBytes());
         os.flush();
+        scanFor(is, "</stream:features>");
         os.write("<starttls xmlns=\"urn:ietf:params:xml:ns:xmpp-tls\"/>".getBytes());
         os.flush();
 
