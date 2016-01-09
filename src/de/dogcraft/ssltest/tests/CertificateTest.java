@@ -111,8 +111,6 @@ public class CertificateTest {
     private static final BigInteger TWO = new BigInteger("2");
 
     public static void testCerts(TestOutput pw, CertificateWrapper cert) throws IOException, NoSuchAlgorithmException {
-        String hash = cert.getHash();
-
         StringBuffer certificate = new StringBuffer();
         certificate.append("{ \"type\": \"");
         certificate.append("X.509");
@@ -137,11 +135,11 @@ public class CertificateTest {
         } else if (pk instanceof ECPublicKeyParameters) {
             pw.outputEvent("certkey", "{ \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"ECDSA\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
         }
-        checkCertEncoding(pw, hash, cert.getC());
+        checkCertEncoding(pw, cert.getC());
         TBSCertificate tbs = cert.getC().getTBSCertificate();
-        checkValidity(pw, hash, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
+        checkValidity(pw, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
         if (tbs.getExtensions() != null) {
-            testSAN(pw, tbs, hash);
+            testSAN(pw, tbs);
             testAIA(pw, tbs, cert);
         }
         // TODO re-implement and display
@@ -253,7 +251,7 @@ public class CertificateTest {
         pw.exitTest("Revocation", TestResult.FAILED);
     }
 
-    private static void checkCertEncoding(TestOutput pw, String hash, Certificate cert) {
+    private static void checkCertEncoding(TestOutput pw, Certificate cert) {
         pw.enterTest("Encoding");
         BigInteger v = cert.getVersion().getValue();
         if (v.equals(BigInteger.ZERO)) {
@@ -268,7 +266,7 @@ public class CertificateTest {
 
     private static final long MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
-    private static void checkValidity(TestOutput pw, String hash, Date start, Date end) {
+    private static void checkValidity(TestOutput pw, Date start, Date end) {
         pw.enterTest("Validity Period");
         SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'UTC'");
         pw.outputEvent("certvalidity", String.format("{ \"start\": \"%s\", \"end\": \"%s\" }", sdf.format(start), sdf.format(end)));
@@ -413,7 +411,7 @@ public class CertificateTest {
         }
     }
 
-    private static void testSAN(TestOutput pw, TBSCertificate tbs, String hash) {
+    private static void testSAN(TestOutput pw, TBSCertificate tbs) {
         Extension ext = extractCertExtension(tbs, Extension.subjectAlternativeName);
 
         pw.enterTest("SubjectAltNames");
