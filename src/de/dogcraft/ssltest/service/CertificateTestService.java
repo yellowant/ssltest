@@ -33,13 +33,16 @@ public class CertificateTestService extends TestService {
             return;
         }
 
-        CertificateWrapper c = cache.get(fp);
-        if (c == null) {
-            resp.sendError(404);
-            return;
-        }
+        CertificateWrapper c;
+        synchronized (cache) {
+            c = cache.get(fp);
+            if (c == null) {
+                // Some checks for this fingerprint to exist in our cache/database
 
-        // Some checks for this fingerprint to exist in our cache/database
+                resp.sendError(404);
+                return;
+            }
+        }
 
         PrintStream ps = new PrintStream(resp.getOutputStream(), true);
         ps.println("retry: 10000");
@@ -70,7 +73,9 @@ public class CertificateTestService extends TestService {
     }
 
     public static void cache(CertificateWrapper wrap) {
-        cache.put(wrap.getHash(), wrap);
+        synchronized (cache) {
+            cache.put(wrap.getHash(), wrap);
+        }
     }
 
 }
