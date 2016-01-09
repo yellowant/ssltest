@@ -72,6 +72,14 @@ public class Service extends HttpServlet {
             if (req.getParameter("domain") != null) {
                 reqTestServer(req, resp, false);
             }
+        } else if (path.equals("/cert.event")) {
+            if (req.getParameter("fp") != null) {
+                reqTestCertificate(req, resp, true);
+            }
+        } else if (path.equals("/cert.txt")) {
+            if (req.getParameter("fp") != null) {
+                reqTestCertificate(req, resp, false);
+            }
         } else if (path.equals("/oid.js")) {
             OIDs.outputOids(resp);
         } else if (path.equals("/cipherRater.css")) {
@@ -84,6 +92,11 @@ public class Service extends HttpServlet {
     private void reqTestServer(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
         ServerTestService sts = new ServerTestService();
         sts.performTest(req, resp, useEventStream);
+    }
+
+    private void reqTestCertificate(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
+        CertificateTestService cts = new CertificateTestService();
+        cts.performTest(req, resp, useEventStream);
     }
 
     private static class TestService {
@@ -211,7 +224,34 @@ public class Service extends HttpServlet {
 
             to.performTest();
         }
+    }
 
+    public static class CertificateTestService extends TestService {
+
+        @SuppressWarnings("deprecation")
+        public void performTest(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
+            super.performTest(req, resp, useEventStream);
+
+            String fp = req.getParameter("fp");
+
+            // Some checks for this fingerprint to exist in our cache/database
+
+            PrintStream ps = new PrintStream(resp.getOutputStream(), true);
+            ps.println("retry: 10000");
+            ps.println();
+
+            /*
+             * TestingSession to; { boolean observingOnly = false; synchronized
+             * (cacheTestSession) { String lookupKey = ip + "#" + u.getHost() +
+             * ":" + u.getProtocol() + "-" + u.getPort(); to =
+             * cacheTestSession.get(lookupKey); if (to == null) { to = new
+             * TestingSession(u.getHost(), ip, u.getPort(), u.getProtocol());
+             * cacheTestSession.put(lookupKey, to); } else { observingOnly =
+             * true; } } to.attach(ps); if (observingOnly) {
+             * to.waitForCompletion(); return; } } to.performTest();
+             */
+
+        }
     }
 
 }
