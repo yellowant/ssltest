@@ -21,7 +21,7 @@ class ServerTestService extends TestService {
 
     protected static HashMap<String, List<String>> cacheHostIPs = new HashMap<>();
 
-    protected static HashMap<String, TestingSession> cacheTestSession = new HashMap<>();
+    protected static HashMap<String, ServerTestingSession> cacheTestSession = new HashMap<>();
 
     @SuppressWarnings("deprecation")
     public void performTest(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
@@ -104,7 +104,7 @@ class ServerTestService extends TestService {
             return;
         }
 
-        TestingSession to;
+        ServerTestingSession to;
         {
             boolean observingOnly = false;
 
@@ -113,7 +113,7 @@ class ServerTestService extends TestService {
 
                 to = cacheTestSession.get(lookupKey);
                 if (to == null) {
-                    to = new TestingSession(u.getHost(), ip, u.getPort(), u.getProtocol());
+                    to = new ServerTestingSession(u.getHost(), ip, u.getPort(), u.getProtocol());
                     cacheTestSession.put(lookupKey, to);
                 } else {
                     observingOnly = true;
