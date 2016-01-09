@@ -545,6 +545,23 @@ function events() {
 					c.tabObj.appendChild(tr);
 				});
 
+				stream.registerEvent("crl", function(c, s, e) {
+					var dt = JSON.parse(e.data);
+
+					var tr = document.createElement("tr");
+
+					var key = document.createElement("td");
+					key.appendChild(document.createTextNode("Certificate Revocation List"));
+					tr.appendChild(key);
+
+					var value = document.createElement("td");
+					value.appendChild(document.createTextNode(dt.url + ": " + dt.status));
+					tr.appendChild(value);
+
+					c.ocsp = value;
+					c.tabObj.appendChild(tr);
+				});
+
 				stream.registerEvent("OCSP", function(c, s, e) {
 					var dt = JSON.parse(e.data);
 

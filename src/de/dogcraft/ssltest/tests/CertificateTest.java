@@ -1,15 +1,9 @@
 package de.dogcraft.ssltest.tests;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
@@ -26,35 +20,20 @@ import org.bouncycastle.asn1.ASN1String;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERBMPString;
 import org.bouncycastle.asn1.DERIA5String;
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERPrintableString;
-import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERT61String;
 import org.bouncycastle.asn1.DERT61UTF8String;
 import org.bouncycastle.asn1.DERUTF8String;
-import org.bouncycastle.asn1.ocsp.CertID;
-import org.bouncycastle.asn1.ocsp.OCSPRequest;
-import org.bouncycastle.asn1.ocsp.OCSPResponse;
-import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
-import org.bouncycastle.asn1.ocsp.Request;
-import org.bouncycastle.asn1.ocsp.TBSRequest;
-import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AccessDescription;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
 import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.CRLDistPoint;
 import org.bouncycastle.asn1.x509.Certificate;
-import org.bouncycastle.asn1.x509.DistributionPoint;
-import org.bouncycastle.asn1.x509.DistributionPointName;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -103,7 +82,7 @@ public class CertificateTest {
         return cert_begin + pemPlain(cert) + end_cert;
     }
 
-    private static String pemPlain(ASN1Object cert) throws UnsupportedEncodingException, IOException {
+    public static String pemPlain(ASN1Object cert) throws UnsupportedEncodingException, IOException {
         Base64.Encoder encoder = Base64.getMimeEncoder(64, "\n".getBytes("UTF-8"));
         byte[] derCert = cert.getEncoded();
         String encodeToString = encoder.encodeToString(derCert);
@@ -142,17 +121,13 @@ public class CertificateTest {
         checkValidity(pw, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
         if (tbs.getExtensions() != null) {
             testSAN(pw, tbs);
+            RevocationChecks.testCRL(pw, tbs);
             testAIA(pw, tbs, cert);
         }
         // TODO re-implement and display
-        // checkRevocation(pw, hash, tbs);
-        //
         // testBasicConstraints(pw, tbs);
         // testKeyUsage(pw, tbs);
         // testExtendedKeyUsage(pw, tbs);
-        // testCRL(pw, tbs);
-        // testSAN(pw, tbs);
-        // testAIA(pw, tbs);
 
     }
 
@@ -210,47 +185,6 @@ public class CertificateTest {
         }
         certificate.append("]");
 
-    }
-
-    private static void checkRevocation(TestOutput pw, String hash, TBSCertificate tbs) {
-        Extension ext = extractCertExtension(tbs, Extension.cRLDistributionPoints);
-        pw.enterTest("Revocation");
-        int crlCount = 0;
-
-        if (ext != null) {
-            testCrit(false, pw, "CRLDistPoints", ext);
-
-            DistributionPoint[] points = CRLDistPoint.getInstance(ext.getParsedValue()).getDistributionPoints();
-            for (DistributionPoint distributionPoint : points) {
-                pw.outputEvent("certcrl", String.format("{ \"index\": \"%s\", \"crl\": \"%s\" }", hash, distributionPoint.getDistributionPoint().toString()));
-
-                DistributionPointName point = distributionPoint.getDistributionPoint();
-                if (point.getType() == DistributionPointName.FULL_NAME) {
-                    GeneralName[] gns = GeneralNames.getInstance(point.getName()).getNames();
-                    for (GeneralName gn : gns) {
-                        if (gn.getTagNo() == GeneralName.uniformResourceIdentifier) {
-                            String url = ((ASN1String) gn.getName()).getString();
-                            pw.output("CRL: " + url);
-                        } else {
-                            pw.output("Strange CRL Name Type: " + gn.getTagNo());
-                        }
-                    }
-                } else {
-                    pw.output("Strange CRL Type: " + point.getType());
-                }
-
-                pw.output("CRL-issuer: " + distributionPoint.getCRLIssuer());
-                crlCount++;
-            }
-        }
-
-        if (crlCount != 0) {
-            pw.output("Your certificate contains CRL info", 2);
-        } else {
-            pw.output("Your certificate does not contain CRL info");
-        }
-
-        pw.exitTest("Revocation", TestResult.FAILED);
     }
 
     private static void checkCertEncoding(TestOutput pw, Certificate cert) {
@@ -329,85 +263,33 @@ public class CertificateTest {
 
         if (ext != null) {
             AuthorityInformationAccess aia = AuthorityInformationAccess.getInstance(ext.getParsedValue());
-            outputCritical(pw, ext);
             AccessDescription[] data = aia.getAccessDescriptions();
             for (AccessDescription accessDescription : data) {
                 GeneralName location = accessDescription.getAccessLocation();
-                String value;
-                switch (location.getTagNo()) {
-                case GeneralName.rfc822Name:
-                case GeneralName.dNSName:
-                case GeneralName.uniformResourceIdentifier:
-                    value = DERIA5String.getInstance(location.getName()).getString();
-                    break;
-                case GeneralName.directoryName:
-                    value = X500Name.getInstance(location.getName()).toString();
-                    break;
-                default:
-                    value = "unknown";
-                }
+                String value = parseGeneralName(location);
                 pw.outputEvent("authorityInfoAccess", String.format("{ \"type\": \"%s\", \"loc\": \"%s\" }", accessDescription.getAccessMethod(), value));
                 if (accessDescription.getAccessMethod().equals(AccessDescription.id_ad_ocsp)) {
-                    doOCSP(pw, tbs, c, value);
+                    RevocationChecks.testOCSP(pw, tbs, c, value);
                 }
             }
         }
     }
 
-    private static void doOCSP(TestOutput pw, TBSCertificate tbs, CertificateWrapper c, String url) {
-
-        String HASH_TYPE = "SHA-1";
-
-        AlgorithmIdentifier HASH_OID = new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1);
-        // TODO test other algorithms
-        try {
-            MessageDigest md = MessageDigest.getInstance(HASH_TYPE);
-            byte[] nameHash = md.digest(c.getIssuer().getSubject().getEncoded());
-            md.reset();
-            byte[] keyHash = md.digest(c.getIssuer().getSubjectPublicKeyInfo().getPublicKeyData().getBytes());
-            CertID ci = new CertID(HASH_OID, new DEROctetString(nameHash), new DEROctetString(keyHash), tbs.getSerialNumber());
-            Request r = new Request(ci, null);
-            TBSRequest tbsr = new TBSRequest(null, new DERSequence(new ASN1Encodable[] {
-                r
-            }), (Extensions) null);
-            OCSPRequest ocr = new OCSPRequest(tbsr, null);
-            URL u = new URL(url);
-
-            if (u.getProtocol().equals("http")) {
-                HttpURLConnection huc = (HttpURLConnection) u.openConnection();
-                huc.setDoOutput(true);
-                OutputStream o = huc.getOutputStream();
-                o.write(ocr.getEncoded());
-                o.flush();
-                InputStream in = huc.getInputStream();
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                {
-                    byte[] buf = new byte[256];
-                    int len = 0;
-                    while ((len = in.read(buf)) > 0) {
-                        baos.write(buf, 0, len);
-                    }
-                }
-                OCSPResponse re = OCSPResponse.getInstance(baos.toByteArray());
-                System.out.println(re);
-                BigInteger res = re.getResponseStatus().getValue();
-                System.out.println(res);
-                System.out.println(OCSPResponseStatus.SUCCESSFUL);
-                String status = "unknown";
-                if (res.intValue() == OCSPResponseStatus.SUCCESSFUL) {
-                    status = "successful";
-                } else if (res.intValue() == OCSPResponseStatus.MALFORMED_REQUEST) {
-                    status = "malformed request";
-                }
-                pw.outputEvent("OCSP", String.format("{ \"url\": \"%s\", \"state\": \"%s\", \"request\":\"%s\", \"response\":\"%s\" }", //
-                        url, status, JSONUtils.jsonEscape(pemPlain(ocr)), JSONUtils.jsonEscape(pemPlain(re))));
-
-            }
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private static String parseGeneralName(GeneralName val) {
+        String value;
+        switch (val.getTagNo()) {
+        case GeneralName.rfc822Name:
+        case GeneralName.dNSName:
+        case GeneralName.uniformResourceIdentifier:
+            value = DERIA5String.getInstance(val.getName()).getString();
+            break;
+        case GeneralName.directoryName:
+            value = X500Name.getInstance(val.getName()).toString();
+            break;
+        default:
+            value = "unknown";
         }
+        return value;
     }
 
     private static void outputCritical(TestOutput pw, Extension ext) {
@@ -426,8 +308,6 @@ public class CertificateTest {
         if (ext != null) {
             text.append("[");
             float mult = testCrit(false, pw, "subjectAlternativeNames", ext);
-            outputCritical(pw, ext);
-
             ASN1Sequence ds = ASN1Sequence.getInstance(ext.getParsedValue());
 
             @SuppressWarnings("unchecked")
@@ -458,25 +338,6 @@ public class CertificateTest {
             text.append("\"undefined\"}");
         }
         pw.outputEvent("certSANs", text.toString());
-    }
-
-    private static void testCRL(TestOutput pw, TBSCertificate tbs) {
-        Extension ext = extractCertExtension(tbs, Extension.cRLDistributionPoints);
-        pw.enterTest("CRLDistrib");
-        if (ext != null) {
-            float mult = testCrit(false, pw, "CRLDistPoints", ext);
-            outputCritical(pw, ext);
-
-            DistributionPoint[] points = CRLDistPoint.getInstance(ext.getParsedValue()).getDistributionPoints();
-            for (DistributionPoint distributionPoint : points) {
-                pw.output("CRL-name: " + distributionPoint.getDistributionPoint().toString().replace("\n", "\ndata: "));
-                pw.output("CRL-issuer: " + distributionPoint.getCRLIssuer());
-            }
-            pw.exitTest("CRLDistrib", new TestResult(mult));
-        } else {
-            pw.output("Missing CRLs");
-            pw.exitTest("CRLDistrib", TestResult.FAILED);
-        }
     }
 
     private static void testExtendedKeyUsage(TestOutput pw, TBSCertificate tbs) {
