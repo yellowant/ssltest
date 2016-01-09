@@ -13,11 +13,11 @@ import de.dogcraft.ssltest.utils.CertificateWrapper;
 
 public class CertificateTestService extends TestService {
 
-    protected static HashMap<String, CertificateTestingSession> cacheTestSession = new HashMap<>();
+    private static final HashMap<String, CertificateTestingSession> cacheSession = new HashMap<>();
 
-    private static final HashMap<String, CertificateWrapper> cache = new HashMap<>();
+    private static final HashMap<String, CertificateWrapper> cacheFingerprint = new HashMap<>();
 
-    private static final Pattern fpPattern = Pattern.compile("[0-9a-f]{128}", Pattern.CASE_INSENSITIVE);
+    private static final Pattern patternFingerprint = Pattern.compile("[0-9a-f]{128}", Pattern.CASE_INSENSITIVE);
 
     @SuppressWarnings("deprecation")
     public void performTest(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
@@ -26,7 +26,7 @@ public class CertificateTestService extends TestService {
         String fp = req.getParameter("fp");
 
         fp = fp.toLowerCase();
-        Matcher fpMatcher = fpPattern.matcher(fp);
+        Matcher fpMatcher = patternFingerprint.matcher(fp);
 
         if ( !fpMatcher.matches()) {
             resp.setStatus(400, "Invalid fingerprint format. Please use SHA-512 fingerprint to continue.");
@@ -34,8 +34,8 @@ public class CertificateTestService extends TestService {
         }
 
         CertificateWrapper c;
-        synchronized (cache) {
-            c = cache.get(fp);
+        synchronized (cacheFingerprint) {
+            c = cacheFingerprint.get(fp);
             if (c == null) {
                 // Some checks for this fingerprint to exist in our cache/database
 
@@ -51,11 +51,11 @@ public class CertificateTestService extends TestService {
         CertificateTestingSession to;
         {
             boolean observingOnly = false;
-            synchronized (cacheTestSession) {
-                to = cacheTestSession.get(fp);
+            synchronized (cacheSession) {
+                to = cacheSession.get(fp);
                 if (to == null) {
                     to = new CertificateTestingSession(c);
-                    cacheTestSession.put(fp, to);
+                    cacheSession.put(fp, to);
                 } else {
                     observingOnly = true;
                 }
@@ -73,8 +73,8 @@ public class CertificateTestService extends TestService {
     }
 
     public static void cache(CertificateWrapper wrap) {
-        synchronized (cache) {
-            cache.put(wrap.getHash(), wrap);
+        synchronized (cacheFingerprint) {
+            cacheFingerprint.put(wrap.getHash(), wrap);
         }
     }
 
