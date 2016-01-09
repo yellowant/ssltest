@@ -57,4 +57,5 @@ public abstract class TestingSession extends TestOutput {
         }
     }
 
+    public abstract void performTest();
 }

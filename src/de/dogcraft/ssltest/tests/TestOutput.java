@@ -1,11 +1,9 @@
 package de.dogcraft.ssltest.tests;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import de.dogcraft.ssltest.service.CertificateTestService;
 import de.dogcraft.ssltest.utils.CertificateWrapper;
 
 public abstract class TestOutput {
@@ -94,21 +92,8 @@ public abstract class TestOutput {
         println("");
     }
 
-    HashSet<String> knownCerts = new HashSet<>();
-
     public void pushCert(CertificateWrapper certificate) {
-        if (knownCerts.contains(certificate.getHash())) {
-            return;
-        }
-        knownCerts.add(certificate.getHash());
-        try {
-            CertificateTest.testCerts(this, certificate);
-        } catch (NoSuchAlgorithmException e) {
-            throw new Error(e);
-        } catch (IOException e) {
-            throw new Error(e);
-        }
-
+        CertificateTestService.cache(certificate);
     }
 
 }
