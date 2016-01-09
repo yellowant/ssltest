@@ -178,7 +178,7 @@ public class TestCipherList {
             MessageDigest md = MessageDigest.getInstance("SHA1");
             for (int i = 0; i < content.length; i++) {
                 md.reset();
-                this.content[i] = new CertificateWrapper(content[i]);
+                this.content[i] = new CertificateWrapper(content[i], content[i + 1 >= content.length ? i : i + 1]);
                 hashes[i] = TruststoreUtil.outputFingerprint(content[i], md);
             }
         }
@@ -290,7 +290,7 @@ public class TestCipherList {
 
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, ciphers, new short[] {
-                CompressionMethod._null
+            CompressionMethod._null
         }, new CertificateObserver() {
 
             @Override

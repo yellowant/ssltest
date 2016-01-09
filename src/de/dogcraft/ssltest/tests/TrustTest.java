@@ -46,11 +46,11 @@ public class TrustTest {
                         while (aliases.hasMoreElements()) {
                             String alias = aliases.nextElement();
                             Certificate c = Certificate.getInstance(ks.getCertificate(alias).getEncoded());
-                            index(new CertificateWrapper(c));
-                            LinkedList<Truststore> l = trust.get(new CertificateWrapper(c));
+                            index(new CertificateWrapper(c, null));
+                            LinkedList<Truststore> l = trust.get(new CertificateWrapper(c, null));
                             if (l == null) {
                                 l = new LinkedList<>();
-                                trust.put(new CertificateWrapper(c), l);
+                                trust.put(new CertificateWrapper(c, null), l);
                             }
                             l.add(e2.getValue());
                         }
@@ -102,7 +102,7 @@ public class TrustTest {
         Certificate toTrust = chain.content[0].getC();
         CertificateIndex local = new CertificateIndex(chain.content);
         LinkedHashSet<CertificateWrapper> used = new LinkedHashSet<>();
-        used.add(new CertificateWrapper(toTrust));
+        used.add(new CertificateWrapper(toTrust, null));
 
         buildChains(out, toTrust, local, used);
 
@@ -129,8 +129,15 @@ public class TrustTest {
     }
 
     private void emitChain(TestOutput out, HashSet<CertificateWrapper> used, List<Truststore> trust) {
+        CertificateWrapper last = null;
         for (CertificateWrapper c : used) {
-            out.pushCert(c);
+            if (last != null) {
+                out.pushCert(new CertificateWrapper(last.getC(), c.getC()));
+            }
+            last = c;
+        }
+        if (last != null) {
+            out.pushCert(new CertificateWrapper(last.getC(), last.getC()));
         }
         StringBuffer json = new StringBuffer();
         json.append("{ \"chainId\":");

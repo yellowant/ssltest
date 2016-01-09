@@ -93,6 +93,9 @@ public abstract class TestOutput {
     }
 
     public void pushCert(CertificateWrapper certificate) {
+        if (certificate.getIssuer() == null) {
+            throw new Error();
+        }
         CertificateTestService.cache(certificate);
     }
 

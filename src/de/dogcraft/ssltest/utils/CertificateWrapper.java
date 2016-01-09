@@ -4,9 +4,15 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 
+import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.Certificate;
 
 public class CertificateWrapper {
+
+    public static final String HASH_TYPE = "SHA1";
+
+    public static final AlgorithmIdentifier HASH_OID = new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1);
 
     Certificate c;
 
@@ -14,18 +20,25 @@ public class CertificateWrapper {
 
     String hash;
 
+    Certificate issuer;
+
+    String issuerPKHash;
+
+    String issuerNameHash;
+
     private static final MessageDigest md;
 
     static {
         try {
-            md = MessageDigest.getInstance("SHA1");
+            md = MessageDigest.getInstance(HASH_TYPE);
         } catch (GeneralSecurityException e) {
             throw new Error(e);
         }
     }
 
-    public CertificateWrapper(Certificate c) {
+    public CertificateWrapper(Certificate c, Certificate issuer) {
         this.c = c;
+        this.issuer = issuer;
         synchronized (md) {
             try {
                 hash = TruststoreUtil.outputFingerprint(c, md);
@@ -76,5 +89,9 @@ public class CertificateWrapper {
     @Override
     public String toString() {
         return c.getSubject().toString();
+    }
+
+    public Certificate getIssuer() {
+        return issuer;
     }
 }

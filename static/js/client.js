@@ -13,6 +13,16 @@ function onLoadHook() {
 	}
 }
 
+function createASN1JS(name, data){
+	var asn1js = document.createElement("a");
+	asn1js.appendChild(document.createTextNode(name));
+	asn1js.setAttribute("class", "rawcert");
+	asn1js.setAttribute("href", "http://lapo.it/asn1js/#"
+			+ data);
+	asn1js.setAttribute("target", "_blank");
+	return asn1js;
+}
+
 function generateOIDInfoHref(oid, dict) {
 	var content = dict[oid];
 	if (content === undefined) {
@@ -383,13 +393,7 @@ function events() {
 						raw.setAttribute("target", "_blank");
 						tds.id.appendChild(raw);
 
-						var asn1js = document.createElement("a");
-						asn1js.appendChild(document.createTextNode("asn1.js"));
-						asn1js.setAttribute("class", "rawcert");
-						asn1js.setAttribute("href", "http://lapo.it/asn1js/#"
-								+ certificate.data);
-						asn1js.setAttribute("target", "_blank");
-						tds.id.appendChild(asn1js);
+						tds.id.appendChild(createASN1JS("asn1.js", certificate.data));
 						
 						var raw = document.createElement("a");
 						raw.appendChild(document.createTextNode("raw"));
@@ -406,6 +410,7 @@ function events() {
 					c.elem = certificateElem;
 					c.dn = name;
 					c.tab = tds;
+					c.tabObj = certTable;
 					c.data = certificate;
 
 					certificates.appendChild(certificateElem);
@@ -451,6 +456,29 @@ function events() {
 					c.tab.to.appendChild(document
 							.createTextNode(certificate.end));
 					c.updated();
+				});
+				stream.registerEvent("authorityInfoAccess", function(c, s, e) {
+					var dt = JSON.parse(e.data);
+					var tr = document.createElement("tr");
+					var key = document.createElement("td");
+					key.appendChild(document.createTextNode("Autority Info Access"));
+					tr.appendChild(key);
+					var value = document.createElement("td");
+					value.appendChild(generateOIDInfoHref(dt.type, AIAOIDs));
+					value.appendChild(document.createTextNode(": "+dt.loc));
+					c.ocsp = value;
+					tr.appendChild(value);
+					c.tabObj.appendChild(tr);
+				});
+				stream.registerEvent("OCSP", function(c, s, e) {
+					var dt = JSON.parse(e.data);
+					if(c.ocsp === undefined){
+						return;
+					}
+					c.ocsp.appendChild(document.createTextNode(", result: "+dt.state));
+					c.ocsp.appendChild(createASN1JS("req", dt.request));
+					c.ocsp.appendChild(createASN1JS("resp", dt.response));
+					
 				});
 			};
 			c.appendChild(certificates);

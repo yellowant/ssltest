@@ -144,4 +144,8 @@ public class TruststoreUtil {
         return outputFingerprint(certificate.getEncoded(), md);
     }
 
+    public static String outputNameFingerprint(org.bouncycastle.asn1.x509.Certificate certificate, MessageDigest md) throws IOException {
+        return outputFingerprint(certificate.getSubject().getEncoded(), md);
+    }
+
 }

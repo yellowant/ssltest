@@ -30,7 +30,15 @@ public class OIDs {
         out.print("var sigOIDs = ");
         generateSigOIDs(out);
         out.println(";");
+        out.print("var AIAOIDs = {");
+        generateAIAOIDs(out);
+        out.println("};");
 
+    }
+
+    private static void generateAIAOIDs(PrintWriter out) {
+        out.print("\"" + org.bouncycastle.asn1.x509.AccessDescription.id_ad_caIssuers + "\":\"caIssuers\", " + //
+                "\"" + org.bouncycastle.asn1.x509.AccessDescription.id_ad_ocsp + "\":\"OCSP\"");
     }
 
     private static void generateSigOIDs(final PrintWriter out) {
