@@ -70,7 +70,9 @@ public class FileCache {
             if (huc.getResponseCode() == 304)
                 return;
         }
+        System.out.println("Fetching URL to cache: " + u);
         put(name, c.getInputStream());
+        System.out.println("Fetched URL to cache: " + u);
     }
 
 }
