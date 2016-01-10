@@ -538,7 +538,8 @@ function events() {
 
 					var value = document.createElement("td");
 					value.appendChild(generateOIDInfoHref(dt.type, AIAOIDs));
-					value.appendChild(document.createTextNode(": " + dt.loc));
+					value.appendChild(document.createTextNode(": "));
+					value.appendChild(newAnchor(dt.loc, dt.loc));
 					tr.appendChild(value);
 
 					c.ocsp = value;
@@ -555,10 +556,11 @@ function events() {
 					tr.appendChild(key);
 
 					var value = document.createElement("td");
-					value.appendChild(document.createTextNode(dt.url + ": " + dt.status));
+					value.appendChild(newAnchor(dt.url, dt.url));
+					value.appendChild(document.createTextNode(": " + dt.status));
 					tr.appendChild(value);
 
-					c.ocsp = value;
+					c.crl = value;
 					c.tabObj.appendChild(tr);
 				});
 

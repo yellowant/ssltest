@@ -14,17 +14,25 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CRLException;
 import java.security.cert.X509CRLEntry;
+import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.ocsp.BasicOCSPResponse;
 import org.bouncycastle.asn1.ocsp.CertID;
+import org.bouncycastle.asn1.ocsp.CertStatus;
+import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
 import org.bouncycastle.asn1.ocsp.OCSPRequest;
 import org.bouncycastle.asn1.ocsp.OCSPResponse;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
 import org.bouncycastle.asn1.ocsp.Request;
+import org.bouncycastle.asn1.ocsp.RevokedInfo;
+import org.bouncycastle.asn1.ocsp.SingleResponse;
 import org.bouncycastle.asn1.ocsp.TBSRequest;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -70,12 +78,14 @@ public class RevocationChecks {
                     String status = "not revoked";
                     try {
                         X509CRLImpl c = new X509CRLImpl(crl);
-                        for (X509CRLEntry e : c.getRevokedCertificates()) {
-                            if (Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded()) && e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {
-                                // found!
-                                status = "revoked: " + e.getRevocationDate() + "; " + e.getRevocationReason();
+                        Set<X509CRLEntry> revokedCertificates = c.getRevokedCertificates();
+                        if (revokedCertificates != null)
+                            for (X509CRLEntry e : revokedCertificates) {
+                                if (Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded()) && e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {
+                                    // found!
+                                    status = "revoked: " + e.getRevocationDate() + " because " + e.getRevocationReason();
+                                }
                             }
-                        }
                     } catch (CRLException e) {
                         e.printStackTrace();
                     }
@@ -121,15 +131,56 @@ public class RevocationChecks {
                     }
                 }
                 OCSPResponse re = OCSPResponse.getInstance(baos.toByteArray());
-                System.out.println(re);
                 BigInteger res = re.getResponseStatus().getValue();
-                System.out.println(res);
-                System.out.println(OCSPResponseStatus.SUCCESSFUL);
                 String status = "unknown";
                 if (res.intValue() == OCSPResponseStatus.SUCCESSFUL) {
-                    status = "successful";
+                    if (re.getResponseBytes().getResponseType().equals(OCSPObjectIdentifiers.id_pkix_ocsp_basic)) {
+                        BasicOCSPResponse bop = BasicOCSPResponse.getInstance(re.getResponseBytes().getResponse().getOctets());
+                        ASN1Sequence as = bop.getTbsResponseData().getResponses();
+                        ASN1Encodable[] array = as.toArray();
+                        boolean found = false;
+                        for (ASN1Encodable asn1Encodable : array) {
+                            SingleResponse rs = SingleResponse.getInstance(asn1Encodable);
+                            CertID cid = rs.getCertID();
+                            AlgorithmIdentifier aid = cid.getHashAlgorithm();
+                            if ( !aid.getAlgorithm().equals(HASH_OID.getAlgorithm())) {
+                                pw.outputEvent("warning", "hash ocsp response does not match");
+                            } else {
+                                if (Arrays.equals(keyHash, cid.getIssuerKeyHash().getOctets()) //
+                                        &&
+                                        Arrays.equals(nameHash, cid.getIssuerNameHash().getOctets()) //
+                                        && cid.getSerialNumber().equals(tbs.getSerialNumber())) {
+                                    // Our response was found !! :)
+                                    CertStatus cs = rs.getCertStatus();
+                                    if (cs.getTagNo() == 0) {
+                                        status = "good";
+                                    } else if (cs.getTagNo() == 1) {
+                                        RevokedInfo ri = RevokedInfo.getInstance(cs.getStatus());
+                                        try {
+                                            status = "revoked at " + ri.getRevocationTime().getDate() + " because " + ri.getRevocationReason().toString();
+                                        } catch (ParseException e) {
+                                            e.printStackTrace();
+                                        }
+                                    } else if (cs.getTagNo() == 2) {
+                                        status = "unkown-info";
+                                    } else {
+                                        status = "found-unkown";
+                                    }
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if ( !found) {
+                            status = "cert not found in OCSP response";
+                        }
+                    } else {
+                        status = "OCSP response type not understood";
+                    }
                 } else if (res.intValue() == OCSPResponseStatus.MALFORMED_REQUEST) {
                     status = "malformed request";
+                } else if (res.intValue() == OCSPResponseStatus.UNAUTHORIZED) {
+                    status = "unauthorized";
                 }
                 pw.outputEvent("OCSP", String.format("{ \"url\": \"%s\", \"state\": \"%s\", \"request\":\"%s\", \"response\":\"%s\" }", //
                         url, status, JSONUtils.jsonEscape(pemPlain(ocr)), JSONUtils.jsonEscape(pemPlain(re))));
