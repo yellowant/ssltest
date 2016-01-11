@@ -43,14 +43,14 @@ public class FileCache {
         return baos.toByteArray();
     }
 
-    public synchronized void put(String name, InputStream data) throws IOException {
-        try (FileOutputStream fos = new FileOutputStream(address(name))) {
-            byte[] buf = new byte[2048];
-            int len;
-            while ((len = data.read(buf)) > 0) {
-                fos.write(buf, 0, len);
-            }
+    public void put(String name, InputStream data) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buf = new byte[2048];
+        int len;
+        while ((len = data.read(buf)) > 0) {
+            baos.write(buf, 0, len);
         }
+        put(name, baos.toByteArray());
     }
 
     private File address(String name) throws UnsupportedEncodingException {
