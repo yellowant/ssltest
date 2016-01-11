@@ -73,7 +73,12 @@ public class RevocationChecks {
 
                     String url = DERIA5String.getInstance(n.getName()).getString();
                     URL u = new URL(url);
+                    String jurl = JSONUtils.jsonEscape(url);
+                    pw.outputEvent("crl", String.format("{\"url\": \"%s\", \"issuer\": \"%s\"}",//
+                            jurl, JSONUtils.jsonEscape(distributionPoint.getCRLIssuer() == null ? "null" : distributionPoint.getCRLIssuer().toString())));
+                    pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"downloading\"}", jurl));
                     crls.put(url, u);
+                    pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"checking\"}", jurl));
                     byte[] crl = crls.get(url);
                     String status = "not revoked";
                     try {
@@ -89,8 +94,7 @@ public class RevocationChecks {
                     } catch (CRLException e) {
                         e.printStackTrace();
                     }
-                    pw.outputEvent("crl", String.format("{\"url\": \"%s\", \"issuer\": \"%s\", \"status\": \"%s\"}",//
-                            JSONUtils.jsonEscape(url), JSONUtils.jsonEscape(distributionPoint.getCRLIssuer() == null ? "null" : distributionPoint.getCRLIssuer().toString()), status));
+                    pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", jurl, status));
                 }
             }
         }

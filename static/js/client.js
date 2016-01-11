@@ -203,17 +203,32 @@ function events() {
 		});
 
 		this.addStatusIndicator = function(isRunning){
-			isRunning.appendChild(document.createTextNode("*"));
-			isRunning.style.backgroundColor = '#FF0';
+			var i = new StatusIndicator(isRunning);
 
 			registerEvent("open", function(container, stream, event) {
-				isRunning.style.backgroundColor = '#F00';
+				i.open();
 			});
 
 			registerEvent("eof", function(container, stream, event) {
-				isRunning.style.backgroundColor = '#0F0';
+				i.close();
 			});
 		}
+	}
+
+	function StatusIndicator(isRunning, hide){
+		var c = document.createTextNode("*");
+		isRunning.appendChild(c);
+		isRunning.style.backgroundColor = '#FF0';
+		this.open = function() {
+			isRunning.style.backgroundColor = '#F00';
+		};
+
+		this.close = function () {
+			if(hide !== undefined){
+				isRunning.removeChild(c);
+			}
+			isRunning.style.backgroundColor = '#0F0';
+		};
 	}
 
 	function HostIP(c, hostinfo, idbase) {
@@ -507,6 +522,7 @@ function events() {
 					c.tabObj = certTable;
 					c.data = certificate;
 					c.getTD = getTD;
+					c.crl = {};
 
 					certificates.appendChild(certificateElem);
 
@@ -585,11 +601,25 @@ function events() {
 
 					var value = document.createElement("td");
 					value.appendChild(newAnchor(dt.url, dt.url));
-					value.appendChild(document.createTextNode(": " + dt.status));
+					var runner = document.createElement("span");
+					value.appendChild(runner);
 					tr.appendChild(value);
 
-					c.crl = value;
+					c.crl[dt.url] = {td: value, i: new StatusIndicator(runner, true)};
 					c.tabObj.appendChild(tr);
+				});
+
+				stream.registerEvent("crlstatus", function(c, s, e) {
+					var dt = JSON.parse(e.data);
+					if(dt.result !== undefined) {
+						c.crl[dt.url].td.appendChild(document.createTextNode(": " + dt.result));
+					}
+					if(dt.state == "downloading"){
+						c.crl[dt.url].i.open();
+					}
+					if(dt.state == "done"){
+						c.crl[dt.url].i.close();
+					}
 				});
 
 				stream.registerEvent("OCSP", function(c, s, e) {
