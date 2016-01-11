@@ -15,6 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CRLException;
 import java.security.cert.X509CRLEntry;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -83,7 +84,15 @@ public class RevocationChecks {
                     String status = "not revoked";
                     try {
                         X509CRLImpl c = new X509CRLImpl(crl);
+                        SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'UTC'");
+
                         Set<X509CRLEntry> revokedCertificates = c.getRevokedCertificates();
+                        int ct = 0;
+                        if (revokedCertificates != null) {
+                            ct = revokedCertificates.size();
+                        }
+                        pw.outputEvent("crldata", String.format("{\"url\": \"%s\", \"size\":\"%s\", \"entries\":\"%s\", \"thisUpdate\":\"%s\", \"nextUpdate\":\"%s\"}",//
+                                jurl, Integer.toString(crl.length), Integer.toString(ct), sdf.format(c.getThisUpdate()), sdf.format(c.getNextUpdate())));
                         if (revokedCertificates != null)
                             for (X509CRLEntry e : revokedCertificates) {
                                 if (Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded()) && e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {

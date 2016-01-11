@@ -622,6 +622,11 @@ function events() {
 					}
 				});
 
+				stream.registerEvent("crldata", function(c, s, e) {
+					var dt = JSON.parse(e.data);
+					c.crl[dt.url].td.setAttribute("title", dt.size + " bytes, " + dt.entries + " entries, valid " + dt.thisUpdate + " to " + dt.nextUpdate);
+				});
+
 				stream.registerEvent("OCSP", function(c, s, e) {
 					var dt = JSON.parse(e.data);
 
