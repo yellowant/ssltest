@@ -182,11 +182,12 @@ function events() {
 
 		var stream = new EventSource(url);
 		var streamSelf = this;
-		this.registerEvent = function(name, handler) {
+		var registerEvent = function(name, handler) {
 			stream.addEventListener(name, function(event) {
 				handler(streamSelf.getTargetContainer(), stream, event);
 			});
 		};
+		this.registerEvent = registerEvent;
 
 		this.registerEvent("open", function(container, stream, event) {
 			// handleMessage(container, stream, "Stream started!");
@@ -200,6 +201,19 @@ function events() {
 			stream.close();
 			// handleMessage(container, stream, "Stream finished!");
 		});
+
+		this.addStatusIndicator = function(isRunning){
+			isRunning.appendChild(document.createTextNode("*"));
+			isRunning.style.backgroundColor = '#FF0';
+
+			registerEvent("open", function(container, stream, event) {
+				isRunning.style.backgroundColor = '#F00';
+			});
+
+			registerEvent("eof", function(container, stream, event) {
+				isRunning.style.backgroundColor = '#0F0';
+			});
+		}
 	}
 
 	function HostIP(c, hostinfo, idbase) {
@@ -231,24 +245,11 @@ function events() {
 			hr.setAttribute("target", "_blank");
 			hr.appendChild(document.createTextNode("raw"));
 			legend.appendChild(hr);
-			isRunning.appendChild(document.createTextNode("*"));
-			isRunning.style.backgroundColor = '#FF0';
-			isRunning2.appendChild(document.createTextNode("*"));
-			isRunning2.style.backgroundColor = '#FF0';
+			stream.addStatusIndicator(isRunning);
 			legend.appendChild(isRunning);
 			c.appendChild(legend);
 		})();
-
-		stream.registerEvent("open", function(container, stream, event) {
-			isRunning.style.backgroundColor = '#F00';
-			isRunning2.style.backgroundColor = '#F00';
-		});
-
-		stream.registerEvent("eof", function(container, stream, event) {
-			console.log("ending");
-			isRunning.style.backgroundColor = '#0F0';
-			isRunning2.style.backgroundColor = '#0F0';
-		});
+		stream.addStatusIndicator(isRunning2);
 
 		stream.registerEvent("enter", function(c, s, e) {
 			return;
@@ -491,6 +492,10 @@ function events() {
 						raw.setAttribute("target", "_blank");
 						tds.id.appendChild(raw);
 					}
+
+					var isRunning = document.createElement("span");
+					stream.addStatusIndicator(isRunning);
+					tds.id.appendChild(isRunning);
 
 					var name = appendX500Name(tds.subj, certificate.subject);
 
