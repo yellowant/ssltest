@@ -314,7 +314,7 @@ function events() {
 
 				var txt = document.createTextNode("");
 				cert.addUpdate(function(cert) {
-					var name = hash;
+					var name = abbrevHash(hash);
 					if (cert !== undefined && cert.dn !== undefined) {
 						name = cert.dn["2.5.4.3"]; // "CN"
 						if (name == undefined) {
@@ -425,9 +425,12 @@ function events() {
 						key : "Key",
 						from : "Valid From",
 						to : "Valid To",
-						sig : "Signature",
-						sans : "SubjectAltNames"
+						sig : "Signature"
 					};
+
+					var optKeys = {
+						sans : "SubjectAltNames"
+					}
 
 					var tds = {};
 
@@ -436,10 +439,31 @@ function events() {
 						var k = document.createElement("td");
 						k.appendChild(document.createTextNode(keys[i]))
 						tr.appendChild(k);
+
 						var v = document.createElement("td");
 						tr.appendChild(v);
+
 						certTable.appendChild(tr);
+
 						tds[i] = v;
+					}
+
+					var getTD = function(name){
+						if(tds[name] === undefined){
+							var tr = document.createElement("tr");
+							var k = document.createElement("td");
+							k.appendChild(document.createTextNode(optKeys[name]))
+							tr.appendChild(k);
+
+							var v = document.createElement("td");
+							tr.appendChild(v);
+
+							certTable.appendChild(tr);
+
+							tds[name] = v;
+						}
+
+						return tds[name];
 					}
 
 					certificateElem.setAttribute("id", idbase + "cert-" + c.hash);
@@ -477,6 +501,7 @@ function events() {
 					c.tab = tds;
 					c.tabObj = certTable;
 					c.data = certificate;
+					c.getTD = getTD;
 
 					certificates.appendChild(certificateElem);
 
@@ -488,8 +513,6 @@ function events() {
 					var validitySpan = document.createElement("div");
 
 					if (certificate.value === "undefined") {
-						var td = c.tab.sans;
-						td.parentNode.parentNode.removeChild(td.parentNode);
 						return;
 					}
 
@@ -505,7 +528,7 @@ function events() {
 							appendX500Name(div, val.value);
 						}
 
-						c.tab.sans.appendChild(div);
+						c.getTD("sans").appendChild(div);
 					}
 
 					c.updated();
