@@ -112,6 +112,8 @@ public class RevocationChecks {
                     }
                 }
             }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
         } catch (CRLException e) {
             e.printStackTrace();
         }
@@ -146,24 +148,27 @@ public class RevocationChecks {
                 o.flush();
                 String status = "unknown";
                 OCSPResponse re = null;
-                if (huc.getResponseCode() == 404) {
-                    status = "not found";
-                } else {
-                    InputStream in = huc.getInputStream();
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    {
-                        byte[] buf = new byte[256];
-                        int len = 0;
-                        while ((len = in.read(buf)) > 0) {
-                            baos.write(buf, 0, len);
+                try {
+                    if (huc.getResponseCode() == 404) {
+                        status = "not found";
+                    } else {
+                        InputStream in = huc.getInputStream();
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        {
+                            byte[] buf = new byte[256];
+                            int len = 0;
+                            while ((len = in.read(buf)) > 0) {
+                                baos.write(buf, 0, len);
+                            }
                         }
+                        re = OCSPResponse.getInstance(baos.toByteArray());
+                        status = assessOCSPResponse(pw, tbs, HASH_OID, nameHash, keyHash, status, re);
                     }
-                    re = OCSPResponse.getInstance(baos.toByteArray());
-                    status = assessOCSPResponse(pw, tbs, HASH_OID, nameHash, keyHash, status, re);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
                 }
                 pw.outputEvent("OCSP", String.format("{ \"url\": \"%s\", \"state\": \"%s\", \"request\":\"%s\", \"response\":%s }", //
                         url, status, JSONUtils.jsonEscape(pemPlain(ocr)), re == null ? "null" : "\"" + JSONUtils.jsonEscape(pemPlain(re)) + "\""));
-
             }
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
