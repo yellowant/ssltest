@@ -33,7 +33,11 @@ public class FileCache {
 
     public synchronized byte[] get(String name) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (FileInputStream fis = new FileInputStream(address(name))) {
+        File file = address(name);
+        if ( !file.exists()) {
+            return null;
+        }
+        try (FileInputStream fis = new FileInputStream(file)) {
             byte[] buf = new byte[2048];
             int len;
             while ((len = fis.read(buf)) > 0) {
@@ -68,6 +72,8 @@ public class FileCache {
                 return;
             }
             if (huc.getResponseCode() == 304)
+                return;
+            if (huc.getResponseCode() == 404)
                 return;
         }
         System.out.println("Fetching URL to cache: " + u);

@@ -636,7 +636,9 @@ function events() {
 
 					c.ocsp.appendChild(document.createTextNode(", result: " + dt.state));
 					c.ocsp.appendChild(createASN1JS("req", dt.request));
-					c.ocsp.appendChild(createASN1JS("resp", dt.response));
+					if(dt.response !== null) {
+						c.ocsp.appendChild(createASN1JS("resp", dt.response));
+					}
 				});
 			};
 
