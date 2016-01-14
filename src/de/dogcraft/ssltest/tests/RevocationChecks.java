@@ -227,8 +227,10 @@ public class RevocationChecks {
             if (re.getResponseBytes().getResponseType().equals(OCSPObjectIdentifiers.id_pkix_ocsp_basic)) {
                 BasicOCSPResponse bop = BasicOCSPResponse.getInstance(re.getResponseBytes().getResponse().getOctets());
                 ASN1Sequence certs = bop.getCerts();
-                for (ASN1Encodable b : certs.toArray()) {
-                    org.bouncycastle.asn1.x509.Certificate c = org.bouncycastle.asn1.x509.Certificate.getInstance(b);
+                if (certs != null) {
+                    for (ASN1Encodable b : certs.toArray()) {
+                        org.bouncycastle.asn1.x509.Certificate c = org.bouncycastle.asn1.x509.Certificate.getInstance(b);
+                    }
                 }
                 ASN1Sequence as = bop.getTbsResponseData().getResponses();
                 ASN1Encodable[] array = as.toArray();
