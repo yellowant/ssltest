@@ -83,16 +83,31 @@ public class RevocationChecks {
                     pw.outputEvent("crl", String.format("{\"url\": \"%s\", \"issuer\": \"%s\"}",//
                             jurl, JSONUtils.jsonEscape(distributionPoint.getCRLIssuer() == null ? "null" : distributionPoint.getCRLIssuer().toString())));
                     pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"downloading\"}", jurl));
-                    crls.put(url, u);
+                    byte[] crl = crls.get(url);
+                    try {
+                        if (crl == null) {
+                            crls.put(url, u, pw);
+                            crl = crls.get(url);
+                        } else {
+                            X509CRLImpl c = new X509CRLImpl(crl);
+                            if (c.getThisUpdate().getTime() + (3 * (c.getNextUpdate().getTime() - c.getThisUpdate().getTime())) / 4 < System.currentTimeMillis()) {
+                                System.out.println("fetching!");
+                                crls.put(url, u, pw);
+                                crl = crls.get(url);
+                            }
+                        }
+
+                    } catch (CRLException e) {
+                        e.printStackTrace();
+                    }
                     pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"checking\"}", jurl));
-                    assessCRL(url, jurl, pw, tbs, cert);
+                    assessCRL(jurl, pw, tbs, cert, crl);
                 }
             }
         }
     }
 
-    private static void assessCRL(String url, String jurl, TestOutput pw, TBSCertificate tbs, CertificateWrapper cert) throws IOException {
-        byte[] crl = crls.get(url);
+    private static void assessCRL(String jurl, TestOutput pw, TBSCertificate tbs, CertificateWrapper cert, byte[] crl) throws IOException {
         String status = "not revoked";
         try {
             if (crl == null) {

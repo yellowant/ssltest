@@ -12,6 +12,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Base64;
 
+import de.dogcraft.ssltest.tests.TestOutput;
+
 public class FileCache {
 
     File base;
@@ -47,12 +49,19 @@ public class FileCache {
         return baos.toByteArray();
     }
 
-    public void put(String name, InputStream data) throws IOException {
+    public void put(String name, InputStream data, TestOutput dcn, int tlen) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int pos = 0;
         byte[] buf = new byte[2048];
         int len;
+        int last = 0;
         while ((len = data.read(buf)) > 0) {
+            pos += len;
             baos.write(buf, 0, len);
+            if (pos / 10000 != last) {
+                last = pos / 10000;
+                dcn.outputEvent("dwnProgress", "{\"url\":\"" + JSONUtils.jsonEscape(name) + "\", \"current\":" + 10000 * (pos / 10000) + ", \"total\":" + tlen + "}");
+            }
         }
         put(name, baos.toByteArray());
     }
@@ -61,14 +70,14 @@ public class FileCache {
         return new File(base, addresser(name));
     }
 
-    public void put(String name, URL u) throws IOException {
+    public void put(String name, URL u, TestOutput progress) throws IOException {
         URLConnection c = u.openConnection();
         if (u.getProtocol().equals("http") || u.getProtocol().equals("https")) {
             // TODO do we want to remove http and simply fetch the http version?
             HttpURLConnection huc = (HttpURLConnection) c;
             huc.setIfModifiedSince(address(name).lastModified());
             if (huc.getResponseCode() == 301) {
-                put(name, new URL(huc.getHeaderField("Location")));
+                put(name, new URL(huc.getHeaderField("Location")), progress);
                 return;
             }
             if (huc.getResponseCode() == 304)
@@ -77,7 +86,16 @@ public class FileCache {
                 return;
         }
         System.out.println("Fetching URL to cache: " + u);
-        put(name, c.getInputStream());
+        int len = 0;
+        try {
+            String hf = c.getHeaderField("Content-length");
+            if (hf != null) {
+                len = Integer.parseInt(hf);
+            }
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        put(name, c.getInputStream(), progress, len);
         System.out.println("Fetched URL to cache: " + u);
     }
 
