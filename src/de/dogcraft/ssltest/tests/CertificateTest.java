@@ -121,7 +121,7 @@ public class CertificateTest {
         checkValidity(pw, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
         if (tbs.getExtensions() != null) {
             testSAN(pw, tbs);
-            RevocationChecks.testCRL(pw, tbs);
+            RevocationChecks.testCRL(pw, tbs, cert);
             testAIA(pw, tbs, cert);
         }
         // TODO re-implement and display

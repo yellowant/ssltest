@@ -2,6 +2,7 @@ package de.dogcraft.ssltest.tests;
 
 import static de.dogcraft.ssltest.tests.CertificateTest.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -10,9 +11,13 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CRLException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509CRLEntry;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -55,7 +60,7 @@ public class RevocationChecks {
 
     private static final FileCache crls = new FileCache(new File("crls"));
 
-    public static void testCRL(TestOutput pw, TBSCertificate tbs) throws IOException {
+    public static void testCRL(TestOutput pw, TBSCertificate tbs, CertificateWrapper cert) throws IOException {
         Extension ext = tbs.getExtensions().getExtension(Extension.cRLDistributionPoints);
         if (ext != null) {
             DistributionPoint[] points = CRLDistPoint.getInstance(ext.getParsedValue()).getDistributionPoints();
@@ -80,13 +85,13 @@ public class RevocationChecks {
                     pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"downloading\"}", jurl));
                     crls.put(url, u);
                     pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"checking\"}", jurl));
-                    assessCRL(url, pw, jurl, tbs);
+                    assessCRL(url, jurl, pw, tbs, cert);
                 }
             }
         }
     }
 
-    private static void assessCRL(String url, TestOutput pw, String jurl, TBSCertificate tbs) throws IOException {
+    private static void assessCRL(String url, String jurl, TestOutput pw, TBSCertificate tbs, CertificateWrapper cert) throws IOException {
         byte[] crl = crls.get(url);
         String status = "not revoked";
         try {
@@ -103,6 +108,30 @@ public class RevocationChecks {
                 }
                 pw.outputEvent("crldata", String.format("{\"url\": \"%s\", \"size\":\"%s\", \"entries\":\"%s\", \"thisUpdate\":\"%s\", \"nextUpdate\":\"%s\"}",//
                         jurl, Integer.toString(crl.length), Integer.toString(ct), sdf.format(c.getThisUpdate()), sdf.format(c.getNextUpdate())));
+                try {
+                    Certificate cer = CertificateFactory.getInstance("X509").generateCertificate(new ByteArrayInputStream(cert.getIssuer().getEncoded()));
+                    if ( !Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded())) {
+                        pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"issuer mismatch\"}",//
+                                jurl));
+                    } else {
+                        try {
+                            c.verify(cer.getPublicKey());
+                        } catch (GeneralSecurityException e) {
+                            pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"issuer mismatch\"}",//
+                                    jurl));
+                        }
+                    }
+                } catch (CertificateException e1) {
+                    e1.printStackTrace();
+                }
+                if (c.getNextUpdate().getTime() > System.currentTimeMillis()) {
+                    pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"expired\"}",//
+                            jurl));
+                }
+                if (c.getThisUpdate().getTime() < System.currentTimeMillis()) {
+                    pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"not valid yet\"}",//
+                            jurl));
+                }
                 if (revokedCertificates != null) {
                     for (X509CRLEntry e : revokedCertificates) {
                         if (Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded()) && e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {
@@ -182,6 +211,10 @@ public class RevocationChecks {
         if (res.intValue() == OCSPResponseStatus.SUCCESSFUL) {
             if (re.getResponseBytes().getResponseType().equals(OCSPObjectIdentifiers.id_pkix_ocsp_basic)) {
                 BasicOCSPResponse bop = BasicOCSPResponse.getInstance(re.getResponseBytes().getResponse().getOctets());
+                ASN1Sequence certs = bop.getCerts();
+                for (ASN1Encodable b : certs.toArray()) {
+                    org.bouncycastle.asn1.x509.Certificate c = org.bouncycastle.asn1.x509.Certificate.getInstance(b);
+                }
                 ASN1Sequence as = bop.getTbsResponseData().getResponses();
                 ASN1Encodable[] array = as.toArray();
                 boolean found = false;
@@ -230,5 +263,4 @@ public class RevocationChecks {
         }
         return status;
     }
-
 }
