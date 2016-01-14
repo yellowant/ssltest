@@ -64,16 +64,11 @@ public class TruststoreGroup {
                 Truststore ne = tm.get(key);
                 if (ne.hasSameContents(last)) {
                     tm.remove(key);
-                    System.out.println("Eliminating " + name + "/" + key + " for no update.");
                 } else {
                     last = ne;
                 }
 
             }
-        }
-        System.out.println(name);
-        for (String string : tm.keySet()) {
-            System.out.println(" " + string);
         }
     }
 
