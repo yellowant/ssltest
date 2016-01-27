@@ -134,24 +134,25 @@ public class RevocationChecks {
                         try {
                             c.verify(cer.getPublicKey());
                         } catch (GeneralSecurityException e) {
-                            pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"issuer mismatch\"}",//
+                            e.printStackTrace();
+                            pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"signature invalid\"}",//
                                     jurl));
                         }
                     }
                 } catch (CertificateException e1) {
                     e1.printStackTrace();
                 }
-                if (c.getNextUpdate().getTime() > System.currentTimeMillis()) {
+                if (c.getNextUpdate().getTime() < System.currentTimeMillis()) {
                     pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"expired\"}",//
                             jurl));
                 }
-                if (c.getThisUpdate().getTime() < System.currentTimeMillis()) {
+                if (c.getThisUpdate().getTime() > System.currentTimeMillis()) {
                     pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"not valid yet\"}",//
                             jurl));
                 }
                 if (revokedCertificates != null) {
                     for (X509CRLEntry e : revokedCertificates) {
-                        if (Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded()) && e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {
+                        if (e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {
                             // found!
                             status = "revoked: " + e.getRevocationDate() + " because " + e.getRevocationReason();
                         }
@@ -288,7 +289,7 @@ public class RevocationChecks {
                     CertID cid = rs.getCertID();
                     AlgorithmIdentifier aid = cid.getHashAlgorithm();
                     if ( !aid.getAlgorithm().equals(HASH_OID.getAlgorithm())) {
-                        pw.outputEvent("warning", "hash ocsp response does not match");
+                        pw.outputEvent("OCSPwarning", "hash ocsp response does not match");
                     } else {
                         if (Arrays.equals(keyHash, cid.getIssuerKeyHash().getOctets()) //
                                 &&

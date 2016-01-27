@@ -83,6 +83,14 @@ function newAnchor(name, anchor) {
 	return a;
 }
 
+function errorSign(error){
+	var span = document.createElement("span");
+	span.setAttribute("title", error);
+	span.setAttribute("class", "error-sign");
+	span.appendChild(document.createTextNode("\u26A0"));
+	return span;
+}
+
 var idcounter = 0;
 
 function TrustDisplay() {
@@ -603,6 +611,7 @@ function events() {
 					value.appendChild(newAnchor(dt.url, dt.url));
 					var runner = document.createElement("span");
 					value.appendChild(runner);
+					value.appendChild(document.createTextNode(" "));
 					tr.appendChild(value);
 
 					c.crl[dt.url] = {td: value, i: new StatusIndicator(runner, true)};
@@ -612,7 +621,7 @@ function events() {
 				stream.registerEvent("crlstatus", function(c, s, e) {
 					var dt = JSON.parse(e.data);
 					if(dt.result !== undefined) {
-						c.crl[dt.url].td.appendChild(document.createTextNode(": " + dt.result));
+						c.crl[dt.url].td.appendChild(document.createTextNode(dt.result));
 					}
 					if(dt.state == "downloading"){
 						c.crl[dt.url].i.open();
@@ -625,6 +634,11 @@ function events() {
 				stream.registerEvent("crldata", function(c, s, e) {
 					var dt = JSON.parse(e.data);
 					c.crl[dt.url].td.setAttribute("title", dt.size + " bytes, " + dt.entries + " entries, valid " + dt.thisUpdate + " to " + dt.nextUpdate);
+				});
+
+				stream.registerEvent("crlValidity", function(c, s, e) {
+					var dt = JSON.parse(e.data);
+					c.crl[dt.url].td.appendChild(errorSign(dt.status));
 				});
 
 				stream.registerEvent("OCSP", function(c, s, e) {

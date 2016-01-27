@@ -274,3 +274,8 @@ table.ciphertable, td.cipher-pfs[data-value="no"] {
 	background-color:#fdd;
 }
 
+span.error-sign{
+	padding: 4px;
+	color: #f00;
+	font-size: 150%;
+}
