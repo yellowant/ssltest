@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +23,7 @@ import java.security.cert.X509CRLEntry;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -185,32 +187,78 @@ public class RevocationChecks {
             URL u = new URL(url);
 
             if (u.getProtocol().equals("http")) {
-                HttpURLConnection huc = (HttpURLConnection) u.openConnection();
-                huc.setDoOutput(true);
-                OutputStream o = huc.getOutputStream();
-                o.write(ocr.getEncoded());
-                o.flush();
-                String status = "unknown";
+                String status = "";
                 OCSPResponse re = null;
-                try {
-                    if (huc.getResponseCode() == 404) {
-                        status = "not found";
-                    } else {
-                        InputStream in = huc.getInputStream();
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        {
-                            byte[] buf = new byte[256];
-                            int len = 0;
-                            while ((len = in.read(buf)) > 0) {
-                                baos.write(buf, 0, len);
+                byte[] bt = null;
+
+                {
+                    HttpURLConnection huc = (HttpURLConnection) u.openConnection();
+                    huc.setDoOutput(true);
+                    OutputStream o = huc.getOutputStream();
+                    o.write(ocr.getEncoded());
+                    o.flush();
+                    try {
+                        if (huc.getResponseCode() == 404) {
+                            status += "POST: not found ";
+                        } else if (huc.getResponseCode() != 200) {
+                            status += "POST: HTTP-error " + huc.getResponseCode() + " ";
+                        } else {
+                            InputStream in = huc.getInputStream();
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            {
+                                byte[] buf = new byte[256];
+                                int len = 0;
+                                while ((len = in.read(buf)) > 0) {
+                                    baos.write(buf, 0, len);
+                                }
+                                bt = baos.toByteArray();
                             }
+                            status += "POST: ";
                         }
-                        re = OCSPResponse.getInstance(baos.toByteArray());
-                        status = assessOCSPResponse(pw, tbs, HASH_OID, nameHash, keyHash, status, re);
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
                     }
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
                 }
+
+                if (bt == null) {
+                    String u1 = u.toString();
+                    if (u1.endsWith("/")) {
+                        u1 = u1.substring(0, u1.length() - 1);
+                    }
+
+                    HttpURLConnection huc = (HttpURLConnection) new URL(u1 + "/" + URLEncoder.encode(Base64.getEncoder().encodeToString(ocr.getEncoded()), "UTF-8")).openConnection();
+                    try {
+                        if (huc.getResponseCode() == 404) {
+                            status += "GET: not found ";
+                        } else if (huc.getResponseCode() != 200) {
+                            status += "GET: HTTP-error " + huc.getResponseCode() + " ";
+                        } else {
+                            InputStream in = huc.getInputStream();
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            {
+                                byte[] buf = new byte[256];
+                                int len = 0;
+                                while ((len = in.read(buf)) > 0) {
+                                    baos.write(buf, 0, len);
+                                }
+                                bt = baos.toByteArray();
+                            }
+                            status += "GET: ";
+                        }
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (bt != null) {
+                    re = OCSPResponse.getInstance(bt);
+                    status += assessOCSPResponse(pw, tbs, HASH_OID, nameHash, keyHash, status, re);
+                }
+
+                if (status.isEmpty()) {
+                    status = "unknown";
+                }
+
                 pw.outputEvent("OCSP", String.format("{ \"url\": \"%s\", \"state\": \"%s\", \"request\":\"%s\", \"response\":%s }", //
                         url, status, JSONUtils.jsonEscape(pemPlain(ocr)), re == null ? "null" : "\"" + JSONUtils.jsonEscape(pemPlain(re)) + "\""));
             }
