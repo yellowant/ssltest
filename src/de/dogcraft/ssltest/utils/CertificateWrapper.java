@@ -26,7 +26,7 @@ public class CertificateWrapper {
 
     String hash;
 
-    Certificate issuer;
+    CertificateWrapper issuer;
 
     String issuerPKHash;
 
@@ -42,7 +42,12 @@ public class CertificateWrapper {
         }
     }
 
-    public CertificateWrapper(Certificate c, Certificate issuer) {
+    public CertificateWrapper(Certificate c) {
+        this(c, null);
+        issuer = this;
+    }
+
+    public CertificateWrapper(Certificate c, CertificateWrapper issuer) {
         this.c = c;
         this.issuer = issuer;
         synchronized (md) {
@@ -98,6 +103,14 @@ public class CertificateWrapper {
     }
 
     public Certificate getIssuer() {
+        return issuer.getC();
+    }
+
+    public boolean isSelfsigned() {
+        return issuer.equals(this);
+    }
+
+    public CertificateWrapper getIssuerWrapper() {
         return issuer;
     }
 }

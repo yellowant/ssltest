@@ -176,9 +176,13 @@ public class TestCipherList {
             this.content = new CertificateWrapper[content.length];
             hashes = new String[content.length];
             MessageDigest md = MessageDigest.getInstance(CertificateWrapper.HASH_TYPE);
-            for (int i = 0; i < content.length; i++) {
+            for (int i = content.length - 1; i >= 0; i--) {
                 md.reset();
-                this.content[i] = new CertificateWrapper(content[i], content[i + 1 >= content.length ? i : i + 1]);
+                if (i + 1 >= content.length) {
+                    this.content[i] = new CertificateWrapper(content[i]);
+                } else {
+                    this.content[i] = new CertificateWrapper(content[i], this.content[i + 1]);
+                }
                 hashes[i] = TruststoreUtil.outputFingerprint(content[i], md);
             }
         }

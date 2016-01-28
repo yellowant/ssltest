@@ -3,11 +3,11 @@ package de.dogcraft.ssltest.tests;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -101,43 +101,45 @@ public class TrustTest {
     public void test(TestOutput out) {
         Certificate toTrust = chain.content[0].getC();
         CertificateIndex local = new CertificateIndex(chain.content);
-        LinkedHashSet<CertificateWrapper> used = new LinkedHashSet<>();
+        LinkedList<CertificateWrapper> used = new LinkedList<>();
         used.add(new CertificateWrapper(toTrust, null));
 
         buildChains(out, toTrust, local, used);
 
     }
 
-    private void buildChains(TestOutput out, Certificate toTrust, CertificateIndex local, HashSet<CertificateWrapper> used) {
+    private void buildChains(TestOutput out, Certificate toTrust, CertificateIndex local, LinkedList<CertificateWrapper> used) {
         Set<CertificateWrapper> localC = local.getIssuers(toTrust);
         Set<CertificateWrapper> globalC = ci.getIssuers(toTrust);
         for (CertificateWrapper certificate : localC) {
-            if ( !used.add(certificate)) {
+            if (used.contains(certificate)) {
                 continue;
             }
+            used.add(certificate);
             buildChains(out, certificate.getC(), local, used);
-            used.remove(certificate);
+            used.removeLast();
         }
         for (CertificateWrapper certificate : globalC) {
-            if ( !used.add(certificate)) {
+            if (used.contains(certificate)) {
                 continue;
             }
+            used.add(certificate);
             List<Truststore> trust = ci.getTrust(certificate);
             emitChain(out, used, trust);
-            used.remove(certificate);
+            used.removeLast();
         }
     }
 
-    private void emitChain(TestOutput out, HashSet<CertificateWrapper> used, List<Truststore> trust) {
+    private void emitChain(TestOutput out, LinkedList<CertificateWrapper> used, List<Truststore> trust) {
+        ArrayList<CertificateWrapper> cw = new ArrayList<>(used);
+        Collections.reverse(cw);
         CertificateWrapper last = null;
-        for (CertificateWrapper c : used) {
+        for (CertificateWrapper c : cw) {
             if (last != null) {
-                out.pushCert(new CertificateWrapper(last.getC(), c.getC()));
+                out.pushCert(last = new CertificateWrapper(c.getC(), last));
+            } else {
+                out.pushCert(last = new CertificateWrapper(c.getC()));
             }
-            last = c;
-        }
-        if (last != null) {
-            out.pushCert(new CertificateWrapper(last.getC(), last.getC()));
         }
         StringBuffer json = new StringBuffer();
         json.append("{ \"chainId\":");
