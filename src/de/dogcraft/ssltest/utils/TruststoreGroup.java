@@ -80,15 +80,17 @@ public class TruststoreGroup {
         try {
             File f = new File("trusts");
             File[] files = f.listFiles();
-            for (File fs : files) {
-                if ( !fs.isDirectory() || fs.getName().startsWith("_")) {
-                    continue;
-                }
-                String[] parts = fs.getName().split("_", 2);
-                TruststoreGroup tg = storesm.get(parts[0]);
-                if (tg == null) {
-                    tg = new TruststoreGroup(parts[0], files);
-                    storesm.put(parts[0], tg);
+            if (null != files) {
+                for (File fs : files) {
+                    if ( !fs.isDirectory() || fs.getName().startsWith("_")) {
+                        continue;
+                    }
+                    String[] parts = fs.getName().split("_", 2);
+                    TruststoreGroup tg = storesm.get(parts[0]);
+                    if (tg == null) {
+                        tg = new TruststoreGroup(parts[0], files);
+                        storesm.put(parts[0], tg);
+                    }
                 }
             }
         } catch (Exception e) {

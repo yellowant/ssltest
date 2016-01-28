@@ -106,18 +106,20 @@ public class KnownDHGroup {
 
     static {
         File f = new File("params/dh");
-        for (File f1 : f.listFiles()) {
-            if ( !f1.getName().contains("modp")) {
-                continue;
+        File[] listFiles = f.listFiles();
+        if (listFiles != null)
+            for (File f1 : listFiles) {
+                if ( !f1.getName().contains("modp")) {
+                    continue;
+                }
+                System.out.println(f1);
+                try {
+                    KnownDHGroup gr = new KnownDHGroup(f1);
+                    set.put(gr, gr);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            System.out.println(f1);
-            try {
-                KnownDHGroup gr = new KnownDHGroup(f1);
-                set.put(gr, gr);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public static String lookup(KnownDHGroup gr) {
