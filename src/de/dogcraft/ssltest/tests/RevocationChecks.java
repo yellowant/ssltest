@@ -110,7 +110,7 @@ public class RevocationChecks {
     }
 
     private static void assessCRL(String jurl, TestOutput pw, TBSCertificate tbs, CertificateWrapper cert, byte[] crl) throws IOException {
-        String status = "not revoked";
+        String status = "inconclusive";
         try {
             if (crl == null) {
                 status = "CRL not found";
@@ -125,11 +125,13 @@ public class RevocationChecks {
                 }
                 pw.outputEvent("crldata", String.format("{\"url\": \"%s\", \"size\":\"%s\", \"entries\":\"%s\", \"thisUpdate\":\"%s\", \"nextUpdate\":\"%s\"}",//
                         jurl, Integer.toString(crl.length), Integer.toString(ct), sdf.format(c.getThisUpdate()), sdf.format(c.getNextUpdate())));
+                boolean validity = true;
                 try {
                     Certificate cer = CertificateFactory.getInstance("X509").generateCertificate(new ByteArrayInputStream(cert.getIssuer().getEncoded()));
                     if ( !Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded())) {
                         pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"issuer mismatch\"}",//
                                 jurl));
+                        validity = false;
                     } else {
                         try {
                             c.verify(cer.getPublicKey());
@@ -137,6 +139,7 @@ public class RevocationChecks {
                             e.printStackTrace();
                             pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"signature invalid\"}",//
                                     jurl));
+                            validity = false;
                         }
                     }
                 } catch (CertificateException e1) {
@@ -145,16 +148,21 @@ public class RevocationChecks {
                 if (c.getNextUpdate().getTime() < System.currentTimeMillis()) {
                     pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"expired\"}",//
                             jurl));
+                    validity = false;
                 }
                 if (c.getThisUpdate().getTime() > System.currentTimeMillis()) {
                     pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"not valid yet\"}",//
                             jurl));
+                    validity = false;
                 }
-                if (revokedCertificates != null) {
-                    for (X509CRLEntry e : revokedCertificates) {
-                        if (e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {
-                            // found!
-                            status = "revoked: " + e.getRevocationDate() + " because " + e.getRevocationReason();
+                if (validity) {
+                    if (revokedCertificates != null) {
+                        status = "not revoked";
+                        for (X509CRLEntry e : revokedCertificates) {
+                            if (e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {
+                                // found!
+                                status = "revoked: " + e.getRevocationDate() + " because " + e.getRevocationReason();
+                            }
                         }
                     }
                 }

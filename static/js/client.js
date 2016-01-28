@@ -621,7 +621,7 @@ function events() {
 				stream.registerEvent("crlstatus", function(c, s, e) {
 					var dt = JSON.parse(e.data);
 					if(dt.result !== undefined) {
-						c.crl[dt.url].td.appendChild(document.createTextNode(dt.result));
+						c.crl[dt.url].td.appendChild(document.createTextNode("result: "+ dt.result));
 					}
 					if(dt.state == "downloading"){
 						c.crl[dt.url].i.open();
