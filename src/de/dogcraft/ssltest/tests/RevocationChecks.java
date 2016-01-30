@@ -156,8 +156,8 @@ public class RevocationChecks {
                     validity = false;
                 }
                 if (validity) {
+                    status = "not revoked";
                     if (revokedCertificates != null) {
-                        status = "not revoked";
                         for (X509CRLEntry e : revokedCertificates) {
                             if (e.getSerialNumber().equals(tbs.getSerialNumber().getValue())) {
                                 // found!
