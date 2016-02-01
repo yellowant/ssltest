@@ -3,6 +3,7 @@ package de.dogcraft.ssltest.tests;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Hashtable;
+import java.util.LinkedList;
 
 import org.bouncycastle.crypto.tls.BugTestingTLSClient;
 import org.bouncycastle.crypto.tls.BugTestingTLSClient.CertificateObserver;
@@ -20,6 +21,8 @@ public class TestImplementationBugs {
     private final String host;
 
     private TestConnectionBuilder tcb;
+
+    private LinkedList<Integer> illegalExtensions;
 
     public TestImplementationBugs(String host, TestConnectionBuilder tcb) {
         this.host = host;
@@ -90,6 +93,7 @@ public class TestImplementationBugs {
         } catch (Throwable t) {
 
         }
+        illegalExtensions = tc.getIllegalExtensions();
         return json;
     }
 
@@ -117,4 +121,7 @@ public class TestImplementationBugs {
         return cipherInfo;
     }
 
+    public LinkedList<Integer> getIllegalExtensions() {
+        return illegalExtensions;
+    }
 }

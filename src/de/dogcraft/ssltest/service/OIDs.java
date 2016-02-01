@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.crypto.tls.ExtensionType;
 import org.bouncycastle.jcajce.provider.asymmetric.DSA;
 import org.bouncycastle.jcajce.provider.asymmetric.EC;
 import org.bouncycastle.jcajce.provider.asymmetric.RSA;
@@ -33,7 +34,24 @@ public class OIDs {
         out.print("var AIAOIDs = {");
         generateAIAOIDs(out);
         out.println("};");
+        out.print("var TLSExts = {");
+        generateTLSExts(out);
+        out.println("};");
+    }
 
+    private static void generateTLSExts(PrintWriter out) {
+        Class<ExtensionType> c = ExtensionType.class;
+        for (Field f : c.getFields()) {
+            try {
+                int res = f.getInt(null);
+                String name = f.getName();
+                out.print("\"" + res + "\":");
+                out.print("\"" + name + "\"");
+                out.print(", ");
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void generateAIAOIDs(PrintWriter out) {
@@ -84,7 +102,8 @@ public class OIDs {
         try {
             Field f = org.bouncycastle.asn1.x500.style.BCStyle.class.getDeclaredField("DefaultSymbols");
             f.setAccessible(true);
-            Hashtable<ASN1ObjectIdentifier, String> symbols = (Hashtable<ASN1ObjectIdentifier, String>) f.get(null); // ASN1ObjectIdentifier -> String
+            Hashtable<ASN1ObjectIdentifier, String> symbols = (Hashtable<ASN1ObjectIdentifier, String>) f.get(null); // ASN1ObjectIdentifier
+                                                                                                                     // ->
             Set<Map.Entry<ASN1ObjectIdentifier, String>> set = symbols.entrySet();
             StringBuffer buf = new StringBuffer();
             buf.append("{");

@@ -834,34 +834,46 @@ function events() {
 			var table = document.createElement("table");
 			table.setAttribute("class", "extTable");
 
-			function addElem(name, callback) {
-				var tr = document.createElement("tr");
-				var td = document.createElement("td");
-				td.appendChild(document.createTextNode(name));
-				tr.appendChild(td);
-
-				stream.registerEvent(name, function(c, s, e) {
-					var r = document.createElement("td");
-					r.textContent = callback(JSON.parse(e.data));
-					tr.appendChild(r);
-				});
-
-				table.appendChild(tr);
-			}
-
 			bugs.appendChild(table);
 
-			addElem("renegotiation", function(renego) {
-				return renego.secure_renego;
-			});
-			addElem("heartbeat", function(heartbeat) {
-				return heartbeat.heartbeat + ", test results ... beat: " + heartbeat.test.heartbeat + ", bleed: " + heartbeat.test.heartbleed;
-			});
-			addElem("sni", function(sni) {
-				return sni.sni;
-			});
-			addElem("compression", function(compression) {
-				return compression.supported + " test results ... accept: " + compression.accepted;
+			stream.registerEvent("extensions", function(c, s, e) {
+				var ext = JSON.parse(e.data);
+				for(extId in ext){
+					var tr = document.createElement("tr");
+					var td = document.createElement("td");
+					if(TLSExts[extId] !== undefined){
+						var span = document.createElement("span");
+						span.appendChild(document.createTextNode(TLSExts[extId]));
+						span.setAttribute("title", "0x"+(extId|0).toString(16));
+						td.appendChild(span);
+					}else{
+						td.appendChild(document.createTextNode(extId));
+					}
+					tr.appendChild(td);
+					td = document.createElement("td");
+					if(ext[extId].illegal == "yes"){
+						td.appendChild(errorSign("Server must not send this extension"));
+					}
+					if(ext[extId].sent == "no"){
+						td.appendChild(document.createTextNode(" not sent by server"));
+					}
+					tr.appendChild(td);
+					var td = document.createElement("td");
+
+					if(TLSExts[extId] == "heartbeat"){
+						td.appendChild(document.createTextNode(" heartbeat: "+ext[extId].tested.heartbeat+" heartbleed: "+ext[extId].tested.heartbleed));
+					}
+					tr.appendChild(td);
+
+					table.appendChild(tr);
+				}
+				// TODO test compression?
+				/*if(ext.result == "yes"){
+					r.appendChild(errorSign("Server sent illegal extensions"));
+					r.appendChild(document.createTextNode("yes"));
+				}else{
+					r.textContent = "none";
+				}*/
 			});
 
 			c.appendChild(bugs);

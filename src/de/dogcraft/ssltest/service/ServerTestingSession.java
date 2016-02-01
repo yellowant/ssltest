@@ -2,6 +2,10 @@ package de.dogcraft.ssltest.service;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import org.bouncycastle.crypto.tls.ExtensionType;
 
@@ -48,30 +52,47 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
 
                 try {
                     String hbTest = b.testHeartbeat();
-                    byte[] sn = b.getExt().get(ExtensionType.server_name);
-                    byte[] hb = b.getExt().get(ExtensionType.heartbeat);
-                    byte[] rn = b.getExt().get(ExtensionType.renegotiation_info);
-                    outputEvent("renegotiation", //
-                            String.format("{ \"secure_renego\": \"%s\" }", //
-                                    rn == null ? "yes" : "no"));
-                    outputEvent("heartbeat", //
-                            String.format("{ \"heartbeat\": \"%s\", \"test\": %s }", //
-                                    hb != null ? "yes" : "no", hbTest));
-                    outputEvent("sni", //
-                            String.format("{ \"sni\": \"%s\" }", //
-                                    sn == null ? "no" : "yes"));
-
-                    boolean supportsCompression = true;
-                    if (supportsCompression) {
-                        boolean acceptsCompression = b.testDeflate(ServerTestingSession.this);
-
-                        if (acceptsCompression) {
-                            outputEvent("compression", "{ \"supported\": \"yes\", \"accepted\": \"yes\", \"points\": -10 }");
-                        } else {
-                            outputEvent("compression", "{ \"supported\": \"yes\", \"accepted\": \"no\", \"points\": 0 }");
-                        }
+                    Hashtable<Integer, byte[]> ext = b.getExt();
+                    LinkedList<Integer> il = b.getIllegalExtensions();
+                    HashSet<Integer> illegal;
+                    if (il == null) {
+                        illegal = new HashSet<>();
                     } else {
-                        outputEvent("compression", "{ \"supported\": \"no\", \"accepted\": \"no\", \"points\": -5 }");
+                        illegal = new HashSet<>(il);
+                    }
+                    StringBuffer res = new StringBuffer();
+                    res.append("{");
+                    for (Entry<Integer, byte[]> c : ext.entrySet()) {
+                        res.append("\"");
+                        res.append(c.getKey());
+                        res.append("\": {");
+                        res.append("\"illegal\":\"");
+                        res.append(illegal.contains(c.getKey()) ? "yes" : "no");
+                        res.append("\"");
+                        if (c.getKey() == ExtensionType.heartbeat) {
+                            res.append(",\"tested\":" + hbTest);
+                        }
+                        res.append("},");
+                    }
+                    if (ext.get(ExtensionType.heartbeat) == null) {
+                        res.append("\"");
+                        res.append(ExtensionType.heartbeat);
+                        res.append("\": {");
+                        res.append("\"sent\": \"no\", \"illegal\":\"no\"");
+                        res.append(",\"tested\":" + hbTest + "");
+                        res.append("},");
+                    }
+                    res.deleteCharAt(res.length() - 1);
+                    res.append("}");
+                    outputEvent("extensions", //
+                            res.toString());
+
+                    boolean acceptsCompression = b.testDeflate(ServerTestingSession.this);
+
+                    if (acceptsCompression) {
+                        outputEvent("compression", "{ \"accepted\": \"yes\", \"points\": -10 }");
+                    } else {
+                        outputEvent("compression", "{ \"accepted\": \"no\", \"points\": 0 }");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

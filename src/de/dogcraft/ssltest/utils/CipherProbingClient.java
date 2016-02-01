@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import org.bouncycastle.crypto.tls.AlertDescription;
@@ -18,9 +19,11 @@ import org.bouncycastle.crypto.tls.ServerName;
 import org.bouncycastle.crypto.tls.ServerNameList;
 import org.bouncycastle.crypto.tls.ServerOnlyTlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsAuthentication;
+import org.bouncycastle.crypto.tls.TlsECCUtils;
 import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 import org.bouncycastle.crypto.tls.TlsFatalAlert;
 import org.bouncycastle.crypto.tls.TlsKeyExchange;
+import org.bouncycastle.crypto.tls.TlsUtils;
 
 import de.dogcraft.ssltest.tests.TestCipherList;
 
@@ -37,6 +40,8 @@ public class CipherProbingClient extends DefaultTlsClient {
     private final short[] comp;
 
     CertificateObserver observer;
+
+    LinkedList<Integer> illegalExtensions = null;
 
     public CipherProbingClient(String host, Collection<Integer> ciphers, short[] comp, CertificateObserver observer) {
         this.host = host;
@@ -157,4 +162,42 @@ public class CipherProbingClient extends DefaultTlsClient {
         System.err.println("Something might be broken (see " + CipherProbingClient.class.getName() + ".notifySecureRenegotiation");
     }
 
+    @Override
+    public void processServerExtensions(Hashtable serverExtensions) throws IOException {
+        LinkedList<Integer> illegalExt = new LinkedList<>();
+        try {
+            /*
+             * TlsProtocol implementation validates that any server extensions
+             * received correspond to client extensions sent. By default, we
+             * don't send any, and this method is not called.
+             */
+            if (serverExtensions != null) {
+                this.serverECPointFormats = TlsECCUtils.getSupportedPointFormatsExtension(serverExtensions);
+                if (this.serverECPointFormats != null && !TlsECCUtils.isECCCipherSuite(this.selectedCipherSuite)) {
+                    illegalExt.add(TlsECCUtils.EXT_ec_point_formats);
+                }
+
+                /*
+                 * RFC 5246 7.4.1.4.1. Servers MUST NOT send this extension.
+                 */
+                if (serverExtensions.containsKey(TlsUtils.EXT_signature_algorithms)) {
+                    illegalExt.add(TlsUtils.EXT_signature_algorithms);
+                }
+
+                int[] namedCurves = TlsECCUtils.getSupportedEllipticCurvesExtension(serverExtensions);
+                if (namedCurves != null) {
+                    illegalExt.add(TlsECCUtils.EXT_elliptic_curves);
+                }
+                if (illegalExt.size() > 0) {
+                    illegalExtensions = illegalExt;
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                }
+            }
+        } catch (TlsFatalAlert a) {
+        }
+    }
+
+    public LinkedList<Integer> getIllegalExtensions() {
+        return illegalExtensions;
+    }
 }
