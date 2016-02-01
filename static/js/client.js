@@ -875,6 +875,19 @@ function events() {
 					r.textContent = "none";
 				}*/
 			});
+			stream.registerEvent("compression", function(c, s, e) {
+				var ext = JSON.parse(e.data);
+				var tr = document.createElement("tr");
+				var td = document.createElement("td");
+				if(ext.accepted=="no"){
+					td.appendChild(document.createTextNode("compression: no"));
+				}else{
+					td.appendChild(document.createTextNode("compression: yes"));
+					td.appendChild(errorSign("TLS compression can make you vulnerable to different attacks."));
+				}
+				tr.appendChild(td);
+				table.appendChild(tr);
+			});
 
 			c.appendChild(bugs);
 		})();
