@@ -80,30 +80,38 @@ public class RevocationChecks {
                     }
 
                     String url = DERIA5String.getInstance(n.getName()).getString();
-                    URL u = new URL(url);
-                    String jurl = JSONUtils.jsonEscape(url);
-                    pw.outputEvent("crl", String.format("{\"url\": \"%s\", \"issuer\": \"%s\"}",//
-                            jurl, JSONUtils.jsonEscape(distributionPoint.getCRLIssuer() == null ? "null" : distributionPoint.getCRLIssuer().toString())));
-                    pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"downloading\"}", jurl));
-                    byte[] crl = crls.get(url);
+                    if ( !url.startsWith("http://") && !url.startsWith("https://")) {
+                        pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", JSONUtils.jsonEscape(url), "protocol not understood"));
+                        continue;
+                    }
                     try {
-                        if (crl == null) {
-                            crls.put(url, u, pw);
-                            crl = crls.get(url);
-                        } else {
-                            X509CRLImpl c = new X509CRLImpl(crl);
-                            if (c.getThisUpdate().getTime() + (3 * (c.getNextUpdate().getTime() - c.getThisUpdate().getTime())) / 4 < System.currentTimeMillis()) {
-                                System.out.println("fetching!");
+                        URL u = new URL(url);
+                        String jurl = JSONUtils.jsonEscape(url);
+                        pw.outputEvent("crl", String.format("{\"url\": \"%s\", \"issuer\": \"%s\"}",//
+                                jurl, JSONUtils.jsonEscape(distributionPoint.getCRLIssuer() == null ? "null" : distributionPoint.getCRLIssuer().toString())));
+                        pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"downloading\"}", jurl));
+                        byte[] crl = crls.get(url);
+                        try {
+                            if (crl == null) {
                                 crls.put(url, u, pw);
                                 crl = crls.get(url);
+                            } else {
+                                X509CRLImpl c = new X509CRLImpl(crl);
+                                if (c.getThisUpdate().getTime() + (3 * (c.getNextUpdate().getTime() - c.getThisUpdate().getTime())) / 4 < System.currentTimeMillis()) {
+                                    System.out.println("fetching!");
+                                    crls.put(url, u, pw);
+                                    crl = crls.get(url);
+                                }
                             }
-                        }
 
-                    } catch (CRLException e) {
-                        e.printStackTrace();
+                        } catch (CRLException e) {
+                            e.printStackTrace();
+                        }
+                        pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"checking\"}", jurl));
+                        assessCRL(jurl, pw, tbs, cert, crl);
+                    } catch (IOException e) {
+                        pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", JSONUtils.jsonEscape(url), "cannot download"));
                     }
-                    pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"checking\"}", jurl));
-                    assessCRL(jurl, pw, tbs, cert, crl);
                 }
             }
         }
@@ -134,6 +142,7 @@ public class RevocationChecks {
                         validity = false;
                     } else {
                         try {
+                            System.out.println(cer);
                             c.verify(cer.getPublicKey());
                         } catch (GeneralSecurityException e) {
                             e.printStackTrace();
