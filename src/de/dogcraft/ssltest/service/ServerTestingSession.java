@@ -1,6 +1,7 @@
 package de.dogcraft.ssltest.service;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -94,6 +95,10 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
                     } else {
                         outputEvent("compression", "{ \"accepted\": \"no\", \"points\": 0 }");
                     }
+                } catch (ConnectException e) {
+                    outputEvent("error", "{ \"message\": \"connection failed\" }");
+                    end();
+                    throw new TaskQueue.TaskQueueAbortedException(e);
                 } catch (IOException e) {
                     e.printStackTrace();
                     throw new Error(e);

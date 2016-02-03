@@ -7,6 +7,18 @@ import java.util.PriorityQueue;
 
 public class TaskQueue {
 
+    public static class TaskQueueAbortedException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        public TaskQueueAbortedException() {}
+
+        public TaskQueueAbortedException(Throwable e) {
+            super(e);
+        }
+
+    }
+
     public static void main(String[] args) {
         final TaskQueue q = new TaskQueue();
 
@@ -116,7 +128,12 @@ public class TaskQueue {
                         }
                         if ( !t.isBlocked()) {
                             System.out.println("executing... " + t);
-                            t.run();
+                            try {
+                                t.run();
+                            } catch (TaskQueueAbortedException e) {
+                                tasks.clear();
+                                return;
+                            }
                             System.out.println("completed... " + t);
                             t.markCompleted();
                         } else {

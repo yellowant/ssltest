@@ -245,18 +245,10 @@ function events() {
 		var ip = hostinfo.ip;
 		c.setAttribute("id", idbase + "-main");
 		var isRunning2 = overview.addTest(domain, port, ip, "#" + idbase + "-main");
+		var c2 = document.createElement("span");
 
 		var url = hostInfoToURL(hostinfo);
 		var stream = new Stream(c, url);
-
-		var stack = new Array();
-		stack.push({
-			fs : c
-		});
-
-		stream.getTargetContainer = function() {
-			return stack[stack.length - 1].fs;
-		}; // Overriding...
 
 		var isRunning = document.createElement("span");
 		(function() { // generate Legend
@@ -273,35 +265,6 @@ function events() {
 			c.appendChild(legend);
 		})();
 		stream.addStatusIndicator(isRunning2);
-
-		stream.registerEvent("enter", function(c, s, e) {
-			return;
-
-			var fs = document.createElement("fieldset");
-			var legend = document.createElement("legend");
-			var legendT = document.createTextNode(e.data);
-
-			legend.appendChild(legendT);
-			fs.appendChild(legend);
-			c.appendChild(fs);
-
-			stack.push({
-				fs : fs,
-				leg : legend,
-				legT : legendT
-			});
-		});
-
-		stream.registerEvent("exit", function(c, s, e) {
-			return;
-
-			var frame = stack.pop();
-
-			var legT = document.createTextNode(e.data);
-
-			frame.leg.removeChild(frame.legT);
-			frame.leg.appendChild(legT);
-		});
 
 		var certsModule = new (function() {
 			var certificates = document.createElement("div");
@@ -377,7 +340,7 @@ function events() {
 
 					calculateSymmeq(type, size, elem, clazz);
 				});
-			}
+			};
 
 			this.rateSig = function(hash, elem) {
 				certificateLookup[hash].addUpdate(function(c) {
@@ -391,9 +354,9 @@ function events() {
 					elem.style.stroke = rater.colorizeFG(rater.rateSignature(sig[0], sig[1]));
 					elem.setAttribute("title", sig0);
 				});
-			}
+			};
 
-			function appendX500Name(div, name) {
+			var appendX500Name = function(div, name) {
 				var res = {};
 
 				div.setAttribute("class", "x500name");
@@ -649,7 +612,9 @@ function events() {
 					}
 
 					c.ocsp.appendChild(document.createTextNode(", result: " + dt.state));
-					c.ocsp.appendChild(createASN1JS("req", dt.request));
+					if(dt.request !== null) {
+						c.ocsp.appendChild(createASN1JS("req", dt.request));
+					}
 					if(dt.response !== null) {
 						c.ocsp.appendChild(createASN1JS("resp", dt.response));
 					}
@@ -991,6 +956,23 @@ function events() {
 				tab.appendChild(tr);
 			});
 		})();
+		stream.registerEvent("error", function(c0, s, e) {
+			var msg = JSON.parse(e.data);
+			if(msg.message == "connection failed"){
+				var j = 0;
+				var toRemove = [];
+				for(var i = 0; i < c.childNodes.length; i++){
+					if(c.childNodes[i].tagName == "DIV"){
+						toRemove[j++] = c.childNodes[i];
+					}
+				}
+				console.log(toRemove);
+				for(i in toRemove){
+					c.removeChild(toRemove[i]);
+				}
+				c.appendChild(document.createTextNode("connection failed, no TLS could be reached"));
+			}
+		});
 	}
 
 	var container = document.getElementById('output');
