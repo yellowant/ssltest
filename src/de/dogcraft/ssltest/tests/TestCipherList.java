@@ -111,7 +111,6 @@ public class TestCipherList {
                         StringBuffer jsonChain = new StringBuffer();
                         for (int i = 0; i < chain.hashes.length; i++) {
                             if ( !map.containsKey(chain.hashes[i])) {
-                                pw.pushCert(chain.content[i]);
                                 map.put(chain.hashes[i], null);
                             }
 
@@ -122,8 +121,8 @@ public class TestCipherList {
                             jsonChain.append(JSONUtils.jsonEscape(chain.hashes[i]));
                             jsonChain.append("\"");
                         }
-                        pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
                         new TrustTest(chain).test(pw);
+                        pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
                     }
                     hash = chain.hashCode();
                 }

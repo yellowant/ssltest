@@ -81,6 +81,10 @@ public class CertificateTestService extends TestService {
         }
 
         public void put(CertificateWrapper wrap) {
+            CertificateWrapper cw = get(wrap.getHash());
+            if (cw != null && cw.getIssuer() != null && wrap.getIssuer() == null) {
+                return;
+            }
             if (putInternal(wrap)) {
                 String hash = wrap.getHash();
 

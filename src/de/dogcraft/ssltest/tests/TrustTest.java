@@ -1,9 +1,11 @@
 package de.dogcraft.ssltest.tests;
 
+import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -138,7 +140,15 @@ public class TrustTest {
             if (last != null) {
                 out.pushCert(last = new CertificateWrapper(c.getC(), last));
             } else {
-                out.pushCert(last = new CertificateWrapper(c.getC()));
+                try {
+                    if (Arrays.equals(c.getC().getIssuer().getEncoded(), c.getC().getSubject().getEncoded())) {
+                        out.pushCert(last = new CertificateWrapper(c.getC()));
+                    } else {
+                        out.pushCert(last = new CertificateWrapper(c.getC(), null));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         StringBuffer json = new StringBuffer();
