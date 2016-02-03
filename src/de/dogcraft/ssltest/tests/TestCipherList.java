@@ -121,8 +121,10 @@ public class TestCipherList {
                             jsonChain.append(JSONUtils.jsonEscape(chain.hashes[i]));
                             jsonChain.append("\"");
                         }
-                        new TrustTest(chain).test(pw);
+                        TrustTest tt = new TrustTest(chain);
+                        tt.test(pw);
                         pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
+                        tt.printChains(pw);
                     }
                     hash = chain.hashCode();
                 }

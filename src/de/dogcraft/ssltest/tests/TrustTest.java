@@ -94,6 +94,8 @@ public class TrustTest {
 
     private static final CertificateIndex ci = new CertificateIndex();
 
+    private LinkedList<String> str = new LinkedList<>();
+
     CertificateList chain;
 
     public TrustTest(CertificateList chain) {
@@ -175,6 +177,12 @@ public class TrustTest {
             json.append("\"" + t.getName() + "\"");
         }
         json.append("]}");
-        out.outputEvent("trustChain", json.toString());
+        str.add(json.toString());
+    }
+
+    public void printChains(TestOutput out) {
+        for (String string : str) {
+            out.outputEvent("trustChain", string);
+        }
     }
 }

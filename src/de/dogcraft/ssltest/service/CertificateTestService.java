@@ -97,6 +97,7 @@ public class CertificateTestService extends TestService {
 
         private void store(CertificateWrapper wrap, File f) {
             f.getParentFile().mkdirs();
+            System.out.println(f.getParentFile());
 
             try (Writer w = new OutputStreamWriter(new FileOutputStream(f), "UTF-8")) {
                 if (wrap.isSelfsigned()) {

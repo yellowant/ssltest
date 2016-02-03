@@ -142,7 +142,6 @@ public class RevocationChecks {
                         validity = false;
                     } else {
                         try {
-                            System.out.println(cer);
                             c.verify(cer.getPublicKey());
                         } catch (GeneralSecurityException e) {
                             e.printStackTrace();
