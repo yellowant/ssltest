@@ -52,7 +52,7 @@ public class CertificateTestService extends TestService {
 
                 String[] parts = b.toString().split("\n", 2);
                 if ( !parts[0].startsWith("issuer:")) {
-                    throw new IOException("Malformed Header!");
+                    throw new IOException("Malformed Header!: " + parts[0]);
                 }
                 String fp = parts[0].substring("issuer:".length());
 
@@ -62,6 +62,8 @@ public class CertificateTestService extends TestService {
                 CertificateWrapper cw;
                 if (fp.equals("self")) {
                     cw = new CertificateWrapper(c);
+                } else if (fp.equals("null")) {
+                    cw = new CertificateWrapper(c, null);
                 } else {
                     cw = new CertificateWrapper(c, recover(getPath(fp)));
                 }
@@ -102,9 +104,11 @@ public class CertificateTestService extends TestService {
             try (Writer w = new OutputStreamWriter(new FileOutputStream(f), "UTF-8")) {
                 if (wrap.isSelfsigned()) {
                     w.write("issuer:self\n");
-                } else {
+                } else if (wrap.getIssuerWrapper() != null) {
                     w.write("issuer:" + wrap.getIssuerWrapper().getHash() + "\n");
                     store(wrap.getIssuerWrapper(), getPath(wrap.getIssuerWrapper().getHash()));
+                } else {
+                    w.write("issuer:null\n");
                 }
                 w.write(PEM.encode("CERTIFICATE", wrap.getC().getEncoded()));
                 w.write("\n");

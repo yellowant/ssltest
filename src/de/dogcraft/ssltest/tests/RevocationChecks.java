@@ -80,15 +80,15 @@ public class RevocationChecks {
                     }
 
                     String url = DERIA5String.getInstance(n.getName()).getString();
+                    String jurl = JSONUtils.jsonEscape(url);
+                    pw.outputEvent("crl", String.format("{\"url\": \"%s\", \"issuer\": \"%s\"}",//
+                            jurl, JSONUtils.jsonEscape(distributionPoint.getCRLIssuer() == null ? "null" : distributionPoint.getCRLIssuer().toString())));
                     if ( !url.startsWith("http://") && !url.startsWith("https://")) {
                         pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", JSONUtils.jsonEscape(url), "protocol not understood"));
                         continue;
                     }
                     try {
                         URL u = new URL(url);
-                        String jurl = JSONUtils.jsonEscape(url);
-                        pw.outputEvent("crl", String.format("{\"url\": \"%s\", \"issuer\": \"%s\"}",//
-                                jurl, JSONUtils.jsonEscape(distributionPoint.getCRLIssuer() == null ? "null" : distributionPoint.getCRLIssuer().toString())));
                         pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"downloading\"}", jurl));
                         byte[] crl = crls.get(url);
                         try {
@@ -135,19 +135,25 @@ public class RevocationChecks {
                         jurl, Integer.toString(crl.length), Integer.toString(ct), sdf.format(c.getThisUpdate()), sdf.format(c.getNextUpdate())));
                 boolean validity = true;
                 try {
-                    Certificate cer = CertificateFactory.getInstance("X509").generateCertificate(new ByteArrayInputStream(cert.getIssuer().getEncoded()));
-                    if ( !Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded())) {
-                        pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"issuer mismatch\"}",//
+                    if (cert.getIssuer() == null) {
+                        pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"issuer certificate not found\"}",//
                                 jurl));
                         validity = false;
                     } else {
-                        try {
-                            c.verify(cer.getPublicKey());
-                        } catch (GeneralSecurityException e) {
-                            e.printStackTrace();
-                            pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"signature invalid\"}",//
+                        Certificate cer = CertificateFactory.getInstance("X509").generateCertificate(new ByteArrayInputStream(cert.getIssuer().getEncoded()));
+                        if ( !Arrays.equals(c.getIssuerX500Principal().getEncoded(), tbs.getIssuer().getEncoded())) {
+                            pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"issuer mismatch\"}",//
                                     jurl));
                             validity = false;
+                        } else {
+                            try {
+                                c.verify(cer.getPublicKey());
+                            } catch (GeneralSecurityException e) {
+                                e.printStackTrace();
+                                pw.outputEvent("crlValidity", String.format("{\"url\": \"%s\", \"status\":\"signature invalid\"}",//
+                                        jurl));
+                                validity = false;
+                            }
                         }
                     }
                 } catch (CertificateException e1) {
@@ -178,6 +184,7 @@ public class RevocationChecks {
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } catch (CRLException e) {
+            status = "parsing error";
             e.printStackTrace();
         }
         pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", jurl, status));
@@ -191,8 +198,13 @@ public class RevocationChecks {
         AlgorithmIdentifier HASH_OID = new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1);
         // TODO test other algorithms
         try {
+            if (c.getIssuer() == null) {
+                pw.outputEvent("OCSP", String.format("{ \"url\": \"%s\", \"state\": \"%s\", \"request\":null, \"response\":null }", //
+                        url, "Issuer Certificate not found"));
+                return;
+            }
             MessageDigest md = MessageDigest.getInstance(HASH_TYPE);
-            byte[] nameHash = md.digest(c.getIssuer().getSubject().getEncoded());
+            byte[] nameHash = md.digest(c.getC().getIssuer().getEncoded());
             md.reset();
             byte[] keyHash = md.digest(c.getIssuer().getSubjectPublicKeyInfo().getPublicKeyData().getBytes());
             CertID ci = new CertID(HASH_OID, new DEROctetString(nameHash), new DEROctetString(keyHash), tbs.getSerialNumber());

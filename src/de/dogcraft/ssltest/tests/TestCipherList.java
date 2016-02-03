@@ -120,10 +120,14 @@ public class TestCipherList {
                             jsonChain.append("\"");
                             jsonChain.append(JSONUtils.jsonEscape(chain.hashes[i]));
                             jsonChain.append("\"");
+                            pw.pushCert(chain.content[i]);
                         }
                         TrustTest tt = new TrustTest(chain);
                         tt.test(pw);
                         pw.outputEvent("chain", "{\"id\":" + chain.hashCode() + ", \"content\":[" + jsonChain.toString() + "]}");
+                        for (CertificateWrapper certificateList : chain.content) {
+
+                        }
                         tt.printChains(pw);
                     }
                     hash = chain.hashCode();
@@ -180,7 +184,11 @@ public class TestCipherList {
             for (int i = content.length - 1; i >= 0; i--) {
                 md.reset();
                 if (i + 1 >= content.length) {
-                    this.content[i] = new CertificateWrapper(content[i]);
+                    if (Arrays.equals(content[i].getIssuer().getEncoded(), content[i].getSubject().getEncoded())) {
+                        this.content[i] = new CertificateWrapper(content[i]);
+                    } else {
+                        this.content[i] = new CertificateWrapper(content[i], null);
+                    }
                 } else {
                     this.content[i] = new CertificateWrapper(content[i], this.content[i + 1]);
                 }

@@ -103,11 +103,11 @@ public class CertificateWrapper {
     }
 
     public Certificate getIssuer() {
-        return issuer.getC();
+        return issuer == null ? null : issuer.getC();
     }
 
     public boolean isSelfsigned() {
-        return issuer.equals(this);
+        return issuer != null && issuer.equals(this);
     }
 
     public CertificateWrapper getIssuerWrapper() {
