@@ -12,13 +12,16 @@ import org.bouncycastle.crypto.tls.AlertLevel;
 import org.bouncycastle.crypto.tls.BugTestingTLSClient.CertificateObserver;
 import org.bouncycastle.crypto.tls.CipherSuite;
 import org.bouncycastle.crypto.tls.DefaultTlsClient;
+import org.bouncycastle.crypto.tls.EncryptionAlgorithm;
 import org.bouncycastle.crypto.tls.HeartbeatExtension;
 import org.bouncycastle.crypto.tls.HeartbeatMode;
+import org.bouncycastle.crypto.tls.MACAlgorithm;
 import org.bouncycastle.crypto.tls.NameType;
 import org.bouncycastle.crypto.tls.ServerName;
 import org.bouncycastle.crypto.tls.ServerNameList;
 import org.bouncycastle.crypto.tls.ServerOnlyTlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsAuthentication;
+import org.bouncycastle.crypto.tls.TlsCipher;
 import org.bouncycastle.crypto.tls.TlsECCUtils;
 import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 import org.bouncycastle.crypto.tls.TlsFatalAlert;
@@ -68,11 +71,32 @@ public class CipherProbingClient extends DefaultTlsClient {
             return super.getKeyExchange();
         } catch (TlsFatalAlert t) {
             String s = TestCipherList.resolveCipher(selectedCipherSuite);
+            switch (selectedCipherSuite) {
+            case CipherSuite.TLS_RSA_WITH_IDEA_CBC_SHA:
+                return createRSAKeyExchange();
+            }
             if (s.startsWith("TLS_RSA_EXPORT_") || s.startsWith("TLS_DH_anon_") || s.startsWith("TLS_ECDH_anon_") || s.startsWith("TLS_PSK_") || s.startsWith("TLS_SRP_")) {
                 brokenCipher = true;
                 throw new BrokenCipherException();
             }
             throw t;
+        }
+    }
+
+    @Override
+    public TlsCipher getCipher() throws IOException {
+        try {
+            return super.getCipher();
+        } catch (TlsFatalAlert e) {
+            switch (selectedCipherSuite) {
+            case CipherSuite.TLS_RSA_WITH_IDEA_CBC_SHA:
+                return cipherFactory.createCipher(context, EncryptionAlgorithm.IDEA_CBC, MACAlgorithm.hmac_sha1);
+            }
+            if (selectedCipherSuite != 0) {
+                System.err.println(TestCipherList.resolveCipher(selectedCipherSuite));
+                e.printStackTrace();
+            }
+            throw e;
         }
     }
 
