@@ -1,4 +1,4 @@
-function calculateSymmeq(type, sizeval, elem, clazz){
+function calculateSymmeq(type, sizeval, elem, clazz) {
 	var sizeclass = "unknown";
 	if ((type === "ECDSA")
 			|| (type === "ECDH")) {
@@ -36,9 +36,8 @@ function calculateSymmeq(type, sizeval, elem, clazz){
 	} else if (sizeval > 0) {
 		sizeclass = "40less";
 	}
-	
-	elem.setAttribute("class", clazz + " symmeq-"
-			+ sizeclass);
+
+	elem.setAttribute("class", clazz + " symmeq-" + sizeclass);
 }
 
 
@@ -47,8 +46,10 @@ function Rater() {
 			"#ffeedd", "#ffffdd", "#f7ffdd", "#eeffdd", "#ddffdd", "#ccffcc" ];
 	var colorsfg = [ "#ee2222", "#dd3333", "#dd5522", "#dd8822", "#ddaa00",
 			"#eedd00", "#aadd00", "#66cc00", "#44aa00", "#228800", "#007700" ];
-	this.generateText = function(){
+
+	this.generateText = function() {
 		var root = document.createElement("div");
+
 		for (var i in colorsbg) {
 			var span = document.createElement("dav");
 			span.setAttribute("style", "background-color: " + colorsbg[i]);
@@ -57,6 +58,7 @@ function Rater() {
 			span.appendChild(document.createTextNode("a"));
 			root.appendChild(span);
 		}
+
 		for (var i in colorsfg) {
 			var span = document.createElement("dav");
 			span.appendChild(document.createTextNode("a"));
@@ -65,8 +67,10 @@ function Rater() {
 			span.style.height="100px";
 			root.appendChild(span);
 		}
+
 		return root;
 	}
+
 	this.rateSignature = function(hash, alg) {
 		if (hash == "MD5") {
 			return 0;
@@ -82,16 +86,20 @@ function Rater() {
 			return -1;
 		}
 	};
+
 	this.colorize = function(val) {
 		var idx = Math.floor(val * (colorsbg.length - 1));
 		return colorsbg[idx];
 	};
+
 	this.colorizeFG = function(val) {
 		var idx = Math.floor(val * (colorsfg.length - 1));
 		return colorsfg[idx];
 	};
+
 	this.widthize = function(val) {
 		return 2 + val * 8;
 	};
 }
+
 var rater = new Rater();
