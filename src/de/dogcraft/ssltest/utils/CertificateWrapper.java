@@ -6,7 +6,10 @@ import java.security.MessageDigest;
 
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
 
 public class CertificateWrapper {
 
@@ -112,5 +115,18 @@ public class CertificateWrapper {
 
     public CertificateWrapper getIssuerWrapper() {
         return issuer;
+    }
+
+    public boolean isCA() {
+        Extensions extensions = c.getTBSCertificate().getExtensions();
+        if (extensions == null) {
+            return false;
+        }
+        Extension i = extensions.getExtension(Extension.basicConstraints);
+        if (i == null) {
+            return false;
+        }
+        BasicConstraints b = BasicConstraints.getInstance(i.getParsedValue());
+        return b.isCA();
     }
 }

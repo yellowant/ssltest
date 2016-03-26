@@ -9,7 +9,13 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,14 +29,61 @@ import de.dogcraft.ssltest.utils.PEM;
 
 public class CertificateTestService extends TestService {
 
+    public static class CACache {
+
+        private final Set<CertificateWrapper> CAs = new HashSet<>();
+
+        private final Set<CertificateWrapper> unmod = Collections.unmodifiableSet(CAs);
+
+        public CACache(CertCache cc) {
+            load(cc, new File("crtcache"), "");
+            cc.clean();
+        }
+
+        public Set<CertificateWrapper> getCAs() {
+            return unmod;
+        }
+
+        private void load(CertCache cc, File file, String string) {
+            for (File f : file.listFiles()) {
+                if (f.isDirectory()) {
+                    load(cc, f, string + f.getName());
+                } else if (f.getName().endsWith(".crt")) {
+                    String fp = string + f.getName().split("\\.", 2)[0];
+                    CertificateWrapper cw = cc.get(fp);
+                    if (cw == null) {
+                        System.out.println("Not found?: " + f + " as " + fp);
+                        continue;
+                    }
+                    wouldLike(cw);
+                } else {
+                    System.out.println("Malformed File?: " + f);
+                }
+            }
+        }
+
+        public void wouldLike(CertificateWrapper cw) {
+            if (cw.isCA()) {
+                synchronized (unmod) {
+                    CAs.add(cw);
+                }
+            }
+        }
+    }
+
     public static class CertCache {
 
-        private final HashMap<String, CertificateWrapper> cacheFingerprint = new HashMap<>();
+        private final HashMap<String, WeakReference<CertificateWrapper>> cacheFingerprint = new HashMap<>();
+
+        private long lastClean = System.currentTimeMillis();
 
         public CertificateWrapper get(String fp) {
-            CertificateWrapper cw = cacheFingerprint.get(fp);
-            if (cw != null) {
-                return cw;
+            WeakReference<CertificateWrapper> cw1 = cacheFingerprint.get(fp);
+            if (cw1 != null) {
+                CertificateWrapper cw = cw1.get();
+                if (cw != null) {
+                    return cw;
+                }
             }
 
             File f = getPath(fp);
@@ -39,6 +92,19 @@ public class CertificateTestService extends TestService {
             }
 
             return null;
+        }
+
+        public synchronized void clean() {
+            if (System.currentTimeMillis() - lastClean < 60 * 60 * 1000) {
+                return;
+            }
+            lastClean = System.currentTimeMillis();
+            Iterator<Entry<String, WeakReference<CertificateWrapper>>> i = cacheFingerprint.entrySet().iterator();
+            while (i.hasNext()) {
+                if (i.next().getValue().get() == null) {
+                    i.remove();
+                }
+            }
         }
 
         private CertificateWrapper recover(File f) {
@@ -79,7 +145,7 @@ public class CertificateTestService extends TestService {
         }
 
         private boolean putInternal(CertificateWrapper cw) {
-            return cacheFingerprint.put(cw.getHash(), cw) == null;
+            return cacheFingerprint.put(cw.getHash(), new WeakReference<CertificateWrapper>(cw)) == null;
         }
 
         public void put(CertificateWrapper wrap) {
@@ -88,6 +154,7 @@ public class CertificateTestService extends TestService {
                 return;
             }
             if (putInternal(wrap)) {
+                ca.wouldLike(wrap);
                 String hash = wrap.getHash();
 
                 File f = getPath(hash);
@@ -125,6 +192,8 @@ public class CertificateTestService extends TestService {
     private static final HashMap<String, CertificateTestingSession> cacheSession = new HashMap<>();
 
     private static final CertCache cache = new CertCache();
+
+    private static final CACache ca = new CACache(cache);
 
     private static final Pattern patternFingerprint = Pattern.compile("[0-9a-f]{128}", Pattern.CASE_INSENSITIVE);
 
@@ -186,6 +255,10 @@ public class CertificateTestService extends TestService {
         synchronized (cache) {
             cache.put(wrap);
         }
+    }
+
+    public static Set<CertificateWrapper> getCAs() {
+        return ca.getCAs();
     }
 
 }

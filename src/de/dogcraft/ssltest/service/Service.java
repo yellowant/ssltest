@@ -10,9 +10,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import de.dogcraft.ssltest.KnownDHGroup;
+import de.dogcraft.ssltest.utils.TruststoreGroup;
+
 public class Service extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
+
+    @Override
+    public void init() throws ServletException {
+        TruststoreGroup.getAnyTruststore();
+        System.out.println("Trustored Inited");
+        KnownDHGroup.lookup(null);
+        System.out.println("DH Params Inited");
+        System.out.println(CertificateTestService.getCAs().size() + " CAs loaded");
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

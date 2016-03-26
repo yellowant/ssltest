@@ -31,9 +31,12 @@ import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
 
+import de.dogcraft.ssltest.service.CertificateTestService;
 import de.dogcraft.ssltest.tests.TestCipherList.CertificateList;
 import de.dogcraft.ssltest.utils.CertificateWrapper;
 import de.dogcraft.ssltest.utils.IOUtils;
+import de.dogcraft.ssltest.utils.JSONUtils;
+import de.dogcraft.ssltest.utils.PEM;
 import de.dogcraft.ssltest.utils.Truststore;
 import de.dogcraft.ssltest.utils.TruststoreGroup;
 
@@ -124,11 +127,11 @@ public class TrustTest {
         CertificateWrapper e = new CertificateWrapper(toTrust, null);
         used.add(e);
 
-        buildChains(out, e, local, used);
+        buildChains(out, e, local, used, false);
 
     }
 
-    private void buildChains(TestOutput out, CertificateWrapper toTrustW, CertificateIndex local, LinkedList<CertificateWrapper> used) {
+    private void buildChains(TestOutput out, CertificateWrapper toTrustW, CertificateIndex local, LinkedList<CertificateWrapper> used, boolean trusted) {
         Certificate toTrust = toTrustW.getC();
         Set<CertificateWrapper> localC = local.getIssuers(toTrust);
         Set<CertificateWrapper> globalC = ci.getIssuers(toTrust);
@@ -138,17 +141,16 @@ public class TrustTest {
             }
             emitEdge(toTrustW, certificate, "chain");
             used.add(certificate);
-            buildChains(out, certificate, local, used);
+            buildChains(out, certificate, local, used, trusted);
             used.removeLast();
         }
-        for (Certificate c : getCAIssuer(toTrust)) {
+        for (Certificate c : getCAIssuer(toTrust, out)) {
             CertificateWrapper e = new CertificateWrapper(c, null);
             emitEdge(toTrustW, e, "issuer");
             used.add(e);
-            buildChains(out, e, local, used);
+            buildChains(out, e, local, used, trusted);
             used.removeLast();
         }
-
         for (CertificateWrapper certificate : globalC) {
             if (used.contains(certificate) || !isIssuerOf(toTrust, certificate.getC())) {
                 continue;
@@ -156,7 +158,26 @@ public class TrustTest {
             used.add(certificate);
             emitEdge(toTrustW, certificate, "trust");
             List<Truststore> trust = ci.getTrust(certificate);
-            emitChain(out, used, trust);
+            if ( !trusted) {
+                emitChain(out, used, trust);
+            }
+            buildChains(out, certificate, local, used, true);
+            used.removeLast();
+        }
+        Set<CertificateWrapper> cAs = CertificateTestService.getCAs();
+        HashSet<CertificateWrapper> cacheFound = new HashSet<>();
+        synchronized (cAs) {
+            for (CertificateWrapper certificate : cAs) {
+                if (used.contains(certificate) || !isIssuerOf(toTrust, certificate.getC())) {
+                    continue;
+                }
+                cacheFound.add(certificate);
+            }
+        }
+        for (CertificateWrapper certificate : cacheFound) {
+            used.add(certificate);
+            emitEdge(toTrustW, certificate, "cached");
+            buildChains(out, certificate, local, used, true);
             used.removeLast();
         }
     }
@@ -165,7 +186,7 @@ public class TrustTest {
         edges.add("{\"chainId\":" + Integer.toString(chain.hashCode()) + ", \"from\":\"" + toTrust.getHash() + "\", \"to\":\"" + e.getHash() + "\", \"type\":\"" + type + "\"}");
     }
 
-    private List<Certificate> getCAIssuer(Certificate toTrust) {
+    private List<Certificate> getCAIssuer(Certificate toTrust, TestOutput out) {
         LinkedList<Certificate> l = new LinkedList<>();
         Extension ext = toTrust.getTBSCertificate().getExtensions().getExtension(Extension.authorityInfoAccess);
         if (ext == null)
@@ -178,13 +199,15 @@ public class TrustTest {
                 if (location.getTagNo() == GeneralName.uniformResourceIdentifier) {
                     String value = DERIA5String.getInstance(location.getName()).getString();
                     try {
-                        Certificate c = fetchCAIssuers(value);
+                        Certificate c = fetchCAIssuers(value, out);
                         if (isIssuerOf(toTrust, c)) {
                             l.add(c);
                         }
                     } catch (IllegalArgumentException e) {
+                        e.printStackTrace(System.out);
                         System.out.println("Fetching " + value + " failed");
                     } catch (IOException e) {
+                        e.printStackTrace(System.out);
                         System.out.println("Fetching " + value + " failed");
                     }
                 }
@@ -215,9 +238,13 @@ public class TrustTest {
         return false;
     }
 
-    private Certificate fetchCAIssuers(String value) throws IOException {
+    private Certificate fetchCAIssuers(String value, TestOutput out) throws IOException {
         URL u = new URL(value);
         byte[] data = IOUtils.get(u);
+        if (data[0] == '-') {
+            data = PEM.decode("CERTIFICATE", new String(data, "UTF-8"));
+            out.outputEvent("warning", "{\"msg\":\"" + JSONUtils.jsonEscape(value + " contains PEM-encoded cert.") + "\"}");
+        }
         return Certificate.getInstance(data);
 
     }
