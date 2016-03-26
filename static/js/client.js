@@ -628,8 +628,7 @@ function events() {
 		var chainModule = new (function() {
 			var chains = document.createElement("div");
 			var ChainGraphics = function() {
-				var width = 800,
-					height = 500;
+				var width = 800, height = 500;
 
 				var force = d3.layout.force()
 					.charge(-420)
@@ -641,26 +640,26 @@ function events() {
 				var nodeIdx = {};
 				var nodes = [];
 				var edges = [];
-				
+
 				var edgeId = {};
-				
+
 				this.render = function(tgt) {
 					svg = d3.select(tgt).append("svg")
 						.attr("width", width)
 						.attr("height", height);
 					svg.append("g").attr("class","links");
 					svg.append("svg:defs").selectAll("marker")
-			    	.data(["suit", "licensing", "resolved"])
-			    	.enter().append("svg:marker")
-			    	.attr("id", "markerid")
-			    	.attr("viewBox", "0 -5 10 10")
-			    	.attr("refX", 15)
-			    	.attr("refY", -1.5)
-			    	.attr("markerWidth", 3)
-			    	.attr("markerHeight", 3)
-			    	.attr("orient", "auto")
-			    		.append("svg:path")
-			    		.attr("d", "M0,-5L10,0L0,5");
+						.data(["suit", "licensing", "resolved"])
+						.enter().append("svg:marker")
+						.attr("id", "markerid")
+						.attr("viewBox", "0 -5 10 10")
+						.attr("refX", 15)
+						.attr("refY", -1.5)
+						.attr("markerWidth", 3)
+						.attr("markerHeight", 3)
+						.attr("orient", "auto")
+						.append("svg:path")
+						.attr("d", "M0,-5L10,0L0,5");
 					update();
 				};
 
@@ -680,21 +679,22 @@ function events() {
 						.attr("title", function(d){var w1 = ""; for(i in d.type){w1 += i+", "};return w1;})
 						.style("stroke-width", function(d) { return 10;/* Math.sqrt(d.value); */ });
 					link.exit().remove();
-			
+
 					var node = svg.selectAll(".node")
 						.data(nodes);
 					node.exit().remove();
 					var g = node.enter().append("g").attr("class", "node");
-					
+
 					g.append("circle")
 						.attr("r", 30)
 						.style("fill", function(d) { return d3.rgb("#FF0000"); });
 					g.call(force.drag);
 					g.append("a").append("text")
-					.each(function(d) {
+						.each(function(d) {
 							var a = certsModule.reference(d.name);
 							var t = a.firstChild;
 							a.removeChild(t);
+
 							this.appendChild(t);
 							this.parentNode.setAttributeNS("http://www.w3.org/1999/xlink", "href", a.getAttribute("href"));
 						});
@@ -706,20 +706,22 @@ function events() {
 							.attr("y2", function(d) { return d.target.y; });
 
 						node.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
-						
 					});
 				};
 
 				function getNode(id){
-			    if(nodeIdx[id] === undefined){
-			        var nd = {"name": id};
-			        nodeIdx[id] = nodeI;
-			        nodes[nodeI++] = nd;
-			    }
-			    return nodeIdx[id];
+					if(nodeIdx[id] === undefined) {
+						var nd = {"name": id};
+						nodeIdx[id] = nodeI;
+						nodes[nodeI++] = nd;
+					}
+
+					return nodeIdx[id];
 				}
+
 				function add(src, dest, type){
 					var k = src+"<->"+dest;
+
 					if(edgeId[k] === undefined) {
 						edgeId[k] = edgeI;
 						var e = {"source":getNode(src), "target":getNode(dest), "type":{}};
@@ -734,8 +736,9 @@ function events() {
 						}
 						e.node.setAttribute("title", w1);
 					}
+
 					update();
-				}	
+				}
 				this.addEdge = add;
 			};
 
@@ -784,9 +787,9 @@ function events() {
 				chainObjs[chain.chainId].elem.appendChild(trustChain);
 				//chainObjs[chain.chainId].graphics.add(chain);
 			});
+
 			stream.registerEvent("trustEdge", function(c, s, e) {
 				var chain = JSON.parse(e.data);
-
 
 				chainObjs[chain.chainId].graphics.addEdge(chain.from, chain.to, chain.type);
 			});
@@ -826,7 +829,6 @@ function events() {
 					}
 					tr.appendChild(td);
 					var td = document.createElement("td");
-
 					if(TLSExts[extId] == "heartbeat"){
 						td.appendChild(document.createTextNode(" heartbeat: "+ext[extId].tested.heartbeat+" heartbleed: "+ext[extId].tested.heartbleed));
 					}
