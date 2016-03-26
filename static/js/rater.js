@@ -90,5 +90,8 @@ function Rater() {
 		var idx = Math.floor(val * (colorsfg.length - 1));
 		return colorsfg[idx];
 	};
+	this.widthize = function(val) {
+		return 2 + val * 8;
+	};
 }
 var rater = new Rater();

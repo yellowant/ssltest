@@ -272,7 +272,7 @@ function events() {
 
 			var certificateLookup = {};
 
-			this.refData = function(hash, node) {
+			function ref0(hash){
 				var cert = certificateLookup[hash];
 
 				if (cert === undefined) {
@@ -298,6 +298,11 @@ function events() {
 					certificateLookup[hash] = cert;
 					registerOn(str);
 				}
+				return cert;
+			}
+			
+			this.refData = function(hash, node) {
+				var cert = ref0(hash);
 
 				var txt = node;
 				if(txt == null) txt = document.createTextNode("");
@@ -327,7 +332,7 @@ function events() {
 			}
 
 			this.setKeyClass = function(hash, elem, clazz) {
-				certificateLookup[hash].addUpdate(function(c) {
+				ref0(hash).addUpdate(function(c) {
 					if (c.key === undefined) {
 						return;
 					}
@@ -344,7 +349,7 @@ function events() {
 			};
 
 			this.rateSig = function(hash, elem) {
-				certificateLookup[hash].addUpdate(function(c) {
+				ref0(hash).addUpdate(function(c) {
 					if (c.key === undefined) {
 						return;
 					}
@@ -352,8 +357,8 @@ function events() {
 					var sig0 = sigOIDs[c.key.sig];
 					var sig = sig0.split("WITH");
 
-					elem.style.stroke = rater.colorizeFG(rater.rateSignature(sig[0], sig[1]));
-					elem.setAttribute("title", sig0);
+					elem.setAttribute("stroke-width", rater.widthize(rater.rateSignature(sig[0], sig[1])));
+					//elem.setAttribute("title", sig0);
 				});
 			};
 
@@ -631,8 +636,8 @@ function events() {
 				var width = 800, height = 500;
 
 				var force = d3.layout.force()
-					.charge(-420)
-					.linkDistance(120)//.gravity(0.1).friction(0.03)
+					.charge(-520)
+					.linkDistance(200)//.gravity(0.1).friction(0.03)
 					.size([width, height]);
 				var svg = null;
 				var nodeI = 0;
@@ -649,17 +654,18 @@ function events() {
 						.attr("height", height);
 					svg.append("g").attr("class","links");
 					svg.append("svg:defs").selectAll("marker")
-						.data(["suit", "licensing", "resolved"])
+						.data(["mark"])
 						.enter().append("svg:marker")
 						.attr("id", "markerid")
 						.attr("viewBox", "0 -5 10 10")
-						.attr("refX", 15)
-						.attr("refY", -1.5)
-						.attr("markerWidth", 3)
-						.attr("markerHeight", 3)
+						.attr("refX", 10)
+						.attr("refY", 0)
+						.attr("markerWidth", 15)
+						.attr("markerHeight", 15)
 						.attr("orient", "auto")
+						.attr("markerUnits", "userSpaceOnUse")
 						.append("svg:path")
-						.attr("d", "M0,-5L10,0L0,5");
+						.attr("d", "M10,-5L0,0L10,5");
 					update();
 				};
 
@@ -673,11 +679,8 @@ function events() {
 					var link = svg.select(".links").selectAll(".link")
 						.data(edges);
 					link.enter().append("line")
-						.attr("class", "link")
-						.attr("marker-end", "url(#markerid)")
-						.each(function(d){d.node = this;})
-						.attr("title", function(d){var w1 = ""; for(i in d.type){w1 += i+", "};return w1;})
-						.style("stroke-width", function(d) { return 10;/* Math.sqrt(d.value); */ });
+						.attr("marker-start", "url(#markerid)")
+						.each(function(d){d.node = this;certsModule.rateSig(d.source.name, this);});
 					link.exit().remove();
 
 					var node = svg.selectAll(".node")
@@ -687,7 +690,9 @@ function events() {
 
 					g.append("circle")
 						.attr("r", 30)
-						.style("fill", function(d) { return d3.rgb("#FF0000"); });
+						.each(function(d){d.node = this; certsModule.setKeyClass(d.name,this,"cert-trust")});
+//						.each(function(d){d.node = this;});
+					
 					g.call(force.drag);
 					g.append("a").append("text")
 						.each(function(d) {
@@ -700,10 +705,11 @@ function events() {
 						});
 
 					force.on("tick", function() {
-						link.attr("x1", function(d) { return d.source.x; })
-							.attr("y1", function(d) { return d.source.y; })
-							.attr("x2", function(d) { return d.target.x; })
-							.attr("y2", function(d) { return d.target.y; });
+						link.each(function(d){function sq(v){return v*v;};d.len = Math.sqrt(sq(d.source.x-d.target.x)+sq(d.source.y-d.target.y));})
+							.attr("x1", function(d) { return d.source.x + (d.target.x - d.source.x)*(45/d.len); })
+							.attr("y1", function(d) { return d.source.y + (d.target.y - d.source.y)*(45/d.len); })
+							.attr("x2", function(d) { return d.target.x - (d.target.x - d.source.x)*(30/d.len); })
+							.attr("y2", function(d) { return d.target.y - (d.target.y - d.source.y)*(30/d.len); });
 
 						node.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
 					});
@@ -711,7 +717,7 @@ function events() {
 
 				function getNode(id){
 					if(nodeIdx[id] === undefined) {
-						var nd = {"name": id};
+						var nd = {"name": id, "dgr": 0, "out":{}};
 						nodeIdx[id] = nodeI;
 						nodes[nodeI++] = nd;
 					}
@@ -721,14 +727,16 @@ function events() {
 
 				function add(src, dest, type){
 					var k = src+"<->"+dest;
-
+					var n1 = nodes[getNode(src)];
 					if(edgeId[k] === undefined) {
 						edgeId[k] = edgeI;
 						var e = {"source":getNode(src), "target":getNode(dest), "type":{}};
+						n1.out[n1.dgr++] = e;
 						edges[edgeI++] = e;
 						e.type[type]="y";
 					} else {
 						var e = edges[edgeId[k]];
+						n1.out[n1.dgr++] = e;
 						e.type[type] = "y";
 						var w1 = "";
 						for(i in e.type){
@@ -738,6 +746,9 @@ function events() {
 					}
 
 					update();
+					var e = edges[edgeId[k]];
+					e.node.setAttribute("title", (function(d){var w1 = ""; for(i in d.type){w1 += i+", "};console.log(d.type);return w1;})(e));
+					e.node.setAttribute("class", (function(d){var w1 = "link"; for(i in d.type){w1 += " "+i};return w1;})(e));
 				}
 				this.addEdge = add;
 			};

@@ -288,3 +288,27 @@ span.error-sign{
   stroke: #999;
   stroke-opacity: .6;
 }
+
+.link.cached {
+  stroke-dasharray: 10 5;
+}
+.link.cached.trust, .link.cached.chain, .link.cached.issuer {
+  stroke-dasharray: 10 0;
+}
+
+.link.issuer  {
+  stroke: #22e;
+}
+.link.trust  {
+  stroke: #9e2;
+}
+.link.chain  {
+  stroke: #2e2;
+}
+
+.cert-trust{
+	stroke: #000;
+}
+.node a text{
+	text-anchor: middle;
+}
