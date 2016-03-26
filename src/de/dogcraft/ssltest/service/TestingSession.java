@@ -58,4 +58,8 @@ public abstract class TestingSession extends TestOutput {
     }
 
     public abstract void performTest();
+
+    public synchronized boolean hasEnded() {
+        return ended;
+    }
 }

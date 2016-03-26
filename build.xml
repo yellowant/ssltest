@@ -22,6 +22,9 @@
         <get skipexisting="true"
             src="https://www.bouncycastle.org/download/bcprov-jdk15on-151.jar"
             dest="build-files/" />
+        <get skipexisting="true"
+            src="https://d3js.org/d3.v3.min.js"
+            dest="static/js" />
         <jar destfile="libs/bcprov-jdk15on-151.jar">
             <zipfileset src="build-files/bcprov-jdk15on-151.jar"
                 excludes="META-INF/BCKEY.*" />

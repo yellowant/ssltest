@@ -272,7 +272,7 @@ function events() {
 
 			var certificateLookup = {};
 
-			this.refData = function(hash) {
+			this.refData = function(hash, node) {
 				var cert = certificateLookup[hash];
 
 				if (cert === undefined) {
@@ -299,7 +299,8 @@ function events() {
 					registerOn(str);
 				}
 
-				var txt = document.createTextNode("");
+				var txt = node;
+				if(txt == null) txt = document.createTextNode("");
 				cert.addUpdate(function(cert) {
 					var name = abbrevHash(hash);
 					if (cert !== undefined && cert.dn !== undefined) {
@@ -627,120 +628,115 @@ function events() {
 		var chainModule = new (function() {
 			var chains = document.createElement("div");
 			var ChainGraphics = function() {
-				var trustGraph = {};
-				var first = "";
-				var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-				svg.style.width = "100%";
+				var width = 800,
+					height = 500;
 
-				this.render = function() {
-					return svg;
+				var force = d3.layout.force()
+					.charge(-420)
+					.linkDistance(120)//.gravity(0.1).friction(0.03)
+					.size([width, height]);
+				var svg = null;
+				var nodeI = 0;
+				var edgeI = 0;
+				var nodeIdx = {};
+				var nodes = [];
+				var edges = [];
+				
+				var edgeId = {};
+				
+				this.render = function(tgt) {
+					svg = d3.select(tgt).append("svg")
+						.attr("width", width)
+						.attr("height", height);
+					svg.append("g").attr("class","links");
+					svg.append("svg:defs").selectAll("marker")
+			    	.data(["suit", "licensing", "resolved"])
+			    	.enter().append("svg:marker")
+			    	.attr("id", "markerid")
+			    	.attr("viewBox", "0 -5 10 10")
+			    	.attr("refX", 15)
+			    	.attr("refY", -1.5)
+			    	.attr("markerWidth", 3)
+			    	.attr("markerHeight", 3)
+			    	.attr("orient", "auto")
+			    		.append("svg:path")
+			    		.attr("d", "M0,-5L10,0L0,5");
+					update();
 				};
 
 				var update = function() {
-					svg.innerHTML = "";
-					var lines = document.createElementNS("http://www.w3.org/2000/svg", "g");
-					svg.appendChild(lines);
+					if(svg==null) return;
+					force
+						.nodes(nodes)
+						.links(edges)
+						.start();
 
-					var order = {};
-					order[first] = 0;
-					var found = {};
-					found[first] = 'y';
-					var set = {};
-					set[first] = 'y';
+					var link = svg.select(".links").selectAll(".link")
+						.data(edges);
+					link.enter().append("line")
+						.attr("class", "link")
+						.attr("marker-end", "url(#markerid)")
+						.each(function(d){d.node = this;})
+						.attr("title", function(d){var w1 = ""; for(i in d.type){w1 += i+", "};return w1;})
+						.style("stroke-width", function(d) { return 10;/* Math.sqrt(d.value); */ });
+					link.exit().remove();
+			
+					var node = svg.selectAll(".node")
+						.data(nodes);
+					node.exit().remove();
+					var g = node.enter().append("g").attr("class", "node");
+					
+					g.append("circle")
+						.attr("r", 30)
+						.style("fill", function(d) { return d3.rgb("#FF0000"); });
+					g.call(force.drag);
+					g.append("a").append("text")
+					.each(function(d) {
+							var a = certsModule.reference(d.name);
+							var t = a.firstChild;
+							a.removeChild(t);
+							this.appendChild(t);
+							this.parentNode.setAttributeNS("http://www.w3.org/1999/xlink", "href", a.getAttribute("href"));
+						});
 
-					var ctr = 1;
-					var len = 1;
-					var maxheight = 1;
-					var positions = {};
+					force.on("tick", function() {
+						link.attr("x1", function(d) { return d.source.x; })
+							.attr("y1", function(d) { return d.source.y; })
+							.attr("x2", function(d) { return d.target.x; })
+							.attr("y2", function(d) { return d.target.y; });
 
-					while (len > 0) {
-						var next = {};
-						len = 0;
-
-						var height = 0;
-
-						for (key in set) {
-							var x = 115 + (ctr - 1) * 270;
-							var y = 63 + (height++) * 170;
-
-							var rect = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-							rect.setAttribute("cx", x);
-							rect.setAttribute("cy", y);
-							rect.setAttribute("rx", "110");
-							rect.setAttribute("ry", "40");
-							rect.setAttribute("style", "stroke: black; stroke-width: 3px");
-							certsModule.setKeyClass(key, rect, "cert-trust");
-							svg.appendChild(rect);
-
-							var ref = certsModule.refData(key);
-
-							var anc = document.createElementNS("http://www.w3.org/2000/svg", "a");
-							anc.setAttributeNS("http://www.w3.org/1999/xlink", "href", ref[1]);
-							anc.onclick = hrefjump;
-
-							var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-							text.setAttribute("x", x);
-							text.setAttribute("y", y);
-							text.setAttribute("style", "fill: black; text-anchor: middle; dominant-baseline: middle");
-							text.appendChild(ref[0]);
-							anc.appendChild(text);
-							svg.appendChild(anc);
-
-							positions[key] = [ x, y ];
-
-							for (target in trustGraph[key]) {
-								if (found[target] !== undefined || target === "undefined") {
-									continue;
-								}
-
-								found[target] = 'y';
-								next[target] = 'y';
-								order[target] = ctr;
-
-								len++;
-							}
-						}
-
-						maxheight = Math.max(maxheight, height);
-						set = next;
-						ctr++;
-					}
-
-					svg.style.height = maxheight * 170 + "px";
-
-					for (key in trustGraph) {
-						for (i in trustGraph[key]) {
-							if (i === "undefined") {
-								continue;
-							}
-
-							var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-							line.setAttribute("x1", positions[key][0]);
-							line.setAttribute("y1", positions[key][1]);
-							line.setAttribute("x2", positions[i][0]);
-							line.setAttribute("y2", positions[i][1]);
-							line.setAttribute("style", "stroke-width:2px");
-							certsModule.rateSig(key, line);
-							lines.appendChild(line);
-						}
-					}
+						node.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
+						
+					});
 				};
 
-				this.add = function(chain) {
-					first = chain.certs[0];
-
-					for ( var i in chain.certs) {
-						var cert = chain.certs[i];
-
-						if (trustGraph[cert] === undefined) {
-							trustGraph[cert] = {};
+				function getNode(id){
+			    if(nodeIdx[id] === undefined){
+			        var nd = {"name": id};
+			        nodeIdx[id] = nodeI;
+			        nodes[nodeI++] = nd;
+			    }
+			    return nodeIdx[id];
+				}
+				function add(src, dest, type){
+					var k = src+"<->"+dest;
+					if(edgeId[k] === undefined) {
+						edgeId[k] = edgeI;
+						var e = {"source":getNode(src), "target":getNode(dest), "type":{}};
+						edges[edgeI++] = e;
+						e.type[type]="y";
+					} else {
+						var e = edges[edgeId[k]];
+						e.type[type] = "y";
+						var w1 = "";
+						for(i in e.type){
+							w1 += i+", "
 						}
-
-						(trustGraph[cert])[chain.certs[(i | 0) + 1]] = 'y';
+						e.node.setAttribute("title", w1);
 					}
-
 					update();
-				};
+				}	
+				this.addEdge = add;
 			};
 
 			var chainObjs = {};
@@ -760,7 +756,7 @@ function events() {
 					graphics : graphics
 				};
 
-				chains.appendChild(graphics.render());
+				graphics.render(chains);
 				chains.appendChild(chainElem);
 			});
 
@@ -786,7 +782,13 @@ function events() {
 				trustChain.appendChild(stores.render());
 
 				chainObjs[chain.chainId].elem.appendChild(trustChain);
-				chainObjs[chain.chainId].graphics.add(chain);
+				//chainObjs[chain.chainId].graphics.add(chain);
+			});
+			stream.registerEvent("trustEdge", function(c, s, e) {
+				var chain = JSON.parse(e.data);
+
+
+				chainObjs[chain.chainId].graphics.addEdge(chain.from, chain.to, chain.type);
 			});
 
 			chains.appendChild(createHeader("Chains"));

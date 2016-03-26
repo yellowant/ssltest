@@ -36,7 +36,7 @@ class ServerTestService extends TestService {
                 String ip = req.getParameter("ip");
                 String url = req.getPathInfo() + "?domain=" + URLEncoder.encode(u.getHost(), "UTF-8")//
                         + "&port=" + URLEncoder.encode(port, "UTF-8")//
-                        + (ip != null ? "&ip" + URLEncoder.encode(ip, "UTF-8") : "");
+                        + (ip != null ? "&ip=" + URLEncoder.encode(ip, "UTF-8") : "");
 
                 resp.sendRedirect(url);
                 return;
@@ -70,11 +70,10 @@ class ServerTestService extends TestService {
             resp.setStatus(404, "Host not found at this location");
         }
 
-        PrintStream ps = new PrintStream(resp.getOutputStream(), true);
-        ps.println("retry: 10000");
-        ps.println();
-
         if (null == ip) {
+            PrintStream ps = new PrintStream(resp.getOutputStream(), true);
+            ps.println("retry: 10000");
+            ps.println();
             ps.println("event: streamID");
             ps.println("data: {\"host\":\"" + JSONUtils.jsonEscape(u.getHost()) + "\", "//
                     + "\"port\":" + u.getPort() + ", \"proto\":\"" + JSONUtils.jsonEscape(u.getProtocol()) + "\"}");
@@ -96,6 +95,9 @@ class ServerTestService extends TestService {
             ps.println();
             return;
         } else if ( !iplist.contains(ip)) {
+            PrintStream ps = new PrintStream(resp.getOutputStream(), true);
+            ps.println("retry: 10000");
+            ps.println();
             ps.println("event: eof");
             ps.println("data: {");
             ps.println("data: msg: \"Host not found at this address.\"");
@@ -116,10 +118,27 @@ class ServerTestService extends TestService {
                     to = new ServerTestingSession(u.getHost(), ip, u.getPort(), u.getProtocol());
                     cacheTestSession.put(lookupKey, to);
                 } else {
-                    observingOnly = true;
+                    if (req.getParameter("refresh") != null) {
+                        if ( !to.hasEnded()) {
+                            String url = req.getPathInfo() + "?domain=" + URLEncoder.encode(u.getHost(), "UTF-8")//
+                                    + "&port=" + URLEncoder.encode(u.getProtocol() + "-" + Integer.toString(u.getPort()), "UTF-8")//
+                                    + (ip != null ? "&ip=" + URLEncoder.encode(ip, "UTF-8") : "");
+
+                            resp.sendRedirect(url);
+                            return;
+                        } else {
+                            to = new ServerTestingSession(u.getHost(), ip, u.getPort(), u.getProtocol());
+                            cacheTestSession.put(lookupKey, to);
+                        }
+                    } else {
+                        observingOnly = true;
+                    }
                 }
             }
 
+            PrintStream ps = new PrintStream(resp.getOutputStream(), true);
+            ps.println("retry: 10000");
+            ps.println();
             to.attach(ps);
 
             if (observingOnly) {

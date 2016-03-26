@@ -1,9 +1,16 @@
 package de.dogcraft.ssltest.tests;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.SignatureException;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,11 +23,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AccessDescription;
+import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
 import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
 
 import de.dogcraft.ssltest.tests.TestCipherList.CertificateList;
 import de.dogcraft.ssltest.utils.CertificateWrapper;
+import de.dogcraft.ssltest.utils.IOUtils;
 import de.dogcraft.ssltest.utils.Truststore;
 import de.dogcraft.ssltest.utils.TruststoreGroup;
 
@@ -96,6 +109,8 @@ public class TrustTest {
 
     private LinkedList<String> str = new LinkedList<>();
 
+    private LinkedList<String> edges = new LinkedList<>();
+
     CertificateList chain;
 
     public TrustTest(CertificateList chain) {
@@ -106,32 +121,105 @@ public class TrustTest {
         Certificate toTrust = chain.content[0].getC();
         CertificateIndex local = new CertificateIndex(chain.content);
         LinkedList<CertificateWrapper> used = new LinkedList<>();
-        used.add(new CertificateWrapper(toTrust, null));
+        CertificateWrapper e = new CertificateWrapper(toTrust, null);
+        used.add(e);
 
-        buildChains(out, toTrust, local, used);
+        buildChains(out, e, local, used);
 
     }
 
-    private void buildChains(TestOutput out, Certificate toTrust, CertificateIndex local, LinkedList<CertificateWrapper> used) {
+    private void buildChains(TestOutput out, CertificateWrapper toTrustW, CertificateIndex local, LinkedList<CertificateWrapper> used) {
+        Certificate toTrust = toTrustW.getC();
         Set<CertificateWrapper> localC = local.getIssuers(toTrust);
         Set<CertificateWrapper> globalC = ci.getIssuers(toTrust);
         for (CertificateWrapper certificate : localC) {
-            if (used.contains(certificate)) {
+            if (used.contains(certificate) || !isIssuerOf(toTrust, certificate.getC())) {
                 continue;
             }
+            emitEdge(toTrustW, certificate, "chain");
             used.add(certificate);
-            buildChains(out, certificate.getC(), local, used);
+            buildChains(out, certificate, local, used);
             used.removeLast();
         }
+        for (Certificate c : getCAIssuer(toTrust)) {
+            CertificateWrapper e = new CertificateWrapper(c, null);
+            emitEdge(toTrustW, e, "issuer");
+            used.add(e);
+            buildChains(out, e, local, used);
+            used.removeLast();
+        }
+
         for (CertificateWrapper certificate : globalC) {
-            if (used.contains(certificate)) {
+            if (used.contains(certificate) || !isIssuerOf(toTrust, certificate.getC())) {
                 continue;
             }
             used.add(certificate);
+            emitEdge(toTrustW, certificate, "trust");
             List<Truststore> trust = ci.getTrust(certificate);
             emitChain(out, used, trust);
             used.removeLast();
         }
+    }
+
+    private void emitEdge(CertificateWrapper toTrust, CertificateWrapper e, String type) {
+        edges.add("{\"chainId\":" + Integer.toString(chain.hashCode()) + ", \"from\":\"" + toTrust.getHash() + "\", \"to\":\"" + e.getHash() + "\", \"type\":\"" + type + "\"}");
+    }
+
+    private List<Certificate> getCAIssuer(Certificate toTrust) {
+        LinkedList<Certificate> l = new LinkedList<>();
+        Extension ext = toTrust.getTBSCertificate().getExtensions().getExtension(Extension.authorityInfoAccess);
+        if (ext == null)
+            return l;
+        AuthorityInformationAccess aia = AuthorityInformationAccess.getInstance(ext.getParsedValue());
+        AccessDescription[] data = aia.getAccessDescriptions();
+        for (AccessDescription accessDescription : data) {
+            GeneralName location = accessDescription.getAccessLocation();
+            if (accessDescription.getAccessMethod().equals(AccessDescription.id_ad_caIssuers)) {
+                if (location.getTagNo() == GeneralName.uniformResourceIdentifier) {
+                    String value = DERIA5String.getInstance(location.getName()).getString();
+                    try {
+                        Certificate c = fetchCAIssuers(value);
+                        if (isIssuerOf(toTrust, c)) {
+                            l.add(c);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Fetching " + value + " failed");
+                    } catch (IOException e) {
+                        System.out.println("Fetching " + value + " failed");
+                    }
+                }
+            }
+        }
+        return l;
+    }
+
+    private boolean isIssuerOf(Certificate subject, Certificate issuer) {
+        try {
+            if ( !Arrays.equals(subject.getIssuer().getEncoded(), issuer.getSubject().getEncoded())) {
+                return false;
+            }
+            CertificateFactory factory = CertificateFactory.getInstance("X509");
+            X509Certificate s = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(subject.getEncoded()));
+            X509Certificate i = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(issuer.getEncoded()));
+            s.verify(i.getPublicKey());
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private Certificate fetchCAIssuers(String value) throws IOException {
+        URL u = new URL(value);
+        byte[] data = IOUtils.get(u);
+        return Certificate.getInstance(data);
+
     }
 
     private void emitChain(TestOutput out, LinkedList<CertificateWrapper> used, List<Truststore> trust) {
@@ -183,6 +271,9 @@ public class TrustTest {
     public void printChains(TestOutput out) {
         for (String string : str) {
             out.outputEvent("trustChain", string);
+        }
+        for (String string : edges) {
+            out.outputEvent("trustEdge", string);
         }
     }
 }
