@@ -2,6 +2,7 @@ package de.dogcraft.ssltest.tests;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -27,8 +28,10 @@ import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AccessDescription;
 import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
+import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.GeneralName;
 
 import de.dogcraft.ssltest.service.CertificateTestService;
@@ -225,6 +228,23 @@ public class TrustTest {
             X509Certificate s = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(subject.getEncoded()));
             X509Certificate i = (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(issuer.getEncoded()));
             s.verify(i.getPublicKey());
+            Extensions e = subject.getTBSCertificate().getExtensions();
+            if (e != null) {
+                Extension eaki = e.getExtension(Extension.authorityKeyIdentifier);
+                if (eaki != null) {
+                    AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.getInstance(eaki.getParsedValue());
+                    if (aki.getAuthorityCertIssuer() != null) {
+                        X500Name issuerN = X500Name.getInstance(aki.getAuthorityCertIssuer().getNames()[0].getName());
+                        BigInteger serial = aki.getAuthorityCertSerialNumber();
+                        if ( !Arrays.equals(issuerN.getEncoded(), issuer.getIssuer().getEncoded())) {
+                            return false;
+                        }
+                        if ( !issuer.getTBSCertificate().getSerialNumber().toString().equals(serial.toString())) {
+                            return false;
+                        }
+                    }
+                }
+            }
             return true;
         } catch (IOException e) {
             e.printStackTrace();
