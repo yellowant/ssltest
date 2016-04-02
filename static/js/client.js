@@ -641,10 +641,8 @@ function events() {
 			var ChainGraphics = function() {
 				var width = 800, height = 500;
 
-				var force = d3.layout.force()
-					.charge(-520)
-					.linkDistance(200)//.gravity(0.1).friction(0.03)
-					.size([width, height]);
+				var force = d3.layout.force().size([width, height]);
+
 				var svg = null;
 				var nodeI = 0;
 				var edgeI = 0;
@@ -680,13 +678,20 @@ function events() {
 					force
 						.nodes(nodes)
 						.links(edges)
+						.linkStrength(0.125)
+						.linkDistance(25)
+						.charge(-2000)
+						.gravity(0.1)
 						.start();
 
 					var link = svg.select(".links").selectAll(".link")
 						.data(edges);
 					link.enter().append("line")
 						.attr("marker-start", "url(#markerid)")
-						.each(function(d){d.node = this;certsModule.rateSig(d.source.name, this);});
+						.each(function(d) {
+							d.node = this;
+							certsModule.rateSig(d.source.name, this);
+						});
 					link.exit().remove();
 
 					var node = svg.selectAll(".node")
@@ -696,9 +701,12 @@ function events() {
 
 					g.append("circle")
 						.attr("r", 30)
-						.each(function(d){d.node = this; certsModule.setKeyClass(d.name,this,"cert-trust")});
+						.each(function(d) {
+							d.node = this;
+							certsModule.setKeyClass(d.name,this,"cert-trust")
+						});
 //						.each(function(d){d.node = this;});
-					
+
 					g.call(force.drag);
 					g.append("a").append("text")
 						.each(function(d) {
@@ -711,7 +719,13 @@ function events() {
 						});
 
 					force.on("tick", function() {
-						link.each(function(d){function sq(v){return v*v;};d.len = Math.sqrt(sq(d.source.x-d.target.x)+sq(d.source.y-d.target.y));})
+						link
+							.each(function(d) {
+								function sq(v) {
+									return v*v;
+								};
+								d.len = Math.sqrt(sq(d.source.x-d.target.x)+sq(d.source.y-d.target.y));
+							})
 							.attr("x1", function(d) { return d.source.x + (d.target.x - d.source.x)*(45/d.len); })
 							.attr("y1", function(d) { return d.source.y + (d.target.y - d.source.y)*(45/d.len); })
 							.attr("x2", function(d) { return d.target.x - (d.target.x - d.source.x)*(30/d.len); })
