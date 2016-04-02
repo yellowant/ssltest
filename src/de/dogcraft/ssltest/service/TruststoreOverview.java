@@ -301,6 +301,7 @@ public class TruststoreOverview extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html; charset=UTF-8");
         resp.setCharacterEncoding("UTF-8");
+        resp.addHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self';");
 
         PrintWriter pw = resp.getWriter();
         pw.println("<!DOCTYPE html>");
