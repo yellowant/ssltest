@@ -24,6 +24,7 @@ function onLoadHook() {
 		}
 	}
 }
+window.onload = onLoadHook;
 
 function createASN1JS(name, data) {
 	var asn1js = document.createElement("a");
