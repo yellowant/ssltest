@@ -7,6 +7,12 @@ function abbrevHash(hash) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+	var reqform = document.getElementById("reqform");
+	reqform.onsubmit = function() {
+		events();
+		return false;
+	};
+
 	if (window.location.hash !== undefined) {
 		var hash = window.location.hash;
 
