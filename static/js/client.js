@@ -6,7 +6,7 @@ function abbrevHash(hash) {
 	return hash.substring(0, 16) + "..." + hash.substring(hash.length - 16);
 }
 
-function onLoadHook() {
+document.addEventListener('DOMContentLoaded', function() {
 	if (window.location.hash !== undefined) {
 		var hash = window.location.hash;
 
@@ -23,8 +23,7 @@ function onLoadHook() {
 			events();
 		}
 	}
-}
-window.onload = onLoadHook;
+}, false);
 
 function createASN1JS(name, data) {
 	var asn1js = document.createElement("a");
