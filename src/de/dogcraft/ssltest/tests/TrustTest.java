@@ -135,6 +135,7 @@ public class TrustTest {
     }
 
     private void buildChains(TestOutput out, CertificateWrapper toTrustW, CertificateIndex local, LinkedList<CertificateWrapper> used, boolean trusted) {
+        out.pushCert(toTrustW);
         Certificate toTrust = toTrustW.getC();
         Set<CertificateWrapper> localC = local.getIssuers(toTrust);
         Set<CertificateWrapper> globalC = ci.getIssuers(toTrust);
@@ -275,13 +276,13 @@ public class TrustTest {
         CertificateWrapper last = null;
         for (CertificateWrapper c : cw) {
             if (last != null) {
-                out.pushCert(last = new CertificateWrapper(c.getC(), last));
+                last = new CertificateWrapper(c.getC(), last);
             } else {
                 try {
                     if (Arrays.equals(c.getC().getIssuer().getEncoded(), c.getC().getSubject().getEncoded())) {
-                        out.pushCert(last = new CertificateWrapper(c.getC()));
+                        last = new CertificateWrapper(c.getC());
                     } else {
-                        out.pushCert(last = new CertificateWrapper(c.getC(), null));
+                        last = new CertificateWrapper(c.getC(), null);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
