@@ -192,7 +192,10 @@ public class TrustTest {
 
     private List<Certificate> getCAIssuer(Certificate toTrust, TestOutput out) {
         LinkedList<Certificate> l = new LinkedList<>();
-        Extension ext = toTrust.getTBSCertificate().getExtensions().getExtension(Extension.authorityInfoAccess);
+        Extensions exts = toTrust.getTBSCertificate().getExtensions();
+        if (exts == null)
+            return l;
+        Extension ext = exts.getExtension(Extension.authorityInfoAccess);
         if (ext == null)
             return l;
         AuthorityInformationAccess aia = AuthorityInformationAccess.getInstance(ext.getParsedValue());
