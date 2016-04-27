@@ -87,6 +87,11 @@ public class RevocationChecks {
                         pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", JSONUtils.jsonEscape(url), "protocol not understood"));
                         continue;
                     }
+                    if (url.equals("https://www.cacert.org/revoke.crl") ||
+                        url.equals("http://crl.cacert.org/revoke.crl")) {
+                        pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", JSONUtils.jsonEscape(url), "refusing to download blacklisted CRL because it takes too long."));
+                        continue;
+                    }
                     try {
                         URL u = new URL(url);
                         pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"downloading\"}", jurl));
