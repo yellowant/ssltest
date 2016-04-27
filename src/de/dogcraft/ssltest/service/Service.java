@@ -3,6 +3,7 @@ package de.dogcraft.ssltest.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 
 import javax.servlet.MultipartConfigElement;
@@ -95,19 +96,23 @@ public class Service extends HttpServlet {
         } else if (path.equals("/certstatus")) {
             if (req.getMethod().equals("POST") && req.getContentType().startsWith("multipart/form-data")) {
                 req.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG);
-                byte[] data = IOUtils.get(req.getPart("file").getInputStream());
-                if (data[0] == '-' && data[1] == '-' && data[2] == '-' && data[3] == '-' && data[4] == '-') {
-                    data = PEM.decode("CERTIFICATE", new String(data, "UTF-8"));
-                }
-                org.bouncycastle.asn1.x509.Certificate c1 = org.bouncycastle.asn1.x509.Certificate.getInstance(data);
-
-                CertificateWrapper cw = toCw(c1);
+                InputStream in = req.getPart("file").getInputStream();
+                CertificateWrapper cw = insertCert(in);
                 if (cw == null) {
                     resp.sendError(500, "Certificate issuer not found");
                     return;
                 }
                 CertificateTestService.cache(cw);
                 resp.sendRedirect("/cert.txt?fp=" + cw.getHash());
+            } else if (req.getMethod().equals("POST")) {
+                CertificateWrapper cw = insertCert(req.getInputStream());
+                if (cw == null) {
+                    resp.sendError(500, "Certificate issuer not found");
+                    return;
+                }
+                CertificateTestService.cache(cw);
+                resp.setHeader("Content-type", "text/plain;charset=UTF-8");
+                resp.getWriter().print(cw.getHash());
             } else {
                 resp.setHeader("Content-type", "text/html;charset=UTF-8");
                 ServletOutputStream out = resp.getOutputStream();
@@ -118,6 +123,17 @@ public class Service extends HttpServlet {
         } else {
             resp.sendError(404, "Fuck off");
         }
+    }
+
+    private CertificateWrapper insertCert(InputStream in) throws IOException, ServletException, UnsupportedEncodingException {
+        byte[] data = IOUtils.get(in);
+        if (data.length > 4 && data[0] == '-' && data[1] == '-' && data[2] == '-' && data[3] == '-' && data[4] == '-') {
+            data = PEM.decode("CERTIFICATE", new String(data, "UTF-8"));
+        }
+        org.bouncycastle.asn1.x509.Certificate c1 = org.bouncycastle.asn1.x509.Certificate.getInstance(data);
+
+        CertificateWrapper cw = toCw(c1);
+        return cw;
     }
 
     private CertificateWrapper toCw(org.bouncycastle.asn1.x509.Certificate c1) {

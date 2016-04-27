@@ -8,10 +8,48 @@ function abbrevHash(hash) {
 
 document.addEventListener('DOMContentLoaded', function() {
 	var reqform = document.getElementById("reqform");
+	var c = undefined;
 	reqform.onsubmit = function() {
 		events();
 		return false;
 	};
+	(function(){
+		// file drag hover
+		function FileDragHover(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			//e.target.className = (e.type == "dragover" ? "hover" : "");
+		}
+
+		function FileSelectHandler(e) {
+			FileDragHover(e);
+			var files = e.target.files || e.dataTransfer.files;
+			for (var i = 0, f; f = files[i]; i++) {
+				ParseFile(f);
+			}
+		}
+		function ParseFile(file) {
+	    var reader = new FileReader();
+	    reader.onload = function(){
+	    	var v = new XMLHttpRequest();
+	    	v.onload = function(){
+	    		if(c === undefined){
+	    			c = new CertsModule(document.getElementById("output"),"base");
+	    		}
+	    		c.reference(v.response);
+	    	}
+	    	v.open("POST", "/certstatus");
+	    	v.send(reader.result);
+	    };
+	    reader.readAsText(file);
+		}
+
+		var filedrag = document.getElementById("check");
+		// file drop
+		filedrag.addEventListener("dragover", FileDragHover, false);
+		filedrag.addEventListener("dragleave", FileDragHover, false);
+		filedrag.addEventListener("drop", FileSelectHandler, false);
+		})();
 
 	if (window.location.hash !== undefined) {
 		var hash = window.location.hash;
@@ -132,6 +170,426 @@ function TrustDisplay() {
 		trusts[trust] = "yes";
 	};
 }
+var CertsModule = function(c, idbase) {
+	var certificates = document.createElement("div");
+	certificates.appendChild(createHeader("Certificates"));
+
+	var certificateLookup = {};
+
+	function ref0(hash){
+		var cert = certificateLookup[hash];
+
+		if (cert === undefined) {
+			cert = {
+				updates : [],
+				ctr : 0,
+				hash : hash
+			};
+
+			var str = new Stream(cert, "/cert.event?fp=" + hash);
+			cert.stream = str;
+			cert.updated = function() {
+				for (var i = 0; i < cert.ctr; i++) {
+					cert.updates[i](cert);
+				}
+			}
+
+			cert.addUpdate = function(func) {
+				func(cert);
+				cert.updates[cert.ctr++] = func;
+			}
+
+			certificateLookup[hash] = cert;
+			registerOn(str);
+		}
+		return cert;
+	}
+	
+	this.refData = function(hash, node) {
+		var cert = ref0(hash);
+
+		var txt = node;
+		if(txt == null) txt = document.createTextNode("");
+		cert.addUpdate(function(cert) {
+			var name = abbrevHash(hash);
+			if (cert !== undefined && cert.dn !== undefined) {
+				name = cert.dn["2.5.4.3"]; // "CN"
+				if (name == undefined) {
+					name = cert.dn["2.5.4.10"]; // "O"
+				}
+			}
+			txt.data = name;
+		});
+
+		return [ txt, "#" + idbase + "cert-" + hash ];
+	};
+
+	var refData = this.refData;
+	this.reference = function(hash) {
+		var ref = refData(hash);
+
+		var a = document.createElement("a");
+		a.appendChild(ref[0]);
+		a.setAttribute("href", ref[1]);
+		a.onclick = hrefjump;
+		return a;
+	}
+
+	this.setKeyClass = function(hash, elem, clazz) {
+		ref0(hash).addUpdate(function(c) {
+			if (c.key === undefined) {
+				return;
+			}
+
+			var type = c.key.type;
+			var size = c.key.size;
+
+			elem.setAttribute("data-type", type);
+			elem.setAttribute("data-value", size);
+			elem.setAttribute("title", type + ":" + size);
+
+			calculateSymmeq(type, size, elem, clazz);
+		});
+	};
+
+	this.rateSig = function(hash, elem) {
+		ref0(hash).addUpdate(function(c) {
+			if (c.key === undefined) {
+				return;
+			}
+
+			var sig0 = sigOIDs[c.key.sig];
+			var sig = sig0.split("WITH");
+
+			elem.setAttribute("stroke-width", rater.widthize(rater.rateSignature(sig[0], sig[1])));
+			//elem.setAttribute("title", sig0);
+		});
+	};
+
+	var appendX500Name = function(div, name) {
+		var res = {};
+
+		div.setAttribute("class", "x500name");
+
+		for (rdn in name) {
+			var span = document.createElement("span");
+			span.setAttribute("class", "rdn");
+
+			for (ava in name[rdn]) {
+				res[ava] = name[rdn][ava];
+
+				var avaspan = document.createElement("span");
+				avaspan.setAttribute("class", "ava");
+
+				var keySpan = document.createElement("span");
+				keySpan.appendChild(generateOIDInfoHref(ava, dnOIDs));
+
+				var valSpan = document.createElement("span");
+				var val = name[rdn][ava];
+				if (val === null) {
+					valSpan.setAttribute("class", "unknownVal");
+					valSpan.appendChild(document.createTextNode("<unknown>"));
+				} else {
+					valSpan.appendChild(document.createTextNode(val));
+				}
+
+				avaspan.appendChild(keySpan);
+				avaspan.appendChild(document.createTextNode(": "));
+				avaspan.appendChild(valSpan);
+				span.appendChild(avaspan);
+			}
+
+			div.appendChild(span);
+		}
+
+		return res;
+	}
+
+	var registerOn = function(stream) {
+		stream.registerEvent("certificate", function(c, s, e) {
+			var certificate = JSON.parse(e.data);
+			var certificateElem = document.createElement("div");
+
+			var certTable = document.createElement("table");
+			certTable.setAttribute("class", "certTable")
+
+			certificateElem.appendChild(certTable);
+
+			var keys = {
+				id : "id",
+				subj : "Subject",
+				issuer : "Issuer",
+				key : "Key",
+				from : "Valid From",
+				to : "Valid To",
+				sig : "Signature"
+			};
+
+			var optKeys = {
+				sans : "SubjectAltNames"
+			}
+
+			var tds = {};
+
+			for ( var i in keys) {
+				var tr = document.createElement("tr");
+				var k = document.createElement("td");
+				k.appendChild(document.createTextNode(keys[i]))
+				tr.appendChild(k);
+
+				var v = document.createElement("td");
+				tr.appendChild(v);
+
+				certTable.appendChild(tr);
+
+				tds[i] = v;
+			}
+
+			var getTD = function(name){
+				if(tds[name] === undefined){
+					var tr = document.createElement("tr");
+					var k = document.createElement("td");
+					k.appendChild(document.createTextNode(optKeys[name]))
+					tr.appendChild(k);
+
+					var v = document.createElement("td");
+					tr.appendChild(v);
+
+					certTable.appendChild(tr);
+
+					tds[name] = v;
+				}
+
+				return tds[name];
+			}
+
+			certificateElem.setAttribute("id", idbase + "cert-" + c.hash);
+			certificateElem.setAttribute("class", "certificate");
+
+			var idspan = document.createElement("span");
+			idspan.appendChild(document.createTextNode(abbrevHash(c.hash)))
+			idspan.setAttribute("title", c.hash);
+			tds.id.appendChild(idspan);
+
+			{ // the ^{pem}-link
+				var raw = document.createElement("a");
+				raw.appendChild(document.createTextNode("pem"));
+				raw.setAttribute("class", "rawcert");
+				raw.setAttribute("href", "data:text/plain;base64," + btoa(certificate.data));
+				raw.setAttribute("target", "_blank");
+				tds.id.appendChild(raw);
+
+				tds.id.appendChild(createASN1JS("asn1.js", certificate.data));
+
+				var raw = document.createElement("a");
+				raw.appendChild(document.createTextNode("raw"));
+				raw.setAttribute("class", "rawcert");
+				raw.setAttribute("href", "/cert.txt?fp=" + c.hash);
+				raw.setAttribute("target", "_blank");
+				tds.id.appendChild(raw);
+			}
+
+			var isRunning = document.createElement("span");
+			stream.addStatusIndicator(isRunning);
+			tds.id.appendChild(isRunning);
+
+			var name = appendX500Name(tds.subj, certificate.subject);
+
+			appendX500Name(tds.issuer, certificate.issuer);
+
+			c.elem = certificateElem;
+			c.dn = name;
+			c.tab = tds;
+			c.tabObj = certTable;
+			c.data = certificate;
+			c.getTD = getTD;
+			c.crl = {};
+
+			certificates.appendChild(certificateElem);
+
+			c.updated();
+		});
+
+		stream.registerEvent("certSANs", function(c, s, e) {
+			var certificate = JSON.parse(e.data);
+			var validitySpan = document.createElement("div");
+
+			if (certificate.value === "undefined") {
+				return;
+			}
+
+			for (var san in certificate.value) {
+				var val = certificate.value[san];
+				var div = document.createElement("div");
+
+				if (val.type == 2) {
+					div.appendChild(document.createTextNode("DNS: "));
+					div.appendChild(document.createTextNode(val.value));
+				} else if (val.type == 4) {
+					div.appendChild(document.createTextNode("DirectoryName: "));
+					appendX500Name(div, val.value);
+				}
+
+				c.getTD("sans").appendChild(div);
+			}
+
+			c.updated();
+		});
+
+		stream.registerEvent("certkey", function(c, s, e) {
+			var certificate = JSON.parse(e.data);
+			var validitySpan = document.createElement("div");
+			c.tab.key.appendChild(document.createTextNode(certificate.type + ":" + certificate.size + " (" + certificate.pkhash.substring(0, 8) + ")"));
+			c.tab.sig.appendChild(generateOIDInfoHref(certificate.sig, sigOIDs));
+			c.key = certificate;
+			c.updated();
+		});
+
+		stream.registerEvent("certvalidity", function(c, s, e) {
+			var certificate = JSON.parse(e.data);
+			c.tab.from.appendChild(document.createTextNode(certificate.start));
+			c.tab.to.appendChild(document.createTextNode(certificate.end));
+			c.updated();
+		});
+
+		stream.registerEvent("authorityInfoAccess", function(c, s, e) {
+			var dt = JSON.parse(e.data);
+
+			var tr = document.createElement("tr");
+
+			var key = document.createElement("td");
+			key.appendChild(document.createTextNode("Autority Info Access"));
+			tr.appendChild(key);
+
+			var value = document.createElement("td");
+			value.appendChild(generateOIDInfoHref(dt.type, AIAOIDs));
+			value.appendChild(document.createTextNode(": "));
+			value.appendChild(newAnchor(dt.loc, dt.loc));
+			tr.appendChild(value);
+
+			c.ocsp = value;
+			c.tabObj.appendChild(tr);
+		});
+
+		stream.registerEvent("crl", function(c, s, e) {
+			var dt = JSON.parse(e.data);
+
+			var tr = document.createElement("tr");
+
+			var key = document.createElement("td");
+			key.appendChild(document.createTextNode("Certificate Revocation List"));
+			tr.appendChild(key);
+
+			var value = document.createElement("td");
+			value.appendChild(newAnchor(dt.url, dt.url));
+			var runner = document.createElement("span");
+			value.appendChild(runner);
+			value.appendChild(document.createTextNode(" "));
+			tr.appendChild(value);
+
+			c.crl[dt.url] = {td: value, i: new StatusIndicator(runner, true)};
+			c.tabObj.appendChild(tr);
+		});
+
+		stream.registerEvent("crlstatus", function(c, s, e) {
+			var dt = JSON.parse(e.data);
+			if(dt.result !== undefined) {
+				c.crl[dt.url].td.appendChild(document.createTextNode("result: "+ dt.result));
+			}
+			if(dt.state == "downloading"){
+				c.crl[dt.url].i.open();
+			}
+			if(dt.state == "done"){
+				c.crl[dt.url].i.close();
+			}
+		});
+
+		stream.registerEvent("crldata", function(c, s, e) {
+			var dt = JSON.parse(e.data);
+			c.crl[dt.url].td.setAttribute("title", dt.size + " bytes, " + dt.entries + " entries, valid " + dt.thisUpdate + " to " + dt.nextUpdate);
+		});
+
+		stream.registerEvent("crlValidity", function(c, s, e) {
+			var dt = JSON.parse(e.data);
+			c.crl[dt.url].td.appendChild(errorSign(dt.status));
+		});
+
+		stream.registerEvent("OCSP", function(c, s, e) {
+			var dt = JSON.parse(e.data);
+
+			if (c.ocsp === undefined) {
+				return;
+			}
+
+			c.ocsp.appendChild(document.createTextNode(", result: " + dt.state));
+			if(dt.request !== null) {
+				c.ocsp.appendChild(createASN1JS("req", dt.request));
+			}
+			if(dt.response !== null) {
+				c.ocsp.appendChild(createASN1JS("resp", dt.response));
+			}
+		});
+	};
+
+	c.appendChild(certificates);
+};
+
+function Stream(c, url) {
+	this.getTargetContainer = function() {
+		return c;
+	}
+
+	var stream = new EventSource(url);
+	var streamSelf = this;
+	var registerEvent = function(name, handler) {
+		stream.addEventListener(name, function(event) {
+			handler(streamSelf.getTargetContainer(), stream, event);
+		});
+	};
+	this.registerEvent = registerEvent;
+
+	this.registerEvent("open", function(container, stream, event) {
+		// handleMessage(container, stream, "Stream started!");
+	});
+
+	this.registerEvent("message", function(container, stream, event) {
+		// handleMessage(container, stream, event.data);
+	});
+
+	this.registerEvent("eof", function(container, stream, event) {
+		stream.close();
+		// handleMessage(container, stream, "Stream finished!");
+	});
+
+	this.addStatusIndicator = function(isRunning){
+		var i = new StatusIndicator(isRunning);
+
+		registerEvent("open", function(container, stream, event) {
+			i.open();
+		});
+
+		registerEvent("eof", function(container, stream, event) {
+			i.close();
+		});
+	}
+}
+function StatusIndicator(isRunning, hide){
+	var c = document.createTextNode("*");
+	isRunning.appendChild(c);
+	isRunning.style.backgroundColor = '#FF0';
+	this.open = function() {
+		isRunning.style.backgroundColor = '#F00';
+	};
+
+	this.close = function () {
+		if(hide !== undefined){
+			isRunning.removeChild(c);
+		}
+		isRunning.style.backgroundColor = '#0F0';
+	};
+}
+
+
 
 function events() {
 	var overview = new (function() {
@@ -189,61 +647,6 @@ function events() {
 			'&port=' + encodeURIComponent(hostinfo.port);
 	}
 
-	function Stream(c, url) {
-		this.getTargetContainer = function() {
-			return c;
-		}
-
-		var stream = new EventSource(url);
-		var streamSelf = this;
-		var registerEvent = function(name, handler) {
-			stream.addEventListener(name, function(event) {
-				handler(streamSelf.getTargetContainer(), stream, event);
-			});
-		};
-		this.registerEvent = registerEvent;
-
-		this.registerEvent("open", function(container, stream, event) {
-			// handleMessage(container, stream, "Stream started!");
-		});
-
-		this.registerEvent("message", function(container, stream, event) {
-			// handleMessage(container, stream, event.data);
-		});
-
-		this.registerEvent("eof", function(container, stream, event) {
-			stream.close();
-			// handleMessage(container, stream, "Stream finished!");
-		});
-
-		this.addStatusIndicator = function(isRunning){
-			var i = new StatusIndicator(isRunning);
-
-			registerEvent("open", function(container, stream, event) {
-				i.open();
-			});
-
-			registerEvent("eof", function(container, stream, event) {
-				i.close();
-			});
-		}
-	}
-
-	function StatusIndicator(isRunning, hide){
-		var c = document.createTextNode("*");
-		isRunning.appendChild(c);
-		isRunning.style.backgroundColor = '#FF0';
-		this.open = function() {
-			isRunning.style.backgroundColor = '#F00';
-		};
-
-		this.close = function () {
-			if(hide !== undefined){
-				isRunning.removeChild(c);
-			}
-			isRunning.style.backgroundColor = '#0F0';
-		};
-	}
 
 	function HostIP(c, hostinfo, idbase) {
 		var domain = hostinfo.domain;
@@ -272,369 +675,7 @@ function events() {
 		})();
 		stream.addStatusIndicator(isRunning2);
 
-		var certsModule = new (function() {
-			var certificates = document.createElement("div");
-			certificates.appendChild(createHeader("Certificates"));
-
-			var certificateLookup = {};
-
-			function ref0(hash){
-				var cert = certificateLookup[hash];
-
-				if (cert === undefined) {
-					cert = {
-						updates : [],
-						ctr : 0,
-						hash : hash
-					};
-
-					var str = new Stream(cert, "/cert.event?fp=" + hash);
-					cert.stream = str;
-					cert.updated = function() {
-						for (var i = 0; i < cert.ctr; i++) {
-							cert.updates[i](cert);
-						}
-					}
-
-					cert.addUpdate = function(func) {
-						func(cert);
-						cert.updates[cert.ctr++] = func;
-					}
-
-					certificateLookup[hash] = cert;
-					registerOn(str);
-				}
-				return cert;
-			}
-			
-			this.refData = function(hash, node) {
-				var cert = ref0(hash);
-
-				var txt = node;
-				if(txt == null) txt = document.createTextNode("");
-				cert.addUpdate(function(cert) {
-					var name = abbrevHash(hash);
-					if (cert !== undefined && cert.dn !== undefined) {
-						name = cert.dn["2.5.4.3"]; // "CN"
-						if (name == undefined) {
-							name = cert.dn["2.5.4.10"]; // "O"
-						}
-					}
-					txt.data = name;
-				});
-
-				return [ txt, "#" + idbase + "cert-" + hash ];
-			};
-
-			var refData = this.refData;
-			this.reference = function(hash) {
-				var ref = refData(hash);
-
-				var a = document.createElement("a");
-				a.appendChild(ref[0]);
-				a.setAttribute("href", ref[1]);
-				a.onclick = hrefjump;
-				return a;
-			}
-
-			this.setKeyClass = function(hash, elem, clazz) {
-				ref0(hash).addUpdate(function(c) {
-					if (c.key === undefined) {
-						return;
-					}
-
-					var type = c.key.type;
-					var size = c.key.size;
-
-					elem.setAttribute("data-type", type);
-					elem.setAttribute("data-value", size);
-					elem.setAttribute("title", type + ":" + size);
-
-					calculateSymmeq(type, size, elem, clazz);
-				});
-			};
-
-			this.rateSig = function(hash, elem) {
-				ref0(hash).addUpdate(function(c) {
-					if (c.key === undefined) {
-						return;
-					}
-
-					var sig0 = sigOIDs[c.key.sig];
-					var sig = sig0.split("WITH");
-
-					elem.setAttribute("stroke-width", rater.widthize(rater.rateSignature(sig[0], sig[1])));
-					//elem.setAttribute("title", sig0);
-				});
-			};
-
-			var appendX500Name = function(div, name) {
-				var res = {};
-
-				div.setAttribute("class", "x500name");
-
-				for (rdn in name) {
-					var span = document.createElement("span");
-					span.setAttribute("class", "rdn");
-
-					for (ava in name[rdn]) {
-						res[ava] = name[rdn][ava];
-
-						var avaspan = document.createElement("span");
-						avaspan.setAttribute("class", "ava");
-
-						var keySpan = document.createElement("span");
-						keySpan.appendChild(generateOIDInfoHref(ava, dnOIDs));
-
-						var valSpan = document.createElement("span");
-						var val = name[rdn][ava];
-						if (val === null) {
-							valSpan.setAttribute("class", "unknownVal");
-							valSpan.appendChild(document.createTextNode("<unknown>"));
-						} else {
-							valSpan.appendChild(document.createTextNode(val));
-						}
-
-						avaspan.appendChild(keySpan);
-						avaspan.appendChild(document.createTextNode(": "));
-						avaspan.appendChild(valSpan);
-						span.appendChild(avaspan);
-					}
-
-					div.appendChild(span);
-				}
-
-				return res;
-			}
-
-			var registerOn = function(stream) {
-				stream.registerEvent("certificate", function(c, s, e) {
-					var certificate = JSON.parse(e.data);
-					var certificateElem = document.createElement("div");
-
-					var certTable = document.createElement("table");
-					certTable.setAttribute("class", "certTable")
-
-					certificateElem.appendChild(certTable);
-
-					var keys = {
-						id : "id",
-						subj : "Subject",
-						issuer : "Issuer",
-						key : "Key",
-						from : "Valid From",
-						to : "Valid To",
-						sig : "Signature"
-					};
-
-					var optKeys = {
-						sans : "SubjectAltNames"
-					}
-
-					var tds = {};
-
-					for ( var i in keys) {
-						var tr = document.createElement("tr");
-						var k = document.createElement("td");
-						k.appendChild(document.createTextNode(keys[i]))
-						tr.appendChild(k);
-
-						var v = document.createElement("td");
-						tr.appendChild(v);
-
-						certTable.appendChild(tr);
-
-						tds[i] = v;
-					}
-
-					var getTD = function(name){
-						if(tds[name] === undefined){
-							var tr = document.createElement("tr");
-							var k = document.createElement("td");
-							k.appendChild(document.createTextNode(optKeys[name]))
-							tr.appendChild(k);
-
-							var v = document.createElement("td");
-							tr.appendChild(v);
-
-							certTable.appendChild(tr);
-
-							tds[name] = v;
-						}
-
-						return tds[name];
-					}
-
-					certificateElem.setAttribute("id", idbase + "cert-" + c.hash);
-					certificateElem.setAttribute("class", "certificate");
-
-					var idspan = document.createElement("span");
-					idspan.appendChild(document.createTextNode(abbrevHash(c.hash)))
-					idspan.setAttribute("title", c.hash);
-					tds.id.appendChild(idspan);
-
-					{ // the ^{pem}-link
-						var raw = document.createElement("a");
-						raw.appendChild(document.createTextNode("pem"));
-						raw.setAttribute("class", "rawcert");
-						raw.setAttribute("href", "data:text/plain;base64," + btoa(certificate.data));
-						raw.setAttribute("target", "_blank");
-						tds.id.appendChild(raw);
-
-						tds.id.appendChild(createASN1JS("asn1.js", certificate.data));
-
-						var raw = document.createElement("a");
-						raw.appendChild(document.createTextNode("raw"));
-						raw.setAttribute("class", "rawcert");
-						raw.setAttribute("href", "/cert.txt?fp=" + c.hash);
-						raw.setAttribute("target", "_blank");
-						tds.id.appendChild(raw);
-					}
-
-					var isRunning = document.createElement("span");
-					stream.addStatusIndicator(isRunning);
-					tds.id.appendChild(isRunning);
-
-					var name = appendX500Name(tds.subj, certificate.subject);
-
-					appendX500Name(tds.issuer, certificate.issuer);
-
-					c.elem = certificateElem;
-					c.dn = name;
-					c.tab = tds;
-					c.tabObj = certTable;
-					c.data = certificate;
-					c.getTD = getTD;
-					c.crl = {};
-
-					certificates.appendChild(certificateElem);
-
-					c.updated();
-				});
-
-				stream.registerEvent("certSANs", function(c, s, e) {
-					var certificate = JSON.parse(e.data);
-					var validitySpan = document.createElement("div");
-
-					if (certificate.value === "undefined") {
-						return;
-					}
-
-					for (var san in certificate.value) {
-						var val = certificate.value[san];
-						var div = document.createElement("div");
-
-						if (val.type == 2) {
-							div.appendChild(document.createTextNode("DNS: "));
-							div.appendChild(document.createTextNode(val.value));
-						} else if (val.type == 4) {
-							div.appendChild(document.createTextNode("DirectoryName: "));
-							appendX500Name(div, val.value);
-						}
-
-						c.getTD("sans").appendChild(div);
-					}
-
-					c.updated();
-				});
-
-				stream.registerEvent("certkey", function(c, s, e) {
-					var certificate = JSON.parse(e.data);
-					var validitySpan = document.createElement("div");
-					c.tab.key.appendChild(document.createTextNode(certificate.type + ":" + certificate.size + " (" + certificate.pkhash.substring(0, 8) + ")"));
-					c.tab.sig.appendChild(generateOIDInfoHref(certificate.sig, sigOIDs));
-					c.key = certificate;
-					c.updated();
-				});
-
-				stream.registerEvent("certvalidity", function(c, s, e) {
-					var certificate = JSON.parse(e.data);
-					c.tab.from.appendChild(document.createTextNode(certificate.start));
-					c.tab.to.appendChild(document.createTextNode(certificate.end));
-					c.updated();
-				});
-
-				stream.registerEvent("authorityInfoAccess", function(c, s, e) {
-					var dt = JSON.parse(e.data);
-
-					var tr = document.createElement("tr");
-
-					var key = document.createElement("td");
-					key.appendChild(document.createTextNode("Autority Info Access"));
-					tr.appendChild(key);
-
-					var value = document.createElement("td");
-					value.appendChild(generateOIDInfoHref(dt.type, AIAOIDs));
-					value.appendChild(document.createTextNode(": "));
-					value.appendChild(newAnchor(dt.loc, dt.loc));
-					tr.appendChild(value);
-
-					c.ocsp = value;
-					c.tabObj.appendChild(tr);
-				});
-
-				stream.registerEvent("crl", function(c, s, e) {
-					var dt = JSON.parse(e.data);
-
-					var tr = document.createElement("tr");
-
-					var key = document.createElement("td");
-					key.appendChild(document.createTextNode("Certificate Revocation List"));
-					tr.appendChild(key);
-
-					var value = document.createElement("td");
-					value.appendChild(newAnchor(dt.url, dt.url));
-					var runner = document.createElement("span");
-					value.appendChild(runner);
-					value.appendChild(document.createTextNode(" "));
-					tr.appendChild(value);
-
-					c.crl[dt.url] = {td: value, i: new StatusIndicator(runner, true)};
-					c.tabObj.appendChild(tr);
-				});
-
-				stream.registerEvent("crlstatus", function(c, s, e) {
-					var dt = JSON.parse(e.data);
-					if(dt.result !== undefined) {
-						c.crl[dt.url].td.appendChild(document.createTextNode("result: "+ dt.result));
-					}
-					if(dt.state == "downloading"){
-						c.crl[dt.url].i.open();
-					}
-					if(dt.state == "done"){
-						c.crl[dt.url].i.close();
-					}
-				});
-
-				stream.registerEvent("crldata", function(c, s, e) {
-					var dt = JSON.parse(e.data);
-					c.crl[dt.url].td.setAttribute("title", dt.size + " bytes, " + dt.entries + " entries, valid " + dt.thisUpdate + " to " + dt.nextUpdate);
-				});
-
-				stream.registerEvent("crlValidity", function(c, s, e) {
-					var dt = JSON.parse(e.data);
-					c.crl[dt.url].td.appendChild(errorSign(dt.status));
-				});
-
-				stream.registerEvent("OCSP", function(c, s, e) {
-					var dt = JSON.parse(e.data);
-
-					if (c.ocsp === undefined) {
-						return;
-					}
-
-					c.ocsp.appendChild(document.createTextNode(", result: " + dt.state));
-					if(dt.request !== null) {
-						c.ocsp.appendChild(createASN1JS("req", dt.request));
-					}
-					if(dt.response !== null) {
-						c.ocsp.appendChild(createASN1JS("resp", dt.response));
-					}
-				});
-			};
-
-			c.appendChild(certificates);
-		})();
+		var certsModule = new CertsModule(c, idbase);
 
 		var chainModule = new (function() {
 			var chains = document.createElement("div");
