@@ -30,6 +30,10 @@ public class IOUtils {
                 return null;
         }
         InputStream data = c.getInputStream();
+        return get(data);
+    }
+
+    public static byte[] get(InputStream data) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int pos = 0;
         byte[] buf = new byte[2048];

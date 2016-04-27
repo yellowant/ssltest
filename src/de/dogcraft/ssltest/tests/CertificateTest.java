@@ -91,7 +91,7 @@ public class CertificateTest {
 
     private static final BigInteger TWO = new BigInteger("2");
 
-    public static void testCerts(TestOutput pw, CertificateWrapper cert) throws IOException, NoSuchAlgorithmException {
+    public static void testCerts(final TestOutput pw, final CertificateWrapper cert) throws IOException, NoSuchAlgorithmException {
         StringBuffer certificate = new StringBuffer();
         certificate.append("{ \"type\": \"");
         certificate.append("X.509");
@@ -117,12 +117,12 @@ public class CertificateTest {
             pw.outputEvent("certkey", "{ \"pkhash\":\"" + cert.getPkHash() + "\", \"sig\":\"" + sigStr + "\", \"type\":\"ECDSA\", \"size\":" + ((ECPublicKeyParameters) pk).getParameters().getN().bitLength() + "}");
         }
         checkCertEncoding(pw, cert.getC());
-        TBSCertificate tbs = cert.getC().getTBSCertificate();
+        final TBSCertificate tbs = cert.getC().getTBSCertificate();
         checkValidity(pw, tbs.getStartDate().getDate(), tbs.getEndDate().getDate());
         if (tbs.getExtensions() != null) {
             testSAN(pw, tbs);
-            RevocationChecks.testCRL(pw, tbs, cert);
             testAIA(pw, tbs, cert);
+            RevocationChecks.testCRL(pw, tbs, cert);
         }
         // TODO re-implement and display
         // testBasicConstraints(pw, tbs);

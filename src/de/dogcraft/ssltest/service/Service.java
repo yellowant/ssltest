@@ -5,17 +5,26 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 
+import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.eclipse.jetty.server.Request;
+
 import de.dogcraft.ssltest.KnownDHGroup;
+import de.dogcraft.ssltest.utils.CertificateWrapper;
+import de.dogcraft.ssltest.utils.IOUtils;
+import de.dogcraft.ssltest.utils.PEM;
 import de.dogcraft.ssltest.utils.TruststoreGroup;
 
 public class Service extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
+
+    private static final MultipartConfigElement MULTI_PART_CONFIG = new MultipartConfigElement(System.getProperty("java.io.tmpdir"), 1024 * 1024, 1024 * 1024, 1024 * 1024);
 
     @Override
     public void init() throws ServletException {
@@ -83,11 +92,41 @@ public class Service extends HttpServlet {
             }
         } else if (path.equals("/oid.js")) {
             OIDs.outputOids(resp);
+        } else if (path.equals("/certstatus")) {
+            if (req.getMethod().equals("POST") && req.getContentType().startsWith("multipart/form-data")) {
+                req.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG);
+                byte[] data = IOUtils.get(req.getPart("file").getInputStream());
+                if (data[0] == '-' && data[1] == '-' && data[2] == '-' && data[3] == '-' && data[4] == '-') {
+                    data = PEM.decode("CERTIFICATE", new String(data, "UTF-8"));
+                }
+                org.bouncycastle.asn1.x509.Certificate c1 = org.bouncycastle.asn1.x509.Certificate.getInstance(data);
+
+                CertificateWrapper cw = toCw(c1);
+                if (cw == null) {
+                    resp.sendError(500, "Certificate issuer not found");
+                    return;
+                }
+                CertificateTestService.cache(cw);
+                resp.sendRedirect("/cert.txt?fp=" + cw.getHash());
+            } else {
+                resp.setHeader("Content-type", "text/html;charset=UTF-8");
+                ServletOutputStream out = resp.getOutputStream();
+                out.println("<form method='POST' enctype='multipart/form-data'><input type='file' name='file'><input type='submit'></form>");
+            }
         } else if (path.equals("/cipherRater.css")) {
             CipherRater.generateRateCSS(resp);
         } else {
             resp.sendError(404, "Fuck off");
         }
+    }
+
+    private CertificateWrapper toCw(org.bouncycastle.asn1.x509.Certificate c1) {
+        for (CertificateWrapper s : CertificateTestService.getCAs()) {
+            if (s.getC().getSubject().equals(c1.getIssuer())) {
+                return new CertificateWrapper(c1, s);
+            }
+        }
+        return null;
     }
 
     private void reqTestServer(HttpServletRequest req, HttpServletResponse resp, boolean useEventStream) throws IOException {
