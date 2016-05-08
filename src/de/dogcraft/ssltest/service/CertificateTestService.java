@@ -48,11 +48,14 @@ public class CertificateTestService extends TestService {
             if (null == file) {
                 return;
             }
+            if ( !file.exists()) {
+                return;
+            }
             File[] files = file.listFiles();
             if (null == files) {
                 return;
             }
-            for (File f : files) {
+            for (File f : file.listFiles()) {
                 if (f.isDirectory()) {
                     load(cc, f, string + f.getName());
                 } else if (f.getName().endsWith(".crt")) {
