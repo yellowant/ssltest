@@ -20,8 +20,8 @@
             src="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.9.v20150224/jetty-distribution-9.2.9.v20150224.zip"
             dest="build-files/jetty.zip" />
         <get skipexisting="true"
-            src="https://www.bouncycastle.org/download/bcprov-jdk15on-151.jar"
-            dest="build-files/" />
+            src="https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.51/bcprov-jdk15on-1.51.jar"
+            dest="build-files/bcprov-jdk15on-151.jar" />
         <get skipexisting="true"
             src="https://d3js.org/d3.v3.min.js"
             dest="static/js" />
