@@ -364,7 +364,11 @@ public class TLSAttackerClient {
                 CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8,
                 CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
                 CipherSuite.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
-                CipherSuite.TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+                CipherSuite.TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+                CipherSuite.TLS_CECPQ1_RSA_WITH_CHACHA20_POLY1305_SHA256,
+                CipherSuite.TLS_CECPQ1_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+                CipherSuite.TLS_CECPQ1_RSA_WITH_AES_256_GCM_SHA384,
+                CipherSuite.TLS_CECPQ1_ECDSA_WITH_AES_256_GCM_SHA384
         }));
 
         do {
