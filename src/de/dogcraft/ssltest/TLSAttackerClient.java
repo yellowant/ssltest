@@ -436,6 +436,13 @@ public class TLSAttackerClient {
                     tlsContexts.add(tlsContext);
 
                     transportHandler.closeConnection();
+
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
 
             };
@@ -447,6 +454,7 @@ public class TLSAttackerClient {
 
         } while (gotCipher);
 
+        System.out.println("Done!");
     }
 
 }
