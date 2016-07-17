@@ -10,8 +10,11 @@ import de.rub.nds.tlsattacker.tls.config.ConfigHandler;
 import de.rub.nds.tlsattacker.tls.config.ConfigHandlerFactory;
 import de.rub.nds.tlsattacker.tls.config.GeneralConfig;
 import de.rub.nds.tlsattacker.tls.constants.CipherSuite;
+import de.rub.nds.tlsattacker.tls.constants.CompressionMethod;
 import de.rub.nds.tlsattacker.tls.constants.ConnectionEnd;
+import de.rub.nds.tlsattacker.tls.constants.ECPointFormat;
 import de.rub.nds.tlsattacker.tls.constants.HandshakeMessageType;
+import de.rub.nds.tlsattacker.tls.constants.NamedCurve;
 import de.rub.nds.tlsattacker.tls.constants.ProtocolMessageType;
 import de.rub.nds.tlsattacker.tls.constants.ProtocolVersion;
 import de.rub.nds.tlsattacker.tls.exceptions.WorkflowExecutionException;
@@ -374,6 +377,9 @@ public class TLSAttackerClient {
             clientconfig.setConnect("ssltest.security.fail:443");
             clientconfig.setProtocolVersion(ProtocolVersion.TLS12);
             clientconfig.setCipherSuites(ciphers);
+            clientconfig.setCompressionMethods(Arrays.asList(CompressionMethod.values()));
+            clientconfig.setPointFormats(Arrays.asList(ECPointFormat.values()));
+            clientconfig.setNamedCurves(Arrays.asList(NamedCurve.values()));
 
             Attacker<ClientCommandConfig> attacker = new Attacker<ClientCommandConfig>(clientconfig) {
 
