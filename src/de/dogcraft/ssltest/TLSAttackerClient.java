@@ -4,12 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import de.rub.nds.tlsattacker.attacks.config.HeartbleedCommandConfig;
-import de.rub.nds.tlsattacker.modifiablevariable.bytearray.ByteArrayModificationFactory;
-import de.rub.nds.tlsattacker.modifiablevariable.bytearray.ModifiableByteArray;
-import de.rub.nds.tlsattacker.modifiablevariable.integer.IntegerModificationFactory;
-import de.rub.nds.tlsattacker.modifiablevariable.integer.ModifiableInteger;
-import de.rub.nds.tlsattacker.modifiablevariable.singlebyte.ModifiableByte;
 import de.rub.nds.tlsattacker.tls.Attacker;
 import de.rub.nds.tlsattacker.tls.config.ClientCommandConfig;
 import de.rub.nds.tlsattacker.tls.config.ConfigHandler;
@@ -25,7 +19,6 @@ import de.rub.nds.tlsattacker.tls.protocol.ProtocolMessage;
 import de.rub.nds.tlsattacker.tls.protocol.handshake.CertificateMessage;
 import de.rub.nds.tlsattacker.tls.protocol.handshake.ServerHelloMessage;
 import de.rub.nds.tlsattacker.tls.protocol.handshake.ServerKeyExchangeMessage;
-import de.rub.nds.tlsattacker.tls.protocol.heartbeat.HeartbeatMessage;
 import de.rub.nds.tlsattacker.tls.record.Record;
 import de.rub.nds.tlsattacker.tls.workflow.TlsContext;
 import de.rub.nds.tlsattacker.tls.workflow.WorkflowExecutor;
@@ -377,12 +370,12 @@ public class TLSAttackerClient {
             generalConfig.setQuiet(false);
             generalConfig.setDebug(true);
 
-            HeartbleedCommandConfig heartbleed = new HeartbleedCommandConfig();
-            heartbleed.setConnect("ssltest.security.fail:443");
-            heartbleed.setProtocolVersion(ProtocolVersion.TLS12);
-            heartbleed.setCipherSuites(ciphers);
+            ClientCommandConfig clientconfig = new ClientCommandConfig();
+            clientconfig.setConnect("ssltest.security.fail:443");
+            clientconfig.setProtocolVersion(ProtocolVersion.TLS12);
+            clientconfig.setCipherSuites(ciphers);
 
-            Attacker<ClientCommandConfig> attacker = new Attacker<ClientCommandConfig>(heartbleed) {
+            Attacker<ClientCommandConfig> attacker = new Attacker<ClientCommandConfig>(clientconfig) {
 
                 @Override
                 public void executeAttack(ConfigHandler configHandler) {
@@ -392,16 +385,6 @@ public class TLSAttackerClient {
                     WorkflowExecutor workflowExecutor = configHandler.initializeWorkflowExecutor(transportHandler, tlsContext);
 
                     WorkflowTrace trace = tlsContext.getWorkflowTrace();
-
-                    ModifiableByte heartbeatMessageType = new ModifiableByte();
-                    ModifiableInteger payloadLength = new ModifiableInteger();
-                    payloadLength.setModification(IntegerModificationFactory.explicitValue(1337));
-                    ModifiableByteArray payload = new ModifiableByteArray();
-                    payload.setModification(ByteArrayModificationFactory.explicitValue(new byte[] { 1, 3 }));
-                    HeartbeatMessage hb = (HeartbeatMessage) trace.getFirstProtocolMessage(ProtocolMessageType.HEARTBEAT);
-                    hb.setHeartbeatMessageType(heartbeatMessageType);
-                    hb.setPayload(payload);
-                    hb.setPayloadLength(payloadLength);
 
                     try {
                         workflowExecutor.executeWorkflow();
@@ -442,19 +425,6 @@ public class TLSAttackerClient {
                         gotCipher = true;
                     } catch (Exception e) {
                         gotCipher = false;
-                    }
-
-                    if (trace.containsServerFinished()) {
-                        ProtocolMessage lastMessage = trace.getLastServerMesssage();
-                        if (lastMessage.getProtocolMessageType() == ProtocolMessageType.HEARTBEAT) {
-                            System.out.println("Vulnerable. The server responds with a heartbeat message, although the client heartbeat message contains an invalid ");
-                            vulnerable = true;
-                        } else {
-                            System.out.println("(Most probably) Not vulnerable. The server does not respond with a heartbeat message, it is not vulnerable");
-                            vulnerable = false;
-                        }
-                    } else {
-                        System.out.println("Correct TLS handshake cannot be executed, no Server Finished message found. Check the server configuration.");
                     }
 
                     tlsContexts.add(tlsContext);
