@@ -72,11 +72,16 @@ public class Truststore {
                 }
 
                 for (File f1 : fl) {
-                    FileInputStream inStream = new FileInputStream(f1);
-                    X509Certificate crt = (X509Certificate) cf.generateCertificate(inStream);
-                    inStream.close();
-                    md.reset();
-                    ks.setCertificateEntry(TruststoreUtil.outputFingerprint(crt, md), crt);
+                    try {
+                        FileInputStream inStream = new FileInputStream(f1);
+                        X509Certificate crt = (X509Certificate) cf.generateCertificate(inStream);
+                        inStream.close();
+                        md.reset();
+                        ks.setCertificateEntry(TruststoreUtil.outputFingerprint(crt, md), crt);
+                    } catch (Exception e) {
+                        System.out.println("Could not load certificate: " + f1.getAbsolutePath());
+                        e.printStackTrace();
+                    }
                 }
             }
             ks.store(new FileOutputStream(ksF), "changeit".toCharArray());
