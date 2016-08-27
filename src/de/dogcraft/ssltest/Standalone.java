@@ -30,6 +30,8 @@ public class Standalone {
         main.addServlet(new ServletHolder(new TruststoreOverview()), "/trust");
         HandlerList hl = new HandlerList();
         ResourceHandler hand = new ResourceHandler();
+        hand.setEtags(true);
+        hand.setCacheControl("max-age=86400");
         hand.setResourceBase("static/");
         ContextHandler resHand = new ContextHandler("/static");
         resHand.setHandler(hand);

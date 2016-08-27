@@ -76,18 +76,22 @@ public class Service extends HttpServlet {
             resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
             copyStream(Service.class.getResourceAsStream("../res/about.htm"), resp.getOutputStream());
         } else if (path.equals("/server.event")) {
+            resp.addHeader("Cache-Control", "max-age=0");
             if (req.getParameter("domain") != null) {
                 reqTestServer(req, resp, true);
             }
         } else if (path.equals("/server.txt")) {
+            resp.addHeader("Cache-Control", "max-age=0");
             if (req.getParameter("domain") != null) {
                 reqTestServer(req, resp, false);
             }
         } else if (path.equals("/cert.event")) {
+            resp.addHeader("Cache-Control", "max-age=0");
             if (req.getParameter("fp") != null) {
                 reqTestCertificate(req, resp, true);
             }
         } else if (path.equals("/cert.txt")) {
+            resp.addHeader("Cache-Control", "max-age=0");
             if (req.getParameter("fp") != null) {
                 reqTestCertificate(req, resp, false);
             }
@@ -112,15 +116,19 @@ public class Service extends HttpServlet {
                 }
                 CertificateTestService.cache(cw);
                 resp.setHeader("Content-type", "text/plain;charset=UTF-8");
+                resp.addHeader("Cache-Control", "max-age=0");
                 resp.getWriter().print(cw.getHash());
             } else {
                 resp.setHeader("Content-type", "text/html;charset=UTF-8");
+                resp.addHeader("Cache-Control", "max-age=86400");
                 ServletOutputStream out = resp.getOutputStream();
                 out.println("<form method='POST' enctype='multipart/form-data'><input type='file' name='file'><input type='submit'></form>");
             }
         } else if (path.equals("/cipherRater.css")) {
+            resp.addHeader("Cache-Control", "max-age=86400");
             CipherRater.generateRateCSS(resp);
         } else {
+            resp.addHeader("Cache-Control", "max-age=86400");
             resp.sendError(404, "Fuck off");
         }
     }
