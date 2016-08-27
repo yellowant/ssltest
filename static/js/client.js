@@ -29,19 +29,19 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		}
 		function ParseFile(file) {
-	    var reader = new FileReader();
-	    reader.onload = function(){
-	    	var v = new XMLHttpRequest();
-	    	v.onload = function(){
-	    		if(c === undefined){
-	    			c = new CertsModule(document.getElementById("output"),"base");
-	    		}
-	    		c.reference(v.response);
-	    	}
-	    	v.open("POST", "/certstatus");
-	    	v.send(reader.result);
-	    };
-	    reader.readAsText(file);
+			var reader = new FileReader();
+			reader.onload = function(){
+				var v = new XMLHttpRequest();
+				v.onload = function(){
+					if(c === undefined){
+						c = new CertsModule(document.getElementById("output"),"base");
+					}
+					c.reference(v.response);
+				}
+				v.open("POST", "/certstatus");
+				v.send(reader.result);
+			};
+			reader.readAsText(file);
 		}
 
 		var filedrag = document.getElementById("check");
@@ -204,7 +204,7 @@ var CertsModule = function(c, idbase) {
 		}
 		return cert;
 	}
-	
+
 	this.refData = function(hash, node) {
 		var cert = ref0(hash);
 
@@ -573,6 +573,7 @@ function Stream(c, url) {
 		});
 	}
 }
+
 function StatusIndicator(isRunning, hide){
 	var c = document.createTextNode("*");
 	isRunning.appendChild(c);
@@ -588,8 +589,6 @@ function StatusIndicator(isRunning, hide){
 		isRunning.style.backgroundColor = '#0F0';
 	};
 }
-
-
 
 function events() {
 	var overview = new (function() {
