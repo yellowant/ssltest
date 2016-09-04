@@ -45,7 +45,14 @@ public class CertificateTestService extends TestService {
         }
 
         private void load(CertCache cc, File file, String string) {
-            for (File f : file.listFiles()) {
+            if (null == file) {
+                return;
+            }
+            File[] files = file.listFiles();
+            if (null == files) {
+                return;
+            }
+            for (File f : files) {
                 if (f.isDirectory()) {
                     load(cc, f, string + f.getName());
                 } else if (f.getName().endsWith(".crt")) {

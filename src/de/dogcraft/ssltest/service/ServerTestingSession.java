@@ -63,27 +63,29 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
                     }
                     StringBuffer res = new StringBuffer();
                     res.append("{");
-                    for (Entry<Integer, byte[]> c : ext.entrySet()) {
-                        res.append("\"");
-                        res.append(c.getKey());
-                        res.append("\": {");
-                        res.append("\"illegal\":\"");
-                        res.append(illegal.contains(c.getKey()) ? "yes" : "no");
-                        res.append("\"");
-                        if (c.getKey() == ExtensionType.heartbeat) {
-                            res.append(",\"tested\":" + hbTest);
+                    if (null != ext) {
+                        for (Entry<Integer, byte[]> c : ext.entrySet()) {
+                            res.append("\"");
+                            res.append(c.getKey());
+                            res.append("\": {");
+                            res.append("\"illegal\":\"");
+                            res.append(illegal.contains(c.getKey()) ? "yes" : "no");
+                            res.append("\"");
+                            if (c.getKey() == ExtensionType.heartbeat) {
+                                res.append(",\"tested\":" + hbTest);
+                            }
+                            res.append("},");
                         }
-                        res.append("},");
+                        if (ext.get(ExtensionType.heartbeat) == null) {
+                            res.append("\"");
+                            res.append(ExtensionType.heartbeat);
+                            res.append("\": {");
+                            res.append("\"sent\": \"no\", \"illegal\":\"no\"");
+                            res.append(",\"tested\":" + hbTest + "");
+                            res.append("},");
+                        }
+                        res.deleteCharAt(res.length() - 1);
                     }
-                    if (ext.get(ExtensionType.heartbeat) == null) {
-                        res.append("\"");
-                        res.append(ExtensionType.heartbeat);
-                        res.append("\": {");
-                        res.append("\"sent\": \"no\", \"illegal\":\"no\"");
-                        res.append(",\"tested\":" + hbTest + "");
-                        res.append("},");
-                    }
-                    res.deleteCharAt(res.length() - 1);
                     res.append("}");
                     outputEvent("extensions", //
                             res.toString());

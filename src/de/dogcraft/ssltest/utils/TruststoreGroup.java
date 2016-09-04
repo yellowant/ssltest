@@ -53,6 +53,9 @@ public class TruststoreGroup {
             if (list[i].isDirectory() && list[i].getName().startsWith(name)) {
                 String[] parts = list[i].getName().split("_", 2);
                 try {
+                    if (parts.length < 2) {
+                        parts = new String[] { parts[0], "misc" };
+                    }
                     tm.put(parts[1], new Truststore(list[i], this, list[i].getName()));
                 } catch (Exception e) {
                     System.out.println("Could not load truststore: " + list[i].getName());
@@ -87,7 +90,7 @@ public class TruststoreGroup {
             File[] files = f.listFiles();
             if (null != files) {
                 for (File fs : files) {
-                    if ( !fs.isDirectory() || fs.getName().startsWith("_")) {
+                    if (null == fs || !fs.isDirectory() || fs.getName().startsWith("_")) {
                         continue;
                     }
                     String[] parts = fs.getName().split("_", 2);
