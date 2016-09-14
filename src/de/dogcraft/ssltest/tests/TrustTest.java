@@ -130,42 +130,53 @@ public class TrustTest {
         CertificateWrapper e = new CertificateWrapper(toTrust, null);
         used.add(e);
 
-        buildChains(out, e, local, used, false);
+        HashSet<CertificateWrapper> analyzed = new HashSet<>();
+        buildChains(out, e, local, used, false, analyzed);
 
     }
 
-    private void buildChains(TestOutput out, CertificateWrapper toTrustW, CertificateIndex local, LinkedList<CertificateWrapper> used, boolean trusted) {
+    private void buildChains(TestOutput out, CertificateWrapper toTrustW, CertificateIndex local, LinkedList<CertificateWrapper> used, boolean trusted, HashSet<CertificateWrapper> analyzed) {
+        if (analyzed.contains(toTrustW)) {
+            return;
+        }
+        analyzed.add(toTrustW);
         out.pushCert(toTrustW);
         Certificate toTrust = toTrustW.getC();
         Set<CertificateWrapper> localC = local.getIssuers(toTrust);
         Set<CertificateWrapper> globalC = ci.getIssuers(toTrust);
         for (CertificateWrapper certificate : localC) {
-            if (used.contains(certificate) || !isIssuerOf(toTrust, certificate.getC())) {
+            if ( !isIssuerOf(toTrust, certificate.getC())) {
                 continue;
             }
             emitEdge(toTrustW, certificate, "chain");
+            if (used.contains(certificate)) {
+                continue;
+            }
             used.add(certificate);
-            buildChains(out, certificate, local, used, trusted);
+            buildChains(out, certificate, local, used, trusted, analyzed);
             used.removeLast();
         }
         for (Certificate c : getCAIssuer(toTrust, out)) {
             CertificateWrapper e = new CertificateWrapper(c, null);
             emitEdge(toTrustW, e, "issuer");
             used.add(e);
-            buildChains(out, e, local, used, trusted);
+            buildChains(out, e, local, used, trusted, analyzed);
             used.removeLast();
         }
         for (CertificateWrapper certificate : globalC) {
-            if (used.contains(certificate) || !isIssuerOf(toTrust, certificate.getC())) {
+            if ( !isIssuerOf(toTrust, certificate.getC())) {
+                continue;
+            }
+            emitEdge(toTrustW, certificate, "trust");
+            if (used.contains(certificate)) {
                 continue;
             }
             used.add(certificate);
-            emitEdge(toTrustW, certificate, "trust");
             List<Truststore> trust = ci.getTrust(certificate);
             if ( !trusted) {
                 emitChain(out, used, trust);
             }
-            buildChains(out, certificate, local, used, true);
+            buildChains(out, certificate, local, used, true, analyzed);
             used.removeLast();
         }
         Set<CertificateWrapper> cAs = CertificateTestService.getCAs();
@@ -181,7 +192,7 @@ public class TrustTest {
         for (CertificateWrapper certificate : cacheFound) {
             used.add(certificate);
             emitEdge(toTrustW, certificate, "cached");
-            buildChains(out, certificate, local, used, true);
+            buildChains(out, certificate, local, used, true, analyzed);
             used.removeLast();
         }
     }
