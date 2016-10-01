@@ -24,16 +24,20 @@ public class TestImplementationBugs {
 
     private LinkedList<Integer> illegalExtensions;
 
+    protected class CompressionMethodEx extends CompressionMethod {
+        public static final short LZS = 64;
+    }
+
     public TestImplementationBugs(String host, TestConnectionBuilder tcb) {
         this.host = host;
         this.tcb = tcb;
     }
 
-    public boolean testDeflate(TestOutput pw) throws IOException {
+    protected boolean testCompression(TestOutput pw, short compression) throws IOException {
         Socket sock = tcb.spawn();
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
-            CompressionMethod.DEFLATE
+            compression
         }, null);
         boolean gotThrough = false;
         try {
@@ -46,6 +50,14 @@ public class TestImplementationBugs {
 
         }
         return !(tcp.hasFailedLocaly() || tc.isFailed() || !gotThrough);
+    }
+
+    public boolean testCompressionDeflate(TestOutput pw) throws IOException {
+        return testCompression(pw, CompressionMethodEx.DEFLATE);
+    }
+
+    public boolean testCompressionLZS(TestOutput pw) throws IOException {
+        return testCompression(pw, CompressionMethodEx.LZS);
     }
 
     public String testHeartbeat() throws IOException {

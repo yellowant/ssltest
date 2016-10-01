@@ -90,12 +90,19 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
                     outputEvent("extensions", //
                             res.toString());
 
-                    boolean acceptsCompression = b.testDeflate(ServerTestingSession.this);
+                    boolean acceptsCompressionDeflate = b.testCompressionDeflate(ServerTestingSession.this);
+                    if (acceptsCompressionDeflate) {
+                        outputEvent("compression", "{ \"accepted\": \"yes\", \"algs\" : [{ \"id\": 1, \"name\": \"DEFLATE\" }], \"points\": -10 }");
+                    }
 
-                    if (acceptsCompression) {
-                        outputEvent("compression", "{ \"accepted\": \"yes\", \"points\": -10 }");
-                    } else {
-                        outputEvent("compression", "{ \"accepted\": \"no\", \"points\": 0 }");
+                    boolean acceptsCompressionLZS = b.testCompressionLZS(ServerTestingSession.this);
+                    if (acceptsCompressionLZS) {
+                        outputEvent("compression", "{ \"accepted\": \"yes\", \"algs\" : [{ \"id\": 64, \"name\": \"LZS\" }], \"points\": -10 }");
+                    }
+
+                    boolean acceptsCompression = acceptsCompressionDeflate | acceptsCompressionLZS;
+                    if ( !acceptsCompression) {
+                        outputEvent("compression", "{ \"accepted\": \"no\", \"algs\" : [], \"points\": 0 }");
                     }
                 } catch (ConnectException e) {
                     outputEvent("error", "{ \"message\": \"connection failed\" }");
