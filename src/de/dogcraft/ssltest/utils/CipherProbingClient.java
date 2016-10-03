@@ -224,4 +224,9 @@ public class CipherProbingClient extends DefaultTlsClient {
     public LinkedList<Integer> getIllegalExtensions() {
         return illegalExtensions;
     }
+
+    public short getSelectedCompressionMethod() {
+        return selectedCompressionMethod;
+    }
+
 }

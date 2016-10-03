@@ -19,7 +19,7 @@ import org.bouncycastle.crypto.tls.TlsECDHKeyExchange;
 import org.bouncycastle.crypto.tls.TlsKeyExchange;
 import org.bouncycastle.crypto.tls.TlsRSAKeyExchange;
 
-public class TestingTLSClient extends TlsClientProtocol {
+public class TestingTLSClient extends TlsClientProtocol implements AutoCloseable {
 
     private static SecureRandom random = new SecureRandom();
 

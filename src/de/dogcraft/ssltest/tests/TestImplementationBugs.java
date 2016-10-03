@@ -33,23 +33,30 @@ public class TestImplementationBugs {
         this.tcb = tcb;
     }
 
+    @SuppressWarnings("deprecation")
     protected boolean testCompression(TestOutput pw, short compression) throws IOException {
-        Socket sock = tcb.spawn();
-        TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
-        CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
-            compression
-        }, null);
-        boolean gotThrough = false;
-        try {
-            tcp.connect(tc);
-            sock.getOutputStream().flush();
-            gotThrough = true;
-            tcp.close();
-            sock.close();
-        } catch (Throwable t) {
+        try (Socket sock = tcb.spawn()) {
+            try (TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream())) {
 
+                CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
+                    compression, CompressionMethodEx.NULL
+                }, null);
+
+                boolean gotThrough = false;
+                try {
+                    tcp.connect(tc);
+                    sock.getOutputStream().flush();
+
+                    if( CompressionMethodEx.NULL != tc.getSelectedCompressionMethod() ) {
+                        gotThrough = true;
+                    }
+                } catch (Throwable t) {
+                    return false;
+                }
+
+                return !(tcp.hasFailedLocaly() || tc.isFailed() || !gotThrough);
+            }
         }
-        return !(tcp.hasFailedLocaly() || tc.isFailed() || !gotThrough);
     }
 
     public boolean testCompressionDeflate(TestOutput pw) throws IOException {
