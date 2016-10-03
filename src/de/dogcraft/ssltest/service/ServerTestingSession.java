@@ -35,9 +35,10 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
         this.ip = ip;
         this.port = port;
         this.proto = proto;
-        outputEvent("streamID", "{\"host\":\"" + JSONUtils.jsonEscape(host) + "\", "//
-                + (ip == null ? "" : "\"ip\":\"" + JSONUtils.jsonEscape(ip) + "\", ")//
-                + "\"port\":" + port + ", \"proto\":\"" + JSONUtils.jsonEscape(proto) + "\"}");
+        outputEvent("streamID",
+                "{\"host\":\"" + JSONUtils.jsonEscape(host) + "\", "//
+                        + (ip == null ? "" : "\"ip\":\"" + JSONUtils.jsonEscape(ip) + "\", ")//
+                        + "\"port\":" + port + ", \"proto\":\"" + JSONUtils.jsonEscape(proto) + "\"}");
     }
 
     private Task testBugs() {
@@ -91,17 +92,23 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
                             res.toString());
 
                     boolean acceptsCompressionDeflate = b.testCompressionDeflate(ServerTestingSession.this);
-                    if (acceptsCompressionDeflate) {
-                        outputEvent("compression", "{ \"accepted\": \"yes\", \"algs\" : [{ \"id\": 1, \"name\": \"DEFLATE\" }], \"points\": -10 }");
-                    }
 
                     boolean acceptsCompressionLZS = b.testCompressionLZS(ServerTestingSession.this);
-                    if (acceptsCompressionLZS) {
-                        outputEvent("compression", "{ \"accepted\": \"yes\", \"algs\" : [{ \"id\": 64, \"name\": \"LZS\" }], \"points\": -10 }");
-                    }
+                    if (acceptsCompressionDeflate || acceptsCompressionLZS) {
+                        StringBuffer event = new StringBuffer("{ \"accepted\": \"yes\", \"algs\" : [");
+                        if (acceptsCompressionDeflate) {
+                            event.append("{ \"id\": 1, \"name\": \"DEFLATE\" }");
+                        }
+                        if (acceptsCompressionDeflate && acceptsCompressionLZS) {
+                            event.append(", ");
+                        }
+                        if (acceptsCompressionLZS) {
+                            event.append("{ \"id\": 64, \"name\": \"LZS\" }");
+                        }
+                        event.append("], \"points\": -10 }");
+                        outputEvent("compression", event.toString());
 
-                    boolean acceptsCompression = acceptsCompressionDeflate | acceptsCompressionLZS;
-                    if ( !acceptsCompression) {
+                    } else {
                         outputEvent("compression", "{ \"accepted\": \"no\", \"algs\" : [], \"points\": 0 }");
                     }
                 } catch (ConnectException e) {
@@ -125,10 +132,11 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
     public void performTest() {
         System.out.println("Testing " + ip + "#" + host + ":" + port);
         System.out.println("Proto: " + proto);
-        outputEvent("test", String.format("{ \"ip\": \"%s\", \"host\": \"%s\", \"port\": \"%d\", \"proto\": \"%s\" }", //
-                JSONUtils.jsonEscape(ip), //
-                JSONUtils.jsonEscape(host), //
-                port, JSONUtils.jsonEscape(proto)));
+        outputEvent("test",
+                String.format("{ \"ip\": \"%s\", \"host\": \"%s\", \"port\": \"%d\", \"proto\": \"%s\" }", //
+                        JSONUtils.jsonEscape(ip), //
+                        JSONUtils.jsonEscape(host), //
+                        port, JSONUtils.jsonEscape(proto)));
 
         final Task bugs = testBugs();
         final Task ciphers = tq.new Task() {
