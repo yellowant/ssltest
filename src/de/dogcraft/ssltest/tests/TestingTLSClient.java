@@ -19,6 +19,8 @@ import org.bouncycastle.crypto.tls.TlsECDHKeyExchange;
 import org.bouncycastle.crypto.tls.TlsKeyExchange;
 import org.bouncycastle.crypto.tls.TlsRSAKeyExchange;
 
+import de.dogcraft.ssltest.utils.CipherProbingClient;
+
 public class TestingTLSClient extends TlsClientProtocol implements AutoCloseable {
 
     private static SecureRandom random = new SecureRandom();
@@ -89,7 +91,9 @@ public class TestingTLSClient extends TlsClientProtocol implements AutoCloseable
     protected void raiseAlert(short alertLevel, short alertDescription, String message, Exception cause) throws IOException {
         if (cause != null) {
             failedLocaly = true;
-            cause.printStackTrace();
+            if ( !(cause instanceof CipherProbingClient.BrokenCipherException)) {
+                cause.printStackTrace();
+            }
         }
         super.raiseAlert(alertLevel, alertDescription, message, cause);
     }

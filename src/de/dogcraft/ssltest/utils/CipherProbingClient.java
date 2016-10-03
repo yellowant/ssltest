@@ -1,6 +1,7 @@
 package de.dogcraft.ssltest.utils;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -22,6 +23,7 @@ import org.bouncycastle.crypto.tls.ServerNameList;
 import org.bouncycastle.crypto.tls.ServerOnlyTlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsAuthentication;
 import org.bouncycastle.crypto.tls.TlsCipher;
+import org.bouncycastle.crypto.tls.TlsCompression;
 import org.bouncycastle.crypto.tls.TlsECCUtils;
 import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
 import org.bouncycastle.crypto.tls.TlsFatalAlert;
@@ -101,10 +103,32 @@ public class CipherProbingClient extends DefaultTlsClient {
     }
 
     @Override
+    public TlsCompression getCompression() throws IOException {
+        try {
+            return super.getCompression();
+        } catch (TlsFatalAlert e) {
+            return new TlsCompression() {
+
+                @Override
+                public OutputStream decompress(OutputStream output) {
+                    throw new BrokenCipherException();
+                }
+
+                @Override
+                public OutputStream compress(OutputStream output) {
+                    throw new BrokenCipherException();
+                }
+            };
+        }
+    }
+
+    @Override
     public int[] getCipherSuites() {
         if (ciphers == null) {
             return new int[] {
-                    CipherSuite.TLS_RSA_WITH_AES_256_GCM_SHA384, CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256, CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA, //
+                    CipherSuite.TLS_RSA_WITH_AES_256_GCM_SHA384,
+                    CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256,
+                    CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA, //
                     CipherSuite.TLS_RSA_WITH_AES_128_GCM_SHA256,
                     CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256,
                     CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA, //

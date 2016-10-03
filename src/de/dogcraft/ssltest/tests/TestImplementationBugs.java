@@ -13,6 +13,7 @@ import org.bouncycastle.crypto.tls.HeartbeatMessage;
 import org.bouncycastle.crypto.tls.HeartbeatMessageType;
 
 import de.dogcraft.ssltest.utils.CipherProbingClient;
+import de.dogcraft.ssltest.utils.CipherProbingClient.BrokenCipherException;
 
 public class TestImplementationBugs {
 
@@ -25,6 +26,7 @@ public class TestImplementationBugs {
     private LinkedList<Integer> illegalExtensions;
 
     protected class CompressionMethodEx extends CompressionMethod {
+
         public static final short LZS = 64;
     }
 
@@ -39,7 +41,7 @@ public class TestImplementationBugs {
             try (TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream())) {
 
                 CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
-                    compression, CompressionMethodEx.NULL
+                        compression, CompressionMethodEx.NULL
                 }, null);
 
                 boolean gotThrough = false;
@@ -47,14 +49,19 @@ public class TestImplementationBugs {
                     tcp.connect(tc);
                     sock.getOutputStream().flush();
 
-                    if( CompressionMethodEx.NULL != tc.getSelectedCompressionMethod() ) {
+                    if (CompressionMethodEx.NULL != tc.getSelectedCompressionMethod()) {
                         gotThrough = true;
                     }
+                } catch (BrokenCipherException t) {
+                    System.out.println("Catched Broken cipher");
+                    return true;
                 } catch (Throwable t) {
                     return false;
                 }
 
                 return !(tcp.hasFailedLocaly() || tc.isFailed() || !gotThrough);
+            } catch (BrokenCipherException t) {
+                return false;
             }
         }
     }
@@ -84,7 +91,7 @@ public class TestImplementationBugs {
         };
         BugTestingTLSClient tcp = new BugTestingTLSClient(observer, sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, null, new short[] {
-            CompressionMethod._null
+                CompressionMethod._null
         }, observer);
         tcp.connect(tc);
         HeartbeatMessage hbm = new HeartbeatMessage(HeartbeatMessageType.heartbeat_request, new byte[] {
