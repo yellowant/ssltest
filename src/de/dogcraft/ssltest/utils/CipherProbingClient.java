@@ -77,10 +77,15 @@ public class CipherProbingClient extends DefaultTlsClient {
             case CipherSuite.TLS_RSA_WITH_IDEA_CBC_SHA:
                 return createRSAKeyExchange();
             }
-            if (s.startsWith("TLS_RSA_EXPORT_") || s.startsWith("TLS_DH_anon_") || s.startsWith("TLS_ECDH_anon_") || s.startsWith("TLS_PSK_") || s.startsWith("TLS_SRP_")) {
+            if (s.startsWith("TLS_RSA_EXPORT_") // export
+                    || s.startsWith("TLS_RSA_WITH_DES_") || s.startsWith("TLS_DHE_RSA_WITH_DES_") // _DES_
+                    || s.startsWith("TLS_PSK_") || s.startsWith("TLS_DHE_PSK_WITH_") || s.startsWith("TLS_RSA_PSK_WITH_") // PSK
+                    || s.startsWith("TLS_DH_anon_") || s.startsWith("TLS_ECDH_anon_") // DH_anon
+                    || s.startsWith("TLS_SRP_")) {
                 brokenCipher = true;
                 throw new BrokenCipherException();
             }
+            System.out.println(s);
             throw t;
         }
     }
