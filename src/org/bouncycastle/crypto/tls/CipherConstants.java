@@ -95,7 +95,7 @@ public class CipherConstants {
 
         DES_CBC(56, 64, "DES", OperationMode.CBC),
         DES40_CBC(40, 64, "DES", OperationMode.CBC),
-        _3DES_EDE_CBC(168, 64, "3DES_EDE", OperationMode.CBC),//
+        _3DES_EDE_CBC(112, 64, "3DES", OperationMode.CBC),//
 
         AES_128_CBC(128, 128, "AES", OperationMode.CBC),
         AES_256_CBC(256, 128, "AES", OperationMode.CBC),
