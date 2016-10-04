@@ -159,6 +159,7 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
         tq.new Task() {
 
             {
+                dependsOn(bugs);
                 dependsOn(ciphers);
                 requeue();
             }
