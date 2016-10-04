@@ -918,11 +918,19 @@ function events() {
 			stream.registerEvent("compression", function(c, s, e) {
 				var ext = JSON.parse(e.data);
 				var tr = document.createElement("tr");
+
 				var td = document.createElement("td");
+				td.appendChild(document.createTextNode("compression"));
+				tr.appendChild(td);
+
+				td = document.createElement("td");
+				tr.appendChild(td);
+
+				td = document.createElement("td");
 				if(ext.accepted=="no"){
-					td.appendChild(document.createTextNode("compression: no"));
+					td.appendChild(document.createTextNode("supported: no"));
 				}else{
-					td.appendChild(document.createTextNode("compression: yes"));
+					td.appendChild(document.createTextNode("supported: yes "));
 					td.appendChild(errorSign("TLS compression can make you vulnerable to different attacks."));
 				}
 				tr.appendChild(td);
