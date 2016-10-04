@@ -122,7 +122,9 @@ public class CipherConstants {
 
         CHACHA20(256, 0, "CHACHA20", OperationMode.Poly1305),
         SALSA20(256, 0, "CHACHA20", OperationMode.Stream),
-        SALSA20_ESTREAM(256, 0, "CHACHA20", OperationMode.Stream);
+        SALSA20_ESTREAM(256, 0, "CHACHA20", OperationMode.Stream),
+
+        FORTEZZA(80, 64, "FORTEZZA", OperationMode.CBC);
 
         private final int ksize;
 
@@ -223,7 +225,13 @@ public class CipherConstants {
          * the documentation in RFC 6101 is ambiguous of the actual IDs as 
          * three cipher suites are listed, but only two IDs are available in the
          * TLS Cipher Suite Registry.
+         *
+         * Inoffizial information could be found at the following URL though:
+         * https://testssl.sh/openssl-rfc.mappping.html
          */
+        SSL_FORTEZZA_KEA_WITH_NULL_SHA(0x001C, Kex.FORTEZZA, Auth.NULL, Enc.NULL, Mac.SHA),//
+        SSL_FORTEZZA_KEA_WITH_FORTEZZA_CBC_SHA(0x001D, Kex.FORTEZZA, Auth.NULL, Enc.FORTEZZA, Mac.SHA),//
+        SSL_FORTEZZA_KEA_WITH_RC4_128_SHA(0x001E, Kex.FORTEZZA, Auth.NULL, Enc.RC4_128, Mac.SHA),//
 
         /*
          * RFC 2712 and RFC 6347
