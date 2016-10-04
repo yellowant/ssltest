@@ -130,7 +130,7 @@ table.ciphertable, td.cipher-enctype[data-value^="Salza20"] {
 table.ciphertable, td.cipher-enctype[data-value^="Chacha20"] {
 	background-color:#ddf;
 }
-table.ciphertable, td.cipher-enctype[data-value="Camellia"] {
+table.ciphertable, td.cipher-enctype[data-value="CAMELLIA"] {
 	background-color:#dfd;
 }
 table.ciphertable, td.cipher-enctype[data-value="AES"] {
@@ -164,13 +164,13 @@ table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="112"] {
 table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="168"] {
 	background-color:#fed;
 }
-table.ciphertable, td.cipher-encksize[data-type="Camellia"][data-value="128"] {
+table.ciphertable, td.cipher-encksize[data-type="CAMELLIA"][data-value="128"] {
 	background-color:#ffd;
 }
-table.ciphertable, td.cipher-encksize[data-type="Camellia"][data-value="192"] {
+table.ciphertable, td.cipher-encksize[data-type="CAMELLIA"][data-value="192"] {
 	background-color:#efd;
 }
-table.ciphertable, td.cipher-encksize[data-type="Camellia"][data-value="256"] {
+table.ciphertable, td.cipher-encksize[data-type="CAMELLIA"][data-value="256"] {
 	background-color:#dfd;
 }
 table.ciphertable, td.cipher-encksize[data-type="AES"][data-value="128"] {
@@ -201,13 +201,13 @@ table.ciphertable, td.cipher-encbsize[data-value="Stream"] {
 table.ciphertable, td.cipher-encbsize[data-type^="DES"][data-value="64"] {
 	background-color:#fdd;
 }
-table.ciphertable, td.cipher-encbsize[data-type="Camellia"][data-value="128"] {
+table.ciphertable, td.cipher-encbsize[data-type="CAMELLIA"][data-value="128"] {
 	background-color:#ffd;
 }
-table.ciphertable, td.cipher-encbsize[data-type="Camellia"][data-value="192"] {
+table.ciphertable, td.cipher-encbsize[data-type="CAMELLIA"][data-value="192"] {
 	background-color:#efd;
 }
-table.ciphertable, td.cipher-encbsize[data-type="Camellia"][data-value="256"] {
+table.ciphertable, td.cipher-encbsize[data-type="CAMELLIA"][data-value="256"] {
 	background-color:#dfd;
 }
 table.ciphertable, td.cipher-encbsize[data-type="AES"][data-value="128"] {

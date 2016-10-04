@@ -76,11 +76,7 @@ function Rater() {
 			return 0;
 		} else if (hash == "SHA1") {
 			return 0.4;
-		} else if (hash == "SHA256") {
-			return 0.8;
-		} else if (hash == "SHA384") {
-			return 0.9;
-		} else if (hash == "SHA512") {
+		} else if (hash == "SHA2") {
 			return 1;
 		} else {
 			return -1;

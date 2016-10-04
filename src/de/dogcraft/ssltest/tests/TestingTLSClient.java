@@ -81,7 +81,7 @@ public class TestingTLSClient extends TlsClientProtocol implements AutoCloseable
             // cipherInfo.pfs = true;
         } else {
             cipherInfo.kexType = "Unknown";
-            cipherInfo.kexSize = 0;
+            cipherInfo.kexSize = -1;
         }
 
         super.cleanupHandshake();
@@ -116,13 +116,13 @@ public class TestingTLSClient extends TlsClientProtocol implements AutoCloseable
         private String knownKexGroup;
 
         /** Key Exchange key size */
-        private int kexSize;
+        private int kexSize = -1;
 
         /** Authentication Key Format: RSA, DSA, ECDSA */
         private String authKeyType;
 
         /** Authentication Key Size */
-        private int authKeySize;
+        private int authKeySize = -1;
 
         /** Raw information on this particular Key Exchange */
         private TlsKeyExchange raw;

@@ -17,6 +17,7 @@ import java.util.Vector;
 
 import org.bouncycastle.crypto.tls.BugTestingTLSClient.CertificateObserver;
 import org.bouncycastle.crypto.tls.Certificate;
+import org.bouncycastle.crypto.tls.CipherConstants;
 import org.bouncycastle.crypto.tls.CipherSuite;
 import org.bouncycastle.crypto.tls.CompressionMethod;
 import org.bouncycastle.crypto.tls.TlsCipher;
@@ -268,6 +269,7 @@ public class TestCipherList {
         }
 
         public String toString(int chainHash) {
+            org.bouncycastle.crypto.tls.CipherConstants.CipherSuite cs = CipherConstants.getById(getCipherID());
             StringBuilder sb = new StringBuilder();
             Formatter f = new Formatter(sb);
 
@@ -283,12 +285,12 @@ public class TestCipherList {
                                 "\"pfs\": \"%s\", " + //
                                 "\"chain\": %d}", //
                         getCipherID(), JSONUtils.jsonEscape(getCipherName()), //
-                        JSONUtils.jsonEscape(info.getKexType()), info.getKexSize(), info.getKnownKexGroup() == null ? "" : ", \"name\":\"" + JSONUtils.jsonEscape(info.getKnownKexGroup()) + "\"", //
-                        JSONUtils.jsonEscape(info.getAuthKeyType()), info.getAuthKeySize(), //
-                        JSONUtils.jsonEscape(info.getCipherType()), info.getCipherKSize(), info.getCipherBSize(), //
-                        JSONUtils.jsonEscape(info.getCipherMode()), //
-                        JSONUtils.jsonEscape(info.getMacType()), info.getMacSize(), //
-                        info.isPFS() ? "yes" : "no", chainHash);
+                        JSONUtils.jsonEscape(cs.getKex().getType()), info.getKexSize(), info.getKnownKexGroup() == null ? "" : ", \"name\":\"" + JSONUtils.jsonEscape(info.getKnownKexGroup()) + "\"", //
+                        JSONUtils.jsonEscape(cs.getAuth().toString()), info.getAuthKeySize(), //
+                        JSONUtils.jsonEscape(cs.getEnc().getType()), cs.getEnc().getKsize(), cs.getEnc().getBsize(), //
+                        JSONUtils.jsonEscape(cs.getEnc().getCipherMode().toString()), //
+                        JSONUtils.jsonEscape(cs.getMac().getType()), cs.getMac().getDgst(), //
+                        cs.getKex().isPfs() ? "yes" : "no", chainHash);
             } finally {
                 f.close();
             }
