@@ -901,7 +901,10 @@ function events() {
 					tr.appendChild(td);
 					var td = document.createElement("td");
 					if(TLSExts[extId] == "heartbeat"){
-						td.appendChild(document.createTextNode(" heartbeat: "+ext[extId].tested.heartbeat+" heartbleed: "+ext[extId].tested.heartbleed));
+						td.appendChild(document.createTextNode(" heartbeat: "+ext[extId].tested.heartbeat+", heartbleed: "+ext[extId].tested.heartbleed));
+						if(ext[extId].tested.heartbleed != "no") {
+							td.appendChild(errorSign("This server is vulnerable to attacks that can leak sensitive data like the server's private key."));
+						}
 					}
 					tr.appendChild(td);
 
