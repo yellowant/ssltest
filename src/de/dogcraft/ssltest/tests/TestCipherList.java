@@ -93,6 +93,7 @@ public class TestCipherList {
         LinkedList<TestResultCipher> yourCiphers = new LinkedList<>();
         Collection<Integer> ciphers = getAllCiphers();
         ciphers.remove(org.bouncycastle.crypto.tls.CipherConstants.CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV.getValue());
+        ciphers.remove(org.bouncycastle.crypto.tls.CipherConstants.CipherSuite.TLS_FALLBACK_SCSV.getValue());
         HashSet<CertificateList> chains = new HashSet<>();
         HashMap<String, CertificateChecker> map = new HashMap<>();
 
@@ -291,7 +292,7 @@ public class TestCipherList {
                         JSONUtils.jsonEscape(cs.getEnc().getType()), cs.getEnc().getKsize(), cs.getEnc().getBsize(), //
                         JSONUtils.jsonEscape(cs.getEnc().getCipherMode().toString()), //
                         JSONUtils.jsonEscape(cs.getMac().getType()), cs.getMac().getDgst(), //
-                        cs.getKex().isPfs() ? "yes" : "no", chainHash);
+                        cs.getKex().isPFS() ? "yes" : "no", chainHash);
             } finally {
                 f.close();
             }

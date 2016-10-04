@@ -7,10 +7,22 @@ import java.util.Map;
 public class CipherConstants {
 
     public enum Kex {
-        NULL, RSA_EXPORT(false, true), RSA, //
-        DH, DHE(true), DH_anon(true), DH_EXPORT(false, true), DHE_EXPORT(true, true),//
-        ECDH, ECDHE(true),//
-        PSK, RSA_PSK, SRP_SHA;
+        NULL,
+
+        RSA, RSA_EXPORT(false, true), //
+
+        DH, DH_anon(true), DH_EXPORT(false, true), //
+        DHE(true), DHE_EXPORT(true, true), //
+
+        ECDH, ECDHE(true), //
+
+        PSK, RSA_PSK, DHE_PSK(true), ECDHE_PSK(true), //
+
+        SRP_SHA(true), //
+
+        KRB5, KRB5_EXPORT(false, true), //
+
+        FORTEZZA(false, true); //
 
         private final boolean pfs;
 
@@ -27,10 +39,9 @@ public class CipherConstants {
         private Kex(boolean pfs, boolean export) {
             this.pfs = pfs;
             this.export = export;
-
         }
 
-        public boolean isPfs() {
+        public boolean isPFS() {
             return pfs;
         }
 
@@ -55,18 +66,63 @@ public class CipherConstants {
     }
 
     public enum OperationMode {
-        Stream, CBC, GCM, Unknown
+        Stream, CBC, GCM(true), CCM(true), Poly1305(true), Unknown;
+
+        private final boolean AEADMode;
+
+        private OperationMode() {
+            AEADMode = false;
+        }
+
+        private OperationMode(boolean AEADMode) {
+            this.AEADMode = AEADMode;
+        }
+
+        public boolean isAEADMode() {
+            return AEADMode;
+        }
     }
 
     public enum Enc {
         NULL( -1, -1, "NULL", OperationMode.Unknown),//
-        RC4_128(128, 0, "RC4", OperationMode.Stream), RC4_40(40, 0, "RC4", OperationMode.Stream),//
+
+        RC4_128(128, 0, "RC4", OperationMode.Stream),
+        RC4_40(40, 0, "RC4", OperationMode.Stream),//
+
         RC2_CBC_40(40, 0, "RC2", OperationMode.CBC),//
+
         IDEA_CBC(128, 64, "IDEA", OperationMode.CBC),//
-        DES_CBC(56, 64, "DES", OperationMode.CBC), DES40_CBC(40, 64, "DES", OperationMode.CBC), _3DES_EDE_CBC(168, 64, "3DES_EDE", OperationMode.CBC),//
-        AES_128_CBC(128, 128, "AES", OperationMode.CBC), AES_256_CBC(256, 128, "AES", OperationMode.CBC), AES_128_GCM(128, 128, "AES", OperationMode.GCM), AES_256_GCM(256, 128, "AES", OperationMode.GCM),//
-        CAMELLIA_128_CBC(128, 128, "CAMELLIA", OperationMode.CBC), CAMELLIA_256_CBC(256, 128, "CAMELLIA", OperationMode.CBC), CAMELLIA_128_GCM(128, 128, "CAMELLIA", OperationMode.GCM), CAMELLIA_256_GCM(256, 128, "CAMELLIA", OperationMode.GCM),//
-        SEED_CBC(128, 128, "SEED", OperationMode.CBC), CHACHA20(256, 0, "CHACHA20", OperationMode.Stream);
+
+        DES_CBC(56, 64, "DES", OperationMode.CBC),
+        DES40_CBC(40, 64, "DES", OperationMode.CBC),
+        _3DES_EDE_CBC(168, 64, "3DES_EDE", OperationMode.CBC),//
+
+        AES_128_CBC(128, 128, "AES", OperationMode.CBC),
+        AES_256_CBC(256, 128, "AES", OperationMode.CBC),
+        AES_128_GCM(128, 128, "AES", OperationMode.GCM),
+        AES_256_GCM(256, 128, "AES", OperationMode.GCM),
+        AES_128_CCM(128, 128, "AES", OperationMode.CCM),
+        AES_256_CCM(256, 128, "AES", OperationMode.CCM),//
+
+        CAMELLIA_128_CBC(128, 128, "CAMELLIA", OperationMode.CBC),
+        CAMELLIA_256_CBC(256, 128, "CAMELLIA", OperationMode.CBC),
+        CAMELLIA_128_GCM(128, 128, "CAMELLIA", OperationMode.GCM),
+        CAMELLIA_256_GCM(256, 128, "CAMELLIA", OperationMode.GCM),
+        CAMELLIA_128_CCM(128, 128, "CAMELLIA", OperationMode.CCM),
+        CAMELLIA_256_CCM(256, 128, "CAMELLIA", OperationMode.CCM),//
+
+        ARIA_128_CBC(128, 128, "ARIA", OperationMode.CBC),
+        ARIA_256_CBC(256, 128, "ARIA", OperationMode.CBC),
+        ARIA_128_GCM(128, 128, "ARIA", OperationMode.GCM),
+        ARIA_256_GCM(256, 128, "ARIA", OperationMode.GCM),
+        ARIA_128_CCM(128, 128, "ARIA", OperationMode.CCM),
+        ARIA_256_CCM(256, 128, "ARIA", OperationMode.CCM),//
+
+        SEED_CBC(128, 128, "SEED", OperationMode.CBC),
+
+        CHACHA20(256, 0, "CHACHA20", OperationMode.Poly1305),
+        SALSA20(256, 0, "CHACHA20", OperationMode.Stream),
+        SALSA20_ESTREAM(256, 0, "CHACHA20", OperationMode.Stream);
 
         private final int ksize;
 
@@ -102,7 +158,13 @@ public class CipherConstants {
     }
 
     public enum Mac {
-        NULL( -1, "NULL"), MD5(128, "MD5"), SHA(160, "SHA1"), SHA256(256, "SHA2"), SHA384(384, "SHA2");
+        NULL( -1, "NULL"),
+        MD5(128, "MD5"),
+        SHA(160, "SHA1"),
+        SHA256(256, "SHA2"),
+        SHA384(384, "SHA2"),
+        CCM(128, "AEAD-CCM"),
+        CCM8(64, "AEAD-CCM8");
 
         private final int dgst;
 
@@ -155,14 +217,42 @@ public class CipherConstants {
 
         /*
          * Note: The cipher suite values { 0x00, 0x1C } and { 0x00, 0x1D } are
-         * reserved to avoid collision with Fortezza-based cipher suites in SSL
-         * 3.
+         * reserved to avoid collision with Fortezza-based cipher suites in SSLv3.
+         *
+         * Unfortunately no documentation on the assigned IDs cn be found and
+         * the documentation in RFC 6101 is ambiguous of the actual IDs as 
+         * three cipher suites are listed, but only two IDs are available in the
+         * TLS Cipher Suite Registry.
          */
+
+        /*
+         * RFC 2712 and RFC 6347
+         */
+        TLS_KRB5_WITH_DES_CBC_SHA(0x001E, Kex.KRB5, Auth.NULL, Enc.DES_CBC, Mac.SHA),//
+        TLS_KRB5_WITH_3DES_EDE_CBC_SHA(0x001F, Kex.KRB5, Auth.NULL, Enc._3DES_EDE_CBC, Mac.SHA),//
+        TLS_KRB5_WITH_RC4_128_SHA(0x0020, Kex.KRB5, Auth.NULL, Enc.RC4_128, Mac.SHA),//
+        TLS_KRB5_WITH_IDEA_CBC_SHA(0x0021, Kex.KRB5, Auth.NULL, Enc.IDEA_CBC, Mac.SHA),//
+        TLS_KRB5_WITH_DES_CBC_MD5(0x0022, Kex.KRB5, Auth.NULL, Enc.DES_CBC, Mac.MD5),//
+        TLS_KRB5_WITH_3DES_EDE_CBC_MD5(0x0023, Kex.KRB5, Auth.NULL, Enc._3DES_EDE_CBC, Mac.MD5),//
+        TLS_KRB5_WITH_RC4_128_MD5(0x0024, Kex.KRB5, Auth.NULL, Enc.RC4_128, Mac.MD5),//
+        TLS_KRB5_WITH_IDEA_CBC_MD5(0x0025, Kex.KRB5, Auth.NULL, Enc.IDEA_CBC, Mac.MD5),//
+        TLS_KRB5_EXPORT_WITH_DES_CBC_40_SHA(0x0026, Kex.KRB5, Auth.NULL, Enc.DES40_CBC, Mac.SHA),//
+        TLS_KRB5_EXPORT_WITH_RC2_CBC_40_SHA(0x0027, Kex.KRB5, Auth.NULL, Enc.RC2_CBC_40, Mac.SHA),//
+        TLS_KRB5_EXPORT_WITH_RC4_40_SHA(0x0028, Kex.KRB5, Auth.NULL, Enc.RC4_40, Mac.SHA),//
+        TLS_KRB5_EXPORT_WITH_DES_CBC_40_MD5(0x0029, Kex.KRB5, Auth.NULL, Enc.DES40_CBC, Mac.MD5),//
+        TLS_KRB5_EXPORT_WITH_RC2_CBC_40_MD5(0x002A, Kex.KRB5, Auth.NULL, Enc.RC2_CBC_40, Mac.MD5),//
+        TLS_KRB5_EXPORT_WITH_RC4_40_MD5(0x002B, Kex.KRB5, Auth.NULL, Enc.RC4_40, Mac.MD5),//
+
+        /*
+         * RFC 4785
+         */
+        TLS_PSK_WITH_NULL_SHA(0x002C, Kex.PSK, Auth.PSK, Enc.NULL, Mac.SHA),//
+        TLS_DHE_PSK_WITH_NULL_SHA(0x002D, Kex.DHE_PSK, Auth.PSK, Enc.NULL, Mac.SHA),//
+        TLS_RSA_PSK_WITH_NULL_SHA(0x002E, Kex.RSA_PSK, Auth.PSK, Enc.NULL, Mac.SHA),//
 
         /*
          * RFC 3268
          */
-
         TLS_RSA_WITH_AES_128_CBC_SHA(0x002F, Kex.RSA, Auth.RSA, Enc.AES_128_CBC, Mac.SHA),//
         TLS_DH_DSS_WITH_AES_128_CBC_SHA(0x0030, Kex.DH, Auth.DSS, Enc.AES_128_CBC, Mac.SHA),//
         TLS_DH_RSA_WITH_AES_128_CBC_SHA(0x0031, Kex.DH, Auth.RSA, Enc.AES_128_CBC, Mac.SHA),//
@@ -175,6 +265,17 @@ public class CipherConstants {
         TLS_DHE_DSS_WITH_AES_256_CBC_SHA(0x0038, Kex.DHE, Auth.DSS, Enc.AES_256_CBC, Mac.SHA),//
         TLS_DHE_RSA_WITH_AES_256_CBC_SHA(0x0039, Kex.DHE, Auth.RSA, Enc.AES_256_CBC, Mac.SHA),//
         TLS_DH_anon_WITH_AES_256_CBC_SHA(0x003A, Kex.DH, Auth.NULL, Enc.AES_256_CBC, Mac.SHA),//
+
+        /*
+         * RFC 5246
+         */
+        TLS_RSA_WITH_NULL_SHA256(0x003B, Kex.RSA, Auth.RSA, Enc.NULL, Mac.SHA256),//
+        TLS_RSA_WITH_AES_128_CBC_SHA256(0x003C, Kex.RSA, Auth.RSA, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_RSA_WITH_AES_256_CBC_SHA256(0x003D, Kex.RSA, Auth.RSA, Enc.AES_256_CBC, Mac.SHA256),//
+        TLS_DH_DSS_WITH_AES_128_CBC_SHA256(0x003E, Kex.DH, Auth.DSS, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_DH_RSA_WITH_AES_128_CBC_SHA256(0x003F, Kex.DH, Auth.RSA, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_DHE_DSS_WITH_AES_128_CBC_SHA256(0x0040, Kex.DHE, Auth.DSS, Enc.AES_128_CBC, Mac.SHA256),//
+
         /*
          * RFC 5932
          */
@@ -184,12 +285,95 @@ public class CipherConstants {
         TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA(0x0044, Kex.DHE, Auth.DSS, Enc.CAMELLIA_128_CBC, Mac.SHA),//
         TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA(0x0045, Kex.DHE, Auth.RSA, Enc.CAMELLIA_128_CBC, Mac.SHA),//
         TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA(0x0046, Kex.DH, Auth.NULL, Enc.CAMELLIA_128_CBC, Mac.SHA),//
+
+        /*
+         * RFC 5246
+         */
+        TLS_DHE_RSA_WITH_AES_128_CBC_SHA256(0x0067, Kex.DHE, Auth.RSA, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_DH_DSS_WITH_AES_256_CBC_SHA256(0x0068, Kex.DH, Auth.DSS, Enc.AES_256_CBC, Mac.SHA256),//
+        TLS_DH_RSA_WITH_AES_256_CBC_SHA256(0x0069, Kex.DH, Auth.RSA, Enc.AES_256_CBC, Mac.SHA256),//
+        TLS_DHE_DSS_WITH_AES_256_CBC_SHA256(0x006A, Kex.DHE, Auth.DSS, Enc.AES_256_CBC, Mac.SHA256),//
+        TLS_DHE_RSA_WITH_AES_256_CBC_SHA256(0x006B, Kex.DHE, Auth.RSA, Enc.AES_256_CBC, Mac.SHA256),//
+        TLS_DH_anon_WITH_AES_128_CBC_SHA256(0x006C, Kex.DH, Auth.NULL, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_DH_anon_WITH_AES_256_CBC_SHA256(0x006D, Kex.DH, Auth.NULL, Enc.AES_256_CBC, Mac.SHA256),//
+
+        /*
+         * RFC 5932
+         */
         TLS_RSA_WITH_CAMELLIA_256_CBC_SHA(0x0084, Kex.RSA, Auth.RSA, Enc.CAMELLIA_256_CBC, Mac.SHA),//
         TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA(0x0085, Kex.DH, Auth.DSS, Enc.CAMELLIA_256_CBC, Mac.SHA),//
         TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA(0x0086, Kex.DH, Auth.RSA, Enc.CAMELLIA_256_CBC, Mac.SHA),//
         TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA(0x0087, Kex.DHE, Auth.DSS, Enc.CAMELLIA_256_CBC, Mac.SHA),//
         TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA(0x0088, Kex.DHE, Auth.RSA, Enc.CAMELLIA_256_CBC, Mac.SHA),//
         TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA(0x0089, Kex.DH, Auth.NULL, Enc.CAMELLIA_256_CBC, Mac.SHA),//
+
+        /*
+         * RFC 4279
+         */
+        TLS_PSK_WITH_RC4_128_SHA(0x008A, Kex.PSK, Auth.PSK, Enc.RC4_128, Mac.SHA),//
+        TLS_PSK_WITH_3DES_EDE_CBC_SHA(0x008B, Kex.PSK, Auth.PSK, Enc._3DES_EDE_CBC, Mac.SHA),//
+        TLS_PSK_WITH_AES_128_CBC_SHA(0x008C, Kex.PSK, Auth.PSK, Enc.AES_128_CBC, Mac.SHA),//
+        TLS_PSK_WITH_AES_256_CBC_SHA(0x008D, Kex.PSK, Auth.PSK, Enc.AES_256_CBC, Mac.SHA),//
+        TLS_DHE_PSK_WITH_RC4_128_SHA(0x008E, Kex.DHE_PSK, Auth.PSK, Enc.RC4_128, Mac.SHA),//
+        TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA(0x008F, Kex.DHE_PSK, Auth.PSK, Enc._3DES_EDE_CBC, Mac.SHA),//
+        TLS_DHE_PSK_WITH_AES_128_CBC_SHA(0x0090, Kex.DHE_PSK, Auth.PSK, Enc.AES_128_CBC, Mac.SHA),//
+        TLS_DHE_PSK_WITH_AES_256_CBC_SHA(0x0091, Kex.DHE_PSK, Auth.PSK, Enc.AES_256_CBC, Mac.SHA),//
+        TLS_RSA_PSK_WITH_RC4_128_SHA(0x0092, Kex.RSA_PSK, Auth.RSA, Enc.RC4_128, Mac.SHA),//
+        TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA(0x0093, Kex.RSA_PSK, Auth.RSA, Enc._3DES_EDE_CBC, Mac.SHA),//
+        TLS_RSA_PSK_WITH_AES_128_CBC_SHA(0x0094, Kex.RSA_PSK, Auth.RSA, Enc.AES_128_CBC, Mac.SHA),//
+        TLS_RSA_PSK_WITH_AES_256_CBC_SHA(0x0095, Kex.RSA_PSK, Auth.RSA, Enc.AES_256_CBC, Mac.SHA),//
+
+        /*
+         * RFC 4162
+         */
+        TLS_RSA_WITH_SEED_CBC_SHA(0x0096, Kex.RSA, Auth.RSA, Enc.SEED_CBC, Mac.SHA),//
+        TLS_DH_DSS_WITH_SEED_CBC_SHA(0x0097, Kex.DH, Auth.DSS, Enc.SEED_CBC, Mac.SHA),//
+        TLS_DH_RSA_WITH_SEED_CBC_SHA(0x0098, Kex.DH, Auth.RSA, Enc.SEED_CBC, Mac.SHA),//
+        TLS_DHE_DSS_WITH_SEED_CBC_SHA(0x0099, Kex.DHE, Auth.DSS, Enc.SEED_CBC, Mac.SHA),//
+        TLS_DHE_RSA_WITH_SEED_CBC_SHA(0x009A, Kex.DHE, Auth.RSA, Enc.SEED_CBC, Mac.SHA),//
+        TLS_DH_anon_WITH_SEED_CBC_SHA(0x009B, Kex.DH, Auth.NULL, Enc.SEED_CBC, Mac.SHA),//
+
+        /*
+         * RFC 5288
+         */
+        TLS_RSA_WITH_AES_128_GCM_SHA256(0x009C, Kex.RSA, Auth.RSA, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_RSA_WITH_AES_256_GCM_SHA384(0x009D, Kex.RSA, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
+        TLS_DHE_RSA_WITH_AES_128_GCM_SHA256(0x009E, Kex.DHE, Auth.RSA, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_DHE_RSA_WITH_AES_256_GCM_SHA384(0x009F, Kex.DHE, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
+        TLS_DH_RSA_WITH_AES_128_GCM_SHA256(0x00A0, Kex.DH, Auth.RSA, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_DH_RSA_WITH_AES_256_GCM_SHA384(0x00A1, Kex.DH, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
+        TLS_DHE_DSS_WITH_AES_128_GCM_SHA256(0x00A2, Kex.DHE, Auth.DSS, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_DHE_DSS_WITH_AES_256_GCM_SHA384(0x00A3, Kex.DHE, Auth.DSS, Enc.AES_256_GCM, Mac.SHA384),//
+        TLS_DH_DSS_WITH_AES_128_GCM_SHA256(0x00A4, Kex.DH, Auth.DSS, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_DH_DSS_WITH_AES_256_GCM_SHA384(0x00A5, Kex.DH, Auth.DSS, Enc.AES_256_GCM, Mac.SHA384),//
+        TLS_DH_anon_WITH_AES_128_GCM_SHA256(0x00A6, Kex.DH, Auth.NULL, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_DH_anon_WITH_AES_256_GCM_SHA384(0x00A7, Kex.DH, Auth.NULL, Enc.AES_256_GCM, Mac.SHA384),//
+
+        /*
+         * RFC 5487
+         */
+        TLS_PSK_WITH_AES_128_GCM_SHA256(0x00A8, Kex.PSK, Auth.PSK, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_PSK_WITH_AES_256_GCM_SHA384(0x00A9, Kex.PSK, Auth.PSK, Enc.AES_256_GCM, Mac.SHA384),//
+        TLS_DHE_PSK_WITH_AES_128_GCM_SHA256(0x00AA, Kex.DHE_PSK, Auth.PSK, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_DHE_PSK_WITH_AES_256_GCM_SHA384(0x00AB, Kex.DHE_PSK, Auth.PSK, Enc.AES_256_GCM, Mac.SHA384),//
+        TLS_RSA_PSK_WITH_AES_128_GCM_SHA256(0x00AC, Kex.RSA_PSK, Auth.RSA, Enc.AES_128_GCM, Mac.SHA256),//
+        TLS_RSA_PSK_WITH_AES_256_GCM_SHA384(0x00AD, Kex.RSA_PSK, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
+        TLS_PSK_WITH_AES_128_CBC_SHA256(0x00AE, Kex.PSK, Auth.PSK, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_PSK_WITH_AES_256_CBC_SHA384(0x00AF, Kex.PSK, Auth.PSK, Enc.AES_256_CBC, Mac.SHA384),//
+        TLS_PSK_WITH_NULL_SHA256(0x00B0, Kex.PSK, Auth.PSK, Enc.NULL, Mac.SHA256),//
+        TLS_PSK_WITH_NULL_SHA384(0x00B1, Kex.PSK, Auth.PSK, Enc.NULL, Mac.SHA384),//
+        TLS_DHE_PSK_WITH_AES_128_CBC_SHA256(0x00B2, Kex.DHE_PSK, Auth.PSK, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_DHE_PSK_WITH_AES_256_CBC_SHA384(0x00B3, Kex.DHE_PSK, Auth.PSK, Enc.AES_256_CBC, Mac.SHA384),//
+        TLS_DHE_PSK_WITH_NULL_SHA256(0x00B4, Kex.DHE_PSK, Auth.PSK, Enc.NULL, Mac.SHA256),//
+        TLS_DHE_PSK_WITH_NULL_SHA384(0x00B5, Kex.DHE_PSK, Auth.PSK, Enc.NULL, Mac.SHA384),//
+        TLS_RSA_PSK_WITH_AES_128_CBC_SHA256(0x00B6, Kex.RSA_PSK, Auth.RSA, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_RSA_PSK_WITH_AES_256_CBC_SHA384(0x00B7, Kex.RSA_PSK, Auth.RSA, Enc.AES_256_CBC, Mac.SHA384),//
+        TLS_RSA_PSK_WITH_NULL_SHA256(0x00B8, Kex.RSA_PSK, Auth.RSA, Enc.NULL, Mac.SHA256),//
+        TLS_RSA_PSK_WITH_NULL_SHA384(0x00B9, Kex.RSA_PSK, Auth.RSA, Enc.NULL, Mac.SHA384),//
+
+        /*
+         * RFC 5932
+         */
         TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256(0x00BA, Kex.RSA, Auth.RSA, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
         TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA256(0x00BB, Kex.DH, Auth.DSS, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
         TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA256(0x00BC, Kex.DH, Auth.RSA, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
@@ -202,30 +386,7 @@ public class CipherConstants {
         TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256(0x00C3, Kex.DHE, Auth.DSS, Enc.CAMELLIA_256_CBC, Mac.SHA256),//
         TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256(0x00C4, Kex.DHE, Auth.RSA, Enc.CAMELLIA_256_CBC, Mac.SHA256),//
         TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256(0x00C5, Kex.DH, Auth.NULL, Enc.CAMELLIA_256_CBC, Mac.SHA256),//
-        /*
-         * RFC 4162
-         */
-        TLS_RSA_WITH_SEED_CBC_SHA(0x0096, Kex.RSA, Auth.RSA, Enc.SEED_CBC, Mac.SHA),//
-        TLS_DH_DSS_WITH_SEED_CBC_SHA(0x0097, Kex.DH, Auth.DSS, Enc.SEED_CBC, Mac.SHA),//
-        TLS_DH_RSA_WITH_SEED_CBC_SHA(0x0098, Kex.DH, Auth.RSA, Enc.SEED_CBC, Mac.SHA),//
-        TLS_DHE_DSS_WITH_SEED_CBC_SHA(0x0099, Kex.DHE, Auth.DSS, Enc.SEED_CBC, Mac.SHA),//
-        TLS_DHE_RSA_WITH_SEED_CBC_SHA(0x009A, Kex.DHE, Auth.RSA, Enc.SEED_CBC, Mac.SHA),//
-        TLS_DH_anon_WITH_SEED_CBC_SHA(0x009B, Kex.DH, Auth.NULL, Enc.SEED_CBC, Mac.SHA),//
-        /*
-         * RFC 4279
-         */
-        TLS_PSK_WITH_RC4_128_SHA(0x008A, Kex.PSK, Auth.PSK, Enc.RC4_128, Mac.SHA),//
-        TLS_PSK_WITH_3DES_EDE_CBC_SHA(0x008B, Kex.PSK, Auth.PSK, Enc._3DES_EDE_CBC, Mac.SHA),//
-        TLS_PSK_WITH_AES_128_CBC_SHA(0x008C, Kex.PSK, Auth.PSK, Enc.AES_128_CBC, Mac.SHA),//
-        TLS_PSK_WITH_AES_256_CBC_SHA(0x008D, Kex.PSK, Auth.PSK, Enc.AES_256_CBC, Mac.SHA),//
-        TLS_DHE_PSK_WITH_RC4_128_SHA(0x008E, Kex.DHE, Auth.PSK, Enc.RC4_128, Mac.SHA),//
-        TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA(0x008F, Kex.DHE, Auth.PSK, Enc._3DES_EDE_CBC, Mac.SHA),//
-        TLS_DHE_PSK_WITH_AES_128_CBC_SHA(0x0090, Kex.DHE, Auth.PSK, Enc.AES_128_CBC, Mac.SHA),//
-        TLS_DHE_PSK_WITH_AES_256_CBC_SHA(0x0091, Kex.DHE, Auth.PSK, Enc.AES_256_CBC, Mac.SHA),//
-        TLS_RSA_PSK_WITH_RC4_128_SHA(0x0092, Kex.RSA_PSK, Auth.RSA, Enc.RC4_128, Mac.SHA),//
-        TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA(0x0093, Kex.RSA_PSK, Auth.RSA, Enc._3DES_EDE_CBC, Mac.SHA),//
-        TLS_RSA_PSK_WITH_AES_128_CBC_SHA(0x0094, Kex.RSA_PSK, Auth.RSA, Enc.AES_128_CBC, Mac.SHA),//
-        TLS_RSA_PSK_WITH_AES_256_CBC_SHA(0x0095, Kex.RSA_PSK, Auth.RSA, Enc.AES_256_CBC, Mac.SHA),//
+
         /*
          * RFC 4492
          */
@@ -249,60 +410,25 @@ public class CipherConstants {
         TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA(0xC012, Kex.ECDHE, Auth.RSA, Enc._3DES_EDE_CBC, Mac.SHA),//
         TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA(0xC013, Kex.ECDHE, Auth.RSA, Enc.AES_128_CBC, Mac.SHA),//
         TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA(0xC014, Kex.ECDHE, Auth.RSA, Enc.AES_256_CBC, Mac.SHA),//
-        TLS_ECDH_anon_WITH_NULL_SHA(0xC015, Kex.ECDH, Auth.ECDH, Enc.NULL, Mac.SHA),//
-        TLS_ECDH_anon_WITH_RC4_128_SHA(0xC016, Kex.ECDH, Auth.ECDH, Enc.RC4_128, Mac.SHA),//
-        TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA(0xC017, Kex.ECDH, Auth.ECDH, Enc._3DES_EDE_CBC, Mac.SHA),//
-        TLS_ECDH_anon_WITH_AES_128_CBC_SHA(0xC018, Kex.ECDH, Auth.ECDH, Enc.AES_128_CBC, Mac.SHA),//
-        TLS_ECDH_anon_WITH_AES_256_CBC_SHA(0xC019, Kex.ECDH, Auth.ECDH, Enc.AES_256_CBC, Mac.SHA),//
-        /*
-         * RFC 4785
-         */
-        TLS_PSK_WITH_NULL_SHA(0x002C, Kex.PSK, Auth.PSK, Enc.NULL, Mac.SHA),//
-        TLS_DHE_PSK_WITH_NULL_SHA(0x002D, Kex.DHE, Auth.PSK, Enc.NULL, Mac.SHA),//
-        TLS_RSA_PSK_WITH_NULL_SHA(0x002E, Kex.RSA_PSK, Auth.RSA, Enc.NULL, Mac.SHA),//
+        TLS_ECDH_anon_WITH_NULL_SHA(0xC015, Kex.ECDH, Auth.NULL, Enc.NULL, Mac.SHA),//
+        TLS_ECDH_anon_WITH_RC4_128_SHA(0xC016, Kex.ECDH, Auth.NULL, Enc.RC4_128, Mac.SHA),//
+        TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA(0xC017, Kex.ECDH, Auth.NULL, Enc._3DES_EDE_CBC, Mac.SHA),//
+        TLS_ECDH_anon_WITH_AES_128_CBC_SHA(0xC018, Kex.ECDH, Auth.NULL, Enc.AES_128_CBC, Mac.SHA),//
+        TLS_ECDH_anon_WITH_AES_256_CBC_SHA(0xC019, Kex.ECDH, Auth.NULL, Enc.AES_256_CBC, Mac.SHA),//
+
         /*
          * RFC 5054
          */
-        TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA(0xC01A, Kex.SRP_SHA, null, Enc._3DES_EDE_CBC, Mac.SHA),//
+        TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA(0xC01A, Kex.SRP_SHA, Auth.NULL, Enc._3DES_EDE_CBC, Mac.SHA),//
         TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA(0xC01B, Kex.SRP_SHA, Auth.RSA, Enc._3DES_EDE_CBC, Mac.SHA),//
         TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA(0xC01C, Kex.SRP_SHA, Auth.DSS, Enc._3DES_EDE_CBC, Mac.SHA),//
-        TLS_SRP_SHA_WITH_AES_128_CBC_SHA(0xC01D, Kex.SRP_SHA, null, Enc.AES_128_CBC, Mac.SHA),//
+        TLS_SRP_SHA_WITH_AES_128_CBC_SHA(0xC01D, Kex.SRP_SHA, Auth.NULL, Enc.AES_128_CBC, Mac.SHA),//
         TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA(0xC01E, Kex.SRP_SHA, Auth.RSA, Enc.AES_128_CBC, Mac.SHA),//
         TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA(0xC01F, Kex.SRP_SHA, Auth.DSS, Enc.AES_128_CBC, Mac.SHA),//
-        TLS_SRP_SHA_WITH_AES_256_CBC_SHA(0xC020, Kex.SRP_SHA, null, Enc.AES_256_CBC, Mac.SHA),//
+        TLS_SRP_SHA_WITH_AES_256_CBC_SHA(0xC020, Kex.SRP_SHA, Auth.NULL, Enc.AES_256_CBC, Mac.SHA),//
         TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA(0xC021, Kex.SRP_SHA, Auth.RSA, Enc.AES_256_CBC, Mac.SHA),//
         TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA(0xC022, Kex.SRP_SHA, Auth.DSS, Enc.AES_256_CBC, Mac.SHA),//
-        /*
-         * RFC 5246
-         */
-        TLS_RSA_WITH_NULL_SHA256(0x003B, Kex.RSA, Auth.RSA, Enc.NULL, Mac.SHA256),//
-        TLS_RSA_WITH_AES_128_CBC_SHA256(0x003C, Kex.RSA, Auth.RSA, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_RSA_WITH_AES_256_CBC_SHA256(0x003D, Kex.RSA, Auth.RSA, Enc.AES_256_CBC, Mac.SHA256),//
-        TLS_DH_DSS_WITH_AES_128_CBC_SHA256(0x003E, Kex.DH, Auth.DSS, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_DH_RSA_WITH_AES_128_CBC_SHA256(0x003F, Kex.DH, Auth.RSA, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_DHE_DSS_WITH_AES_128_CBC_SHA256(0x0040, Kex.DHE, Auth.DSS, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_DHE_RSA_WITH_AES_128_CBC_SHA256(0x0067, Kex.DHE, Auth.RSA, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_DH_DSS_WITH_AES_256_CBC_SHA256(0x0068, Kex.DH, Auth.DSS, Enc.AES_256_CBC, Mac.SHA256),//
-        TLS_DH_RSA_WITH_AES_256_CBC_SHA256(0x0069, Kex.DH, Auth.RSA, Enc.AES_256_CBC, Mac.SHA256),//
-        TLS_DHE_DSS_WITH_AES_256_CBC_SHA256(0x006A, Kex.DHE, Auth.DSS, Enc.AES_256_CBC, Mac.SHA256),//
-        TLS_DHE_RSA_WITH_AES_256_CBC_SHA256(0x006B, Kex.DHE, Auth.RSA, Enc.AES_256_CBC, Mac.SHA256),//
-        TLS_DH_anon_WITH_AES_128_CBC_SHA256(0x006C, Kex.DH, Auth.NULL, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_DH_anon_WITH_AES_256_CBC_SHA256(0x006D, Kex.DH, Auth.NULL, Enc.AES_256_CBC, Mac.SHA256),//
-        /*
-         * RFC 5288
-         */
-        TLS_RSA_WITH_AES_128_GCM_SHA256(0x009C, Kex.RSA, Auth.RSA, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_RSA_WITH_AES_256_GCM_SHA384(0x009D, Kex.RSA, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
-        TLS_DHE_RSA_WITH_AES_128_GCM_SHA256(0x009E, Kex.DHE, Auth.RSA, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_DHE_RSA_WITH_AES_256_GCM_SHA384(0x009F, Kex.DHE, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
-        TLS_DH_RSA_WITH_AES_128_GCM_SHA256(0x00A0, Kex.DH, Auth.RSA, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_DH_RSA_WITH_AES_256_GCM_SHA384(0x00A1, Kex.DH, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
-        TLS_DHE_DSS_WITH_AES_128_GCM_SHA256(0x00A2, Kex.DHE, Auth.DSS, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_DHE_DSS_WITH_AES_256_GCM_SHA384(0x00A3, Kex.DHE, Auth.DSS, Enc.AES_256_GCM, Mac.SHA384),//
-        TLS_DH_DSS_WITH_AES_128_GCM_SHA256(0x00A4, Kex.DH, Auth.DSS, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_DH_DSS_WITH_AES_256_GCM_SHA384(0x00A5, Kex.DH, Auth.DSS, Enc.AES_256_GCM, Mac.SHA384),//
-        TLS_DH_anon_WITH_AES_128_GCM_SHA256(0x00A6, Kex.DH, Auth.NULL, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_DH_anon_WITH_AES_256_GCM_SHA384(0x00A7, Kex.DH, Auth.NULL, Enc.AES_256_GCM, Mac.SHA384),//
+
         /*
          * RFC 5289
          */
@@ -322,43 +448,78 @@ public class CipherConstants {
         TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384(0xC030, Kex.ECDHE, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
         TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256(0xC031, Kex.ECDH, Auth.ECDH, Enc.AES_128_GCM, Mac.SHA256),//
         TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384(0xC032, Kex.ECDH, Auth.ECDH, Enc.AES_256_GCM, Mac.SHA384),//
-        /*
-         * RFC 5487
-         */
-        TLS_PSK_WITH_AES_128_GCM_SHA256(0x00A8, Kex.PSK, Auth.PSK, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_PSK_WITH_AES_256_GCM_SHA384(0x00A9, Kex.PSK, Auth.PSK, Enc.AES_256_GCM, Mac.SHA384),//
-        TLS_DHE_PSK_WITH_AES_128_GCM_SHA256(0x00AA, Kex.DHE, Auth.PSK, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_DHE_PSK_WITH_AES_256_GCM_SHA384(0x00AB, Kex.DHE, Auth.PSK, Enc.AES_256_GCM, Mac.SHA384),//
-        TLS_RSA_PSK_WITH_AES_128_GCM_SHA256(0x00AC, Kex.RSA_PSK, Auth.RSA, Enc.AES_128_GCM, Mac.SHA256),//
-        TLS_RSA_PSK_WITH_AES_256_GCM_SHA384(0x00AD, Kex.RSA_PSK, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384),//
-        TLS_PSK_WITH_AES_128_CBC_SHA256(0x00AE, Kex.PSK, Auth.PSK, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_PSK_WITH_AES_256_CBC_SHA384(0x00AF, Kex.PSK, Auth.PSK, Enc.AES_256_CBC, Mac.SHA384),//
-        TLS_PSK_WITH_NULL_SHA256(0x00B0, Kex.PSK, Auth.PSK, Enc.NULL, Mac.SHA256),//
-        TLS_PSK_WITH_NULL_SHA384(0x00B1, Kex.PSK, Auth.PSK, Enc.NULL, Mac.SHA384),//
-        TLS_DHE_PSK_WITH_AES_128_CBC_SHA256(0x00B2, Kex.DHE, Auth.PSK, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_DHE_PSK_WITH_AES_256_CBC_SHA384(0x00B3, Kex.DHE, Auth.PSK, Enc.AES_256_CBC, Mac.SHA384),//
-        TLS_DHE_PSK_WITH_NULL_SHA256(0x00B4, Kex.DHE, Auth.PSK, Enc.NULL, Mac.SHA256),//
-        TLS_DHE_PSK_WITH_NULL_SHA384(0x00B5, Kex.DHE, Auth.PSK, Enc.NULL, Mac.SHA384),//
-        TLS_RSA_PSK_WITH_AES_128_CBC_SHA256(0x00B6, Kex.RSA_PSK, Auth.RSA, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_RSA_PSK_WITH_AES_256_CBC_SHA384(0x00B7, Kex.RSA_PSK, Auth.RSA, Enc.AES_256_CBC, Mac.SHA384),//
-        TLS_RSA_PSK_WITH_NULL_SHA256(0x00B8, Kex.RSA_PSK, Auth.RSA, Enc.NULL, Mac.SHA256),//
-        TLS_RSA_PSK_WITH_NULL_SHA384(0x00B9, Kex.RSA_PSK, Auth.RSA, Enc.NULL, Mac.SHA384),//
+
         /*
          * RFC 5489
          */
-        TLS_ECDHE_PSK_WITH_RC4_128_SHA(0xC033, Kex.ECDHE, Auth.PSK, Enc.RC4_128, Mac.SHA),//
-        TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA(0xC034, Kex.ECDHE, Auth.PSK, Enc._3DES_EDE_CBC, Mac.SHA),//
-        TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA(0xC035, Kex.ECDHE, Auth.PSK, Enc.AES_128_CBC, Mac.SHA),//
-        TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA(0xC036, Kex.ECDHE, Auth.PSK, Enc.AES_256_CBC, Mac.SHA),//
-        TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256(0xC037, Kex.ECDHE, Auth.PSK, Enc.AES_128_CBC, Mac.SHA256),//
-        TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384(0xC038, Kex.ECDHE, Auth.PSK, Enc.AES_256_CBC, Mac.SHA384),//
-        TLS_ECDHE_PSK_WITH_NULL_SHA(0xC039, Kex.ECDHE, Auth.PSK, Enc.NULL, Mac.SHA),//
-        TLS_ECDHE_PSK_WITH_NULL_SHA256(0xC03A, Kex.ECDHE, Auth.PSK, Enc.NULL, Mac.SHA256),//
-        TLS_ECDHE_PSK_WITH_NULL_SHA384(0xC03B, Kex.ECDHE, Auth.PSK, Enc.NULL, Mac.SHA384),//
+        TLS_ECDHE_PSK_WITH_RC4_128_SHA(0xC033, Kex.ECDHE_PSK, Auth.PSK, Enc.RC4_128, Mac.SHA),//
+        TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA(0xC034, Kex.ECDHE_PSK, Auth.PSK, Enc._3DES_EDE_CBC, Mac.SHA),//
+        TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA(0xC035, Kex.ECDHE_PSK, Auth.PSK, Enc.AES_128_CBC, Mac.SHA),//
+        TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA(0xC036, Kex.ECDHE_PSK, Auth.PSK, Enc.AES_256_CBC, Mac.SHA),//
+        TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256(0xC037, Kex.ECDHE_PSK, Auth.PSK, Enc.AES_128_CBC, Mac.SHA256),//
+        TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384(0xC038, Kex.ECDHE_PSK, Auth.PSK, Enc.AES_256_CBC, Mac.SHA384),//
+        TLS_ECDHE_PSK_WITH_NULL_SHA(0xC039, Kex.ECDHE_PSK, Auth.PSK, Enc.NULL, Mac.SHA),//
+        TLS_ECDHE_PSK_WITH_NULL_SHA256(0xC03A, Kex.ECDHE_PSK, Auth.PSK, Enc.NULL, Mac.SHA256),//
+        TLS_ECDHE_PSK_WITH_NULL_SHA384(0xC03B, Kex.ECDHE_PSK, Auth.PSK, Enc.NULL, Mac.SHA384),//
+
         /*
-         * RFC 5746
+         * RFC 6209
          */
-        TLS_EMPTY_RENEGOTIATION_INFO_SCSV(0x00FF, null, null, null, null),//
+        TLS_RSA_WITH_ARIA_128_CBC_SHA256(0xC03C, Kex.RSA, Auth.RSA, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_RSA_WITH_ARIA_256_CBC_SHA384(0xC03D, Kex.RSA, Auth.RSA, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_DH_DSS_WITH_ARIA_128_CBC_SHA256(0xC03E, Kex.DH, Auth.DSS, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_DH_DSS_WITH_ARIA_256_CBC_SHA384(0xC03F, Kex.DH, Auth.DSS, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_DH_RSA_WITH_ARIA_128_CBC_SHA256(0xC040, Kex.DH, Auth.RSA, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_DH_RSA_WITH_ARIA_256_CBC_SHA384(0xC041, Kex.DH, Auth.RSA, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_DHE_DSS_WITH_ARIA_128_CBC_SHA256(0xC042, Kex.DHE, Auth.DSS, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_DHE_DSS_WITH_ARIA_256_CBC_SHA384(0xC043, Kex.DHE, Auth.DSS, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_DHE_RSA_WITH_ARIA_128_CBC_SHA256(0xC044, Kex.DHE, Auth.RSA, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_DHE_RSA_WITH_ARIA_256_CBC_SHA384(0xC045, Kex.DHE, Auth.RSA, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_DH_anon_WITH_ARIA_128_CBC_SHA256(0xC046, Kex.DH, Auth.NULL, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_DH_anon_WITH_ARIA_256_CBC_SHA384(0xC047, Kex.DH, Auth.NULL, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_ECDHE_ECDSA_WITH_ARIA_128_CBC_SHA256(0xC048, Kex.ECDHE, Auth.ECDSA, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_ECDHE_ECDSA_WITH_ARIA_256_CBC_SHA384(0xC049, Kex.ECDHE, Auth.ECDSA, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_ECDH_ECDSA_WITH_ARIA_128_CBC_SHA256(0xC04A, Kex.ECDH, Auth.ECDH, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_ECDH_ECDSA_WITH_ARIA_256_CBC_SHA384(0xC04B, Kex.ECDH, Auth.ECDH, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_ECDHE_RSA_WITH_ARIA_128_CBC_SHA256(0xC04C, Kex.ECDHE, Auth.RSA, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384(0xC04D, Kex.ECDHE, Auth.RSA, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_ECDH_RSA_WITH_ARIA_128_CBC_SHA256(0xC04E, Kex.ECDH, Auth.ECDH, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_ECDH_RSA_WITH_ARIA_256_CBC_SHA384(0xC04F, Kex.ECDH, Auth.ECDH, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_RSA_WITH_ARIA_128_GCM_SHA256(0xC050, Kex.RSA, Auth.RSA, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_RSA_WITH_ARIA_256_GCM_SHA384(0xC051, Kex.RSA, Auth.RSA, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_DHE_RSA_WITH_ARIA_128_GCM_SHA256(0xC052, Kex.DHE, Auth.RSA, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384(0xC053, Kex.DHE, Auth.RSA, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_DH_RSA_WITH_ARIA_128_GCM_SHA256(0xC054, Kex.DH, Auth.RSA, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_DH_RSA_WITH_ARIA_256_GCM_SHA384(0xC055, Kex.DH, Auth.RSA, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_DHE_DSS_WITH_ARIA_128_GCM_SHA256(0xC056, Kex.DHE, Auth.DSS, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_DHE_DSS_WITH_ARIA_256_GCM_SHA384(0xC057, Kex.DHE, Auth.DSS, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_DH_DSS_WITH_ARIA_128_GCM_SHA256(0xC058, Kex.DH, Auth.DSS, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_DH_DSS_WITH_ARIA_256_GCM_SHA384(0xC059, Kex.DH, Auth.DSS, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_DH_anon_WITH_ARIA_128_GCM_SHA256(0xC05A, Kex.DH, Auth.NULL, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_DH_anon_WITH_ARIA_256_GCM_SHA384(0xC05B, Kex.DH, Auth.NULL, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256(0xC05C, Kex.ECDHE, Auth.ECDSA, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384(0xC05D, Kex.ECDHE, Auth.ECDSA, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_ECDH_ECDSA_WITH_ARIA_128_GCM_SHA256(0xC05E, Kex.ECDH, Auth.ECDH, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_ECDH_ECDSA_WITH_ARIA_256_GCM_SHA384(0xC05F, Kex.ECDH, Auth.ECDH, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256(0xC060, Kex.ECDHE, Auth.RSA, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384(0xC061, Kex.ECDHE, Auth.RSA, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_ECDH_RSA_WITH_ARIA_128_GCM_SHA256(0xC062, Kex.ECDH, Auth.ECDH, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_ECDH_RSA_WITH_ARIA_256_GCM_SHA384(0xC063, Kex.ECDH, Auth.ECDH, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_PSK_WITH_ARIA_128_CBC_SHA256(0xC064, Kex.PSK, Auth.PSK, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_PSK_WITH_ARIA_256_CBC_SHA384(0xC065, Kex.PSK, Auth.PSK, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256(0xC066, Kex.DHE_PSK, Auth.PSK, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384(0xC067, Kex.DHE_PSK, Auth.PSK, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_RSA_PSK_WITH_ARIA_128_CBC_SHA256(0xC068, Kex.RSA_PSK, Auth.PSK, Enc.ARIA_128_CBC, Mac.SHA256),//
+        TLS_RSA_PSK_WITH_ARIA_256_CBC_SHA384(0xC069, Kex.RSA_PSK, Auth.PSK, Enc.ARIA_256_CBC, Mac.SHA384),//
+        TLS_PSK_WITH_ARIA_128_GCM_SHA256(0xC06A, Kex.RSA, Auth.PSK, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_PSK_WITH_ARIA_256_GCM_SHA384(0xC06B, Kex.RSA, Auth.PSK, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256(0xC06C, Kex.DHE_PSK, Auth.PSK, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384(0xC06D, Kex.DHE_PSK, Auth.PSK, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_RSA_PSK_WITH_ARIA_128_GCM_SHA256(0xC06E, Kex.RSA_PSK, Auth.RSA, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_RSA_PSK_WITH_ARIA_256_GCM_SHA384(0xC06F, Kex.RSA_PSK, Auth.RSA, Enc.ARIA_256_GCM, Mac.SHA384),//
+        TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256(0xC070, Kex.ECDHE_PSK, Auth.PSK, Enc.ARIA_128_GCM, Mac.SHA256),//
+        TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384(0xC071, Kex.ECDHE_PSK, Auth.PSK, Enc.ARIA_256_GCM, Mac.SHA384),//
+
         /*
          * RFC 6367
          */
@@ -392,62 +553,86 @@ public class CipherConstants {
         TLS_ECDH_RSA_WITH_CAMELLIA_256_GCM_SHA384(0xC08D, Kex.ECDH, Auth.ECDH, Enc.CAMELLIA_256_GCM, Mac.SHA384),//
         TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256(0xC08E, Kex.PSK, Auth.PSK, Enc.CAMELLIA_128_GCM, Mac.SHA256),//
         TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384(0xC08F, Kex.PSK, Auth.PSK, Enc.CAMELLIA_256_GCM, Mac.SHA384),//
-        TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256(0xC090, Kex.DHE, Auth.PSK, Enc.CAMELLIA_128_GCM, Mac.SHA256),//
-        TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384(0xC091, Kex.DHE, Auth.PSK, Enc.CAMELLIA_256_GCM, Mac.SHA384),//
+        TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256(0xC090, Kex.DHE_PSK, Auth.PSK, Enc.CAMELLIA_128_GCM, Mac.SHA256),//
+        TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384(0xC091, Kex.DHE_PSK, Auth.PSK, Enc.CAMELLIA_256_GCM, Mac.SHA384),//
         TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256(0xC092, Kex.RSA_PSK, Auth.RSA, Enc.CAMELLIA_128_GCM, Mac.SHA256),//
         TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384(0xC093, Kex.RSA_PSK, Auth.RSA, Enc.CAMELLIA_256_GCM, Mac.SHA384),//
         TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256(0xC094, Kex.PSK, Auth.PSK, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
         TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384(0xC095, Kex.PSK, Auth.PSK, Enc.CAMELLIA_256_CBC, Mac.SHA384),//
-        TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256(0xC096, Kex.DHE, Auth.PSK, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
-        TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384(0xC097, Kex.DHE, Auth.PSK, Enc.CAMELLIA_256_CBC, Mac.SHA384),//
+        TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256(0xC096, Kex.DHE_PSK, Auth.PSK, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
+        TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384(0xC097, Kex.DHE_PSK, Auth.PSK, Enc.CAMELLIA_256_CBC, Mac.SHA384),//
         TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256(0xC098, Kex.RSA_PSK, Auth.RSA, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
         TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384(0xC099, Kex.RSA_PSK, Auth.RSA, Enc.CAMELLIA_256_CBC, Mac.SHA384),//
-        TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256(0xC09A, Kex.ECDHE, Auth.PSK, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
-        TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384(0xC09B, Kex.ECDHE, Auth.PSK, Enc.CAMELLIA_256_CBC, Mac.SHA384),//
+        TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256(0xC09A, Kex.ECDHE_PSK, Auth.PSK, Enc.CAMELLIA_128_CBC, Mac.SHA256),//
+        TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384(0xC09B, Kex.ECDHE_PSK, Auth.PSK, Enc.CAMELLIA_256_CBC, Mac.SHA384),//
+
         /*
          * RFC 6655
          */
-        TLS_RSA_WITH_AES_128_CCM(0xC09C, Kex.RSA, Auth.RSA, null, null),//
-        TLS_RSA_WITH_AES_256_CCM(0xC09D, Kex.RSA, Auth.RSA, null, null),//
-        TLS_DHE_RSA_WITH_AES_128_CCM(0xC09E, Kex.DHE, Auth.RSA, null, null),//
-        TLS_DHE_RSA_WITH_AES_256_CCM(0xC09F, Kex.DHE, Auth.RSA, null, null),//
-        TLS_RSA_WITH_AES_128_CCM_8(0xC0A0, Kex.RSA, Auth.RSA, null, null),//
-        TLS_RSA_WITH_AES_256_CCM_8(0xC0A1, Kex.RSA, Auth.RSA, null, null),//
-        TLS_DHE_RSA_WITH_AES_128_CCM_8(0xC0A2, Kex.DHE, Auth.RSA, null, null),//
-        TLS_DHE_RSA_WITH_AES_256_CCM_8(0xC0A3, Kex.DHE, Auth.RSA, null, null),//
-        TLS_PSK_WITH_AES_128_CCM(0xC0A4, Kex.PSK, Auth.PSK, null, null),//
-        TLS_PSK_WITH_AES_256_CCM(0xC0A5, Kex.PSK, Auth.PSK, null, null),//
-        TLS_DHE_PSK_WITH_AES_128_CCM(0xC0A6, Kex.DHE, Auth.PSK, null, null),//
-        TLS_DHE_PSK_WITH_AES_256_CCM(0xC0A7, Kex.DHE, Auth.PSK, null, null),//
-        TLS_PSK_WITH_AES_128_CCM_8(0xC0A8, Kex.PSK, Auth.PSK, null, null),//
-        TLS_PSK_WITH_AES_256_CCM_8(0xC0A9, Kex.PSK, Auth.PSK, null, null),//
-        TLS_DHE_PSK_WITH_AES_128_CCM_8(0xC0AA, Kex.DHE, Auth.PSK, null, null),//
-        TLS_DHE_PSK_WITH_AES_256_CCM_8(0xC0AB, Kex.DHE, Auth.PSK, null, null),//
+        TLS_RSA_WITH_AES_128_CCM(0xC09C, Kex.RSA, Auth.RSA, Enc.AES_128_CCM, Mac.CCM),//
+        TLS_RSA_WITH_AES_256_CCM(0xC09D, Kex.RSA, Auth.RSA, Enc.AES_256_CCM, Mac.CCM),//
+        TLS_DHE_RSA_WITH_AES_128_CCM(0xC09E, Kex.DHE, Auth.RSA, Enc.AES_128_CCM, Mac.CCM),//
+        TLS_DHE_RSA_WITH_AES_256_CCM(0xC09F, Kex.DHE, Auth.RSA, Enc.AES_256_CCM, Mac.CCM),//
+        TLS_RSA_WITH_AES_128_CCM_8(0xC0A0, Kex.RSA, Auth.RSA, Enc.AES_128_CCM, Mac.CCM8),//
+        TLS_RSA_WITH_AES_256_CCM_8(0xC0A1, Kex.RSA, Auth.RSA, Enc.AES_256_CCM, Mac.CCM8),//
+        TLS_DHE_RSA_WITH_AES_128_CCM_8(0xC0A2, Kex.DHE, Auth.RSA, Enc.AES_128_CCM, Mac.CCM8),//
+        TLS_DHE_RSA_WITH_AES_256_CCM_8(0xC0A3, Kex.DHE, Auth.RSA, Enc.AES_256_CCM, Mac.CCM8),//
+        TLS_PSK_WITH_AES_128_CCM(0xC0A4, Kex.PSK, Auth.PSK, Enc.AES_128_CCM, Mac.CCM),//
+        TLS_PSK_WITH_AES_256_CCM(0xC0A5, Kex.PSK, Auth.PSK, Enc.AES_256_CCM, Mac.CCM),//
+        TLS_DHE_PSK_WITH_AES_128_CCM(0xC0A6, Kex.DHE_PSK, Auth.PSK, Enc.AES_128_CCM, Mac.CCM),//
+        TLS_DHE_PSK_WITH_AES_256_CCM(0xC0A7, Kex.DHE_PSK, Auth.PSK, Enc.AES_256_CCM, Mac.CCM),//
+        TLS_PSK_WITH_AES_128_CCM_8(0xC0A8, Kex.PSK, Auth.PSK, Enc.AES_128_CCM, Mac.CCM8),//
+        TLS_PSK_WITH_AES_256_CCM_8(0xC0A9, Kex.PSK, Auth.PSK, Enc.AES_256_CCM, Mac.CCM8),//
+        TLS_DHE_PSK_WITH_AES_128_CCM_8(0xC0AA, Kex.DHE_PSK, Auth.PSK, Enc.AES_128_CCM, Mac.CCM8),//
+        TLS_DHE_PSK_WITH_AES_256_CCM_8(0xC0AB, Kex.DHE_PSK, Auth.PSK, Enc.AES_256_CCM, Mac.CCM8),//
+
+        /*
+         * RFC 7905
+         */
+        TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256(0xCCA8, Kex.ECDHE, Auth.RSA, Enc.CHACHA20, Mac.SHA256),//
+        TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256(0xCCA9, Kex.ECDHE, Auth.ECDSA, Enc.CHACHA20, Mac.SHA256),//
+        TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256(0xCCAA, Kex.DHE, Auth.RSA, Enc.CHACHA20, Mac.SHA256),//
+        TLS_PSK_WITH_CHACHA20_POLY1305_SHA256(0xCCAB, Kex.PSK, Auth.PSK, Enc.CHACHA20, Mac.SHA256),//
+        TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256(0xCCAC, Kex.ECDHE_PSK, Auth.PSK, Enc.CHACHA20, Mac.SHA256),//
+        TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256(0xCCAD, Kex.DHE_PSK, Auth.PSK, Enc.CHACHA20, Mac.SHA256),//
+        TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256(0xCCAE, Kex.RSA_PSK, Auth.RSA, Enc.CHACHA20, Mac.SHA256),//        
+
         /*
          * draft-agl-tls-chacha20poly1305-04
          */
-        TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256(0xCC13, Kex.ECDHE, Auth.RSA, Enc.CHACHA20, Mac.SHA256),//
-        TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256(0xCC14, Kex.ECDHE, Auth.ECDSA, Enc.CHACHA20, Mac.SHA256),//
-        TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256(0xCC15, Kex.DHE, Auth.RSA, Enc.CHACHA20, Mac.SHA256),//
+        TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256_draft(0xCC13, Kex.ECDHE, Auth.RSA, Enc.CHACHA20, Mac.SHA256),//
+        TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256_draft(0xCC14, Kex.ECDHE, Auth.ECDSA, Enc.CHACHA20, Mac.SHA256),//
+        TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256_draft(0xCC15, Kex.DHE, Auth.RSA, Enc.CHACHA20, Mac.SHA256),//
+
         /*
          * draft-josefsson-salsa20-tls-04
          */
-        TLS_RSA_WITH_ESTREAM_SALSA20_SHA1(0xE410, Kex.RSA, Auth.RSA, null, null),//
-        TLS_RSA_WITH_SALSA20_SHA1(0xE411, Kex.RSA, Auth.RSA, null, null),//
-        TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1(0xE412, Kex.ECDHE, Auth.RSA, null, null),//
-        TLS_ECDHE_RSA_WITH_SALSA20_SHA1(0xE413, Kex.ECDHE, Auth.RSA, null, null),//
-        TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1(0xE414, Kex.ECDHE, Auth.ECDSA, null, null),//
-        TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1(0xE415, Kex.ECDHE, Auth.ECDSA, null, null),//
-        TLS_PSK_WITH_ESTREAM_SALSA20_SHA1(0xE416, Kex.PSK, Auth.PSK, null, null),//
-        TLS_PSK_WITH_SALSA20_SHA1(0xE417, Kex.PSK, Auth.PSK, null, null),//
-        TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1(0xE418, Kex.ECDHE, Auth.PSK, null, null),//
-        TLS_ECDHE_PSK_WITH_SALSA20_SHA1(0xE419, Kex.ECDHE, Auth.PSK, null, null),//
-        TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1(0xE41A, Kex.RSA_PSK, Auth.RSA, null, null),//
-        TLS_RSA_PSK_WITH_SALSA20_SHA1(0xE41B, Kex.RSA_PSK, Auth.RSA, null, null),//
-        TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1(0xE41C, Kex.DHE, Auth.PSK, null, null),//
-        TLS_DHE_PSK_WITH_SALSA20_SHA1(0xE41D, Kex.DHE, Auth.PSK, null, null),//
-        TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1(0xE41E, Kex.DHE, Auth.RSA, null, null),//
-        TLS_DHE_RSA_WITH_SALSA20_SHA1(0xE41F, Kex.DHE, Auth.RSA, null, null);
+        TLS_RSA_WITH_ESTREAM_SALSA20_SHA1(0xE410, Kex.RSA, Auth.RSA, Enc.SALSA20_ESTREAM, Mac.SHA),//
+        TLS_RSA_WITH_SALSA20_SHA1(0xE411, Kex.RSA, Auth.RSA, Enc.SALSA20, Mac.SHA),//
+        TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1(0xE412, Kex.ECDHE, Auth.RSA, Enc.SALSA20_ESTREAM, Mac.SHA),//
+        TLS_ECDHE_RSA_WITH_SALSA20_SHA1(0xE413, Kex.ECDHE, Auth.RSA, Enc.SALSA20, Mac.SHA),//
+        TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1(0xE414, Kex.ECDHE, Auth.ECDSA, Enc.SALSA20_ESTREAM, Mac.SHA),//
+        TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1(0xE415, Kex.ECDHE, Auth.ECDSA, Enc.SALSA20, Mac.SHA),//
+        TLS_PSK_WITH_ESTREAM_SALSA20_SHA1(0xE416, Kex.PSK, Auth.PSK, Enc.SALSA20_ESTREAM, Mac.SHA),//
+        TLS_PSK_WITH_SALSA20_SHA1(0xE417, Kex.PSK, Auth.PSK, Enc.SALSA20, Mac.SHA),//
+        TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1(0xE418, Kex.ECDHE_PSK, Auth.PSK, Enc.SALSA20_ESTREAM, Mac.SHA),//
+        TLS_ECDHE_PSK_WITH_SALSA20_SHA1(0xE419, Kex.ECDHE_PSK, Auth.PSK, Enc.SALSA20, Mac.SHA),//
+        TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1(0xE41A, Kex.RSA_PSK, Auth.RSA, Enc.SALSA20_ESTREAM, Mac.SHA),//
+        TLS_RSA_PSK_WITH_SALSA20_SHA1(0xE41B, Kex.RSA_PSK, Auth.RSA, Enc.SALSA20, Mac.SHA),//
+        TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1(0xE41C, Kex.DHE_PSK, Auth.PSK, Enc.SALSA20_ESTREAM, Mac.SHA),//
+        TLS_DHE_PSK_WITH_SALSA20_SHA1(0xE41D, Kex.DHE_PSK, Auth.PSK, Enc.SALSA20, Mac.SHA),//
+        TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1(0xE41E, Kex.DHE, Auth.RSA, Enc.SALSA20_ESTREAM, Mac.SHA),//
+        TLS_DHE_RSA_WITH_SALSA20_SHA1(0xE41F, Kex.DHE, Auth.RSA, Enc.SALSA20, Mac.SHA),//
+
+        /*
+         * RFC 5746
+         */
+        TLS_EMPTY_RENEGOTIATION_INFO_SCSV(0x00FF, null, null, null, null),//
+
+        /*
+         * RFC 7507
+         */
+        TLS_FALLBACK_SCSV(0x5600, null, null, null, null);//
 
         private final int value;
 
