@@ -165,7 +165,6 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
 
             public void run() {
                 end();
-
             }
 
             @Override

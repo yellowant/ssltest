@@ -30,7 +30,7 @@ public class Service extends HttpServlet {
     @Override
     public void init() throws ServletException {
         TruststoreGroup.getAnyTruststore();
-        System.out.println("Trustored Inited");
+        System.out.println("Truststore Inited");
         KnownDHGroup.lookup(null);
         System.out.println("DH Params Inited");
         System.out.println(CertificateTestService.getCAs().size() + " CAs loaded");
