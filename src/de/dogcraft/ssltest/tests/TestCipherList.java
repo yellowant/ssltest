@@ -92,6 +92,7 @@ public class TestCipherList {
     public String[] determineCiphers(TestOutput pw, TaskQueue tq) {
         LinkedList<TestResultCipher> yourCiphers = new LinkedList<>();
         Collection<Integer> ciphers = getAllCiphers();
+        ciphers.remove(org.bouncycastle.crypto.tls.CipherConstants.CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV.getValue());
         HashSet<CertificateList> chains = new HashSet<>();
         HashMap<String, CertificateChecker> map = new HashMap<>();
 
