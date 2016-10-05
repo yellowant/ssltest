@@ -22,7 +22,7 @@ public class CipherConstants {
 
         KRB5, KRB5_EXPORT(false, true), //
 
-        FORTEZZA(false, true); //
+        FORTEZZA(false, true), //
 
         GOST_R34_10_94, GOST_R34_10_2001;
 
