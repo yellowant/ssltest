@@ -41,7 +41,6 @@ public class BugTestingTLSClient extends TlsClientProtocol {
         byte[] pla = baos.toByteArray();
         if (bleed) {
             pla[2] += 32;
-
         }
         safeWriteRecord(ContentType.heartbeat, pla, 0, pla.length);
         try {

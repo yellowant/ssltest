@@ -307,7 +307,7 @@ public class TestCipherList {
 
         TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream());
         CipherProbingClient tc = new CipherProbingClient(host, ciphers, new short[] {
-            CompressionMethod._null
+                CompressionMethod._null
         }, new CertificateObserver() {
 
             @Override

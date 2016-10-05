@@ -43,7 +43,7 @@ public class TestImplementationBugs {
             try (TestingTLSClient tcp = new TestingTLSClient(sock.getInputStream(), sock.getOutputStream())) {
 
                 CipherProbingClient tc = new CipherProbingClient(host, TestCipherList.getAllCiphers(), new short[] {
-                        compression, CompressionMethodEx.NULL
+                        compression, CompressionMethodEx._null
                 }, null);
 
                 boolean gotThrough = false;
@@ -51,7 +51,7 @@ public class TestImplementationBugs {
                     tcp.connect(tc);
                     sock.getOutputStream().flush();
 
-                    if (CompressionMethodEx.NULL != tc.getSelectedCompressionMethod()) {
+                    if (CompressionMethodEx._null != tc.getSelectedCompressionMethod()) {
                         gotThrough = true;
                     }
                 } catch (BrokenCipherException t) {

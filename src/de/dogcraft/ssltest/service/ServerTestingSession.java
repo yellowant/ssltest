@@ -109,8 +109,8 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
                             event.append("{ \"id\": 64, \"name\": \"LZS\" }");
                         }
                         event.append("], \"points\": -10 }");
-                        outputEvent("compression", event.toString());
 
+                        outputEvent("compression", event.toString());
                     } else {
                         outputEvent("compression", "{ \"accepted\": \"no\", \"algs\" : [], \"points\": 0 }");
                     }
