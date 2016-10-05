@@ -9,8 +9,10 @@ import org.bouncycastle.crypto.tls.BugTestingTLSClient;
 import org.bouncycastle.crypto.tls.BugTestingTLSClient.CertificateObserver;
 import org.bouncycastle.crypto.tls.Certificate;
 import org.bouncycastle.crypto.tls.CompressionMethod;
+import org.bouncycastle.crypto.tls.ContentType;
 import org.bouncycastle.crypto.tls.HeartbeatMessage;
 import org.bouncycastle.crypto.tls.HeartbeatMessageType;
+import org.bouncycastle.crypto.tls.TlsFatalAlert;
 
 import de.dogcraft.ssltest.utils.CipherProbingClient;
 import de.dogcraft.ssltest.utils.CipherProbingClient.BrokenCipherException;
@@ -150,4 +152,54 @@ public class TestImplementationBugs {
     public LinkedList<Integer> getIllegalExtensions() {
         return illegalExtensions;
     }
+
+    public String testChangeCipherSpec() throws IOException {
+        Socket sock = tcb.spawn();
+        CertificateObserver observer = new CertificateObserver() {
+
+            @Override
+            public void onServerExtensionsReceived(Hashtable<Integer, byte[]> extensions) {
+                TestImplementationBugs.this.extensions = extensions;
+            }
+
+            @Override
+            public void onCertificateReceived(Certificate cert) {
+                TestImplementationBugs.this.cert = cert;
+            }
+
+        };
+        BugTestingTLSClient tcp = new BugTestingTLSClient(observer, sock.getInputStream(), sock.getOutputStream());
+        CipherProbingClient tc = new CipherProbingClient(host, null, new short[] {
+                CompressionMethod._null
+        }, observer);
+        tcp.connect(tc);
+        sock.setSoTimeout(1500);
+
+        //Send message once
+        try {
+            tcp.sendMessage(ContentType.change_cipher_spec, new byte[] {
+                0x01
+            });
+        } catch (IOException e) {
+            return "{\"accepted\":\"no\"}";
+        }
+
+        // Second instance triggers different protocol errors depending on whether the server is vulnerable
+        try {
+            tcp.sendMessage(ContentType.change_cipher_spec, new byte[] {
+                0x01
+            });
+        } catch (TlsFatalAlert e) {
+            if(10 == e.getAlertDescription()) {
+                return "{\"accepted\":\"no\"}";
+            } else {
+                return "{\"accepted\":\"yes\"}";
+            }
+        } catch (IOException e) {
+            return "{\"accepted\":\"no\"}";
+        }
+
+        return "{\"accepted\":\"yes\"}";
+    }
+
 }

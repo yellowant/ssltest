@@ -55,6 +55,19 @@ public class BugTestingTLSClient extends TlsClientProtocol {
         return true;
     }
 
+    public boolean sendMessage(short ct, byte[] msg) throws IOException {
+        safeWriteRecord(ct, msg, 0, msg.length);
+        try {
+            while (recordStream.readRecord()) {
+
+            }
+            return false;
+        } catch (SocketTimeoutException e) {
+            // is ok
+        }
+        return true;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     protected void cleanupHandshake() {

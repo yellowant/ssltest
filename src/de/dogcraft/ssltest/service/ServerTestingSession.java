@@ -91,6 +91,9 @@ public class ServerTestingSession extends TestingSession implements TestConnecti
                     outputEvent("extensions", //
                             res.toString());
 
+                    String ccsTest = b.testChangeCipherSpec();
+                    outputEvent("changecipherspec", ccsTest);
+
                     boolean acceptsCompressionDeflate = b.testCompressionDeflate(ServerTestingSession.this);
 
                     boolean acceptsCompressionLZS = b.testCompressionLZS(ServerTestingSession.this);
