@@ -24,6 +24,8 @@ public class CipherConstants {
 
         FORTEZZA(false, true); //
 
+        GOST_R34_10_94, GOST_R34_10_2001;
+
         private final boolean pfs;
 
         private final boolean export;
@@ -124,7 +126,9 @@ public class CipherConstants {
         SALSA20(256, 0, "CHACHA20", OperationMode.Stream),
         SALSA20_ESTREAM(256, 0, "CHACHA20", OperationMode.Stream),
 
-        FORTEZZA(80, 64, "FORTEZZA", OperationMode.CBC);
+        FORTEZZA(80, 64, "FORTEZZA", OperationMode.CBC),
+
+        GOST28147(256, 64, "GOST28147", OperationMode.Stream);
 
         private final int ksize;
 
@@ -165,8 +169,11 @@ public class CipherConstants {
         SHA(160, "SHA1"),
         SHA256(256, "SHA2"),
         SHA384(384, "SHA2"),
-        CCM(128, "AEAD-CCM"),
-        CCM8(64, "AEAD-CCM8");
+        CCM(128, "CCM"),
+        CCM8(64, "CCM"),
+
+        IMIT_GOST28147(256, "GOST28147"),
+        HMAC_GOSTR3411(256, "GOSTR3411");
 
         private final int dgst;
 
@@ -304,6 +311,14 @@ public class CipherConstants {
         TLS_DHE_RSA_WITH_AES_256_CBC_SHA256(0x006B, Kex.DHE, Auth.RSA, Enc.AES_256_CBC, Mac.SHA256),//
         TLS_DH_anon_WITH_AES_128_CBC_SHA256(0x006C, Kex.DH, Auth.NULL, Enc.AES_128_CBC, Mac.SHA256),//
         TLS_DH_anon_WITH_AES_256_CBC_SHA256(0x006D, Kex.DH, Auth.NULL, Enc.AES_256_CBC, Mac.SHA256),//
+
+        /*
+         * draft-chudov-cryptopro-cptls-04
+         */
+        TLS_GOSTR341094_WITH_28147_CNT_IMIT(0x0080, Kex.GOST_R34_10_94, Auth.NULL, Enc.GOST28147, Mac.IMIT_GOST28147),//
+        TLS_GOSTR341001_WITH_28147_CNT_IMIT(0x0081, Kex.GOST_R34_10_2001, Auth.NULL, Enc.GOST28147, Mac.IMIT_GOST28147),//
+        TLS_GOSTR341001_WITH_NULL_GOSTR3411(0x0082, Kex.GOST_R34_10_94, Auth.NULL, Enc.NULL, Mac.HMAC_GOSTR3411),//
+        TLS_GOSTR341094_WITH_NULL_GOSTR3411(0x0083, Kex.GOST_R34_10_2001, Auth.NULL, Enc.NULL, Mac.HMAC_GOSTR3411),//
 
         /*
          * RFC 5932
