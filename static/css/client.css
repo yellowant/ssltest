@@ -158,10 +158,10 @@ table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="40"] {
 table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="56"] {
 	background-color:#fdd;
 }
-table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="112"] {
+table.ciphertable, td.cipher-encksize[data-type^="3DES"][data-value="112"] {
 	background-color:#fed;
 }
-table.ciphertable, td.cipher-encksize[data-type^="DES"][data-value="168"] {
+table.ciphertable, td.cipher-encksize[data-type^="3DES"][data-value="168"] {
 	background-color:#fed;
 }
 table.ciphertable, td.cipher-encksize[data-type="CAMELLIA"][data-value="128"] {
@@ -201,6 +201,9 @@ table.ciphertable, td.cipher-encbsize[data-value="Stream"] {
 table.ciphertable, td.cipher-encbsize[data-type^="DES"][data-value="64"] {
 	background-color:#fdd;
 }
+table.ciphertable, td.cipher-encbsize[data-type^="3DES"][data-value="64"] {
+	background-color:#fdd;
+}
 table.ciphertable, td.cipher-encbsize[data-type="CAMELLIA"][data-value="128"] {
 	background-color:#ffd;
 }
@@ -236,10 +239,13 @@ table.ciphertable, td.cipher-mode[data-value="CCM"] {
 	background-color:#dfd;
 }
 table.ciphertable, td.cipher-mode[data-value="EAX"] {
-	background-color:#ddf;
+	background-color:#dff;
 }
 table.ciphertable, td.cipher-mode[data-value="Stream"] {
 	background-color:#eee;
+}
+table.ciphertable, td.cipher-mode[data-value="Poly1305"] {
+	background-color:#ddf;
 }
 
 table.ciphertable, td.cipher-mactype[data-value^="SHA-1"] {
