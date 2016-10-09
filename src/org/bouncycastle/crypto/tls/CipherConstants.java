@@ -16,6 +16,8 @@ public class CipherConstants {
 
         ECDH, ECDHE(true), //
 
+        CECPQ1, //
+
         PSK, RSA_PSK, DHE_PSK(true), ECDHE_PSK(true), //
 
         SRP_SHA(true), //
@@ -409,6 +411,14 @@ public class CipherConstants {
         TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256(0x00C3, Kex.DHE, Auth.DSS, Enc.CAMELLIA_256_CBC, Mac.SHA256),//
         TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256(0x00C4, Kex.DHE, Auth.RSA, Enc.CAMELLIA_256_CBC, Mac.SHA256),//
         TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256(0x00C5, Kex.DH, Auth.NULL, Enc.CAMELLIA_256_CBC, Mac.SHA256),//
+
+        /*
+         * Experimental PQ Kex Ciphers using CECPQ1
+         */
+        TLS_CECPQ1_RSA_WITH_CHACHA20_POLY1305_SHA256(0x16B7, Kex.CECPQ1, Auth.RSA, Enc.CHACHA20, Mac.SHA256), // (exper)
+        TLS_CECPQ1_ECDSA_WITH_CHACHA20_POLY1305_SHA256(0x16B8, Kex.CECPQ1, Auth.ECDSA, Enc.CHACHA20, Mac.SHA256), // (exper)
+        TLS_CECPQ1_RSA_WITH_AES_256_GCM_SHA384(0x16B9, Kex.CECPQ1, Auth.RSA, Enc.AES_256_GCM, Mac.SHA384), // (exper)
+        TLS_CECPQ1_ECDSA_WITH_AES_256_GCM_SHA384(0x16BA, Kex.CECPQ1, Auth.ECDSA, Enc.AES_256_GCM, Mac.SHA384), // (exper)
 
         /*
          * RFC 4492
