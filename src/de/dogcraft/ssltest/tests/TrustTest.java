@@ -235,6 +235,9 @@ public class TrustTest {
     }
 
     private boolean isIssuerOf(Certificate subject, Certificate issuer) {
+        if(null==issuer) {
+            return false;
+        }
         try {
             if ( !Arrays.equals(subject.getIssuer().getEncoded(), issuer.getSubject().getEncoded())) {
                 return false;
@@ -276,6 +279,9 @@ public class TrustTest {
     private Certificate fetchCAIssuers(String value, TestOutput out) throws IOException {
         URL u = new URL(value);
         byte[] data = IOUtils.get(u);
+        if(null == data) {
+            return null;
+        }
         if (data[0] == '-') {
             data = PEM.decode("CERTIFICATE", new String(data, "UTF-8"));
             out.outputEvent("warning", "{\"msg\":\"" + JSONUtils.jsonEscape(value + " contains PEM-encoded cert.") + "\"}");
