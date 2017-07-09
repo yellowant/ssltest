@@ -227,6 +227,9 @@ public class TrustTest {
                     } catch (IOException e) {
                         e.printStackTrace(System.out);
                         System.out.println("Fetching " + value + " failed");
+                    } catch (Throwable e) {
+                        e.printStackTrace(System.out);
+                        System.out.println("Fetching " + value + " failed");
                     }
                 }
             }
