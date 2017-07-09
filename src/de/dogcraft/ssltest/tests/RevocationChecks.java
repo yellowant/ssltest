@@ -45,6 +45,7 @@ import org.bouncycastle.asn1.ocsp.TBSRequest;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
+import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.DistributionPoint;
 import org.bouncycastle.asn1.x509.DistributionPointName;
 import org.bouncycastle.asn1.x509.Extension;
@@ -53,10 +54,10 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.TBSCertificate;
 
-import sun.security.x509.X509CRLImpl;
 import de.dogcraft.ssltest.utils.CertificateWrapper;
 import de.dogcraft.ssltest.utils.FileCache;
 import de.dogcraft.ssltest.utils.JSONUtils;
+import sun.security.x509.X509CRLImpl;
 
 public class RevocationChecks {
 
@@ -87,8 +88,7 @@ public class RevocationChecks {
                         pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", JSONUtils.jsonEscape(url), "protocol not understood"));
                         continue;
                     }
-                    if (url.equals("https://www.cacert.org/revoke.crl") ||
-                        url.equals("http://crl.cacert.org/revoke.crl")) {
+                    if (url.equals("https://www.cacert.org/revoke.crl") || url.equals("http://crl.cacert.org/revoke.crl")) {
                         pw.outputEvent("crlstatus", String.format("{\"url\": \"%s\", \"state\":\"done\", \"result\": \"%s\"}", JSONUtils.jsonEscape(url), "refusing to download blacklisted CRL because it takes too long."));
                         continue;
                     }
@@ -215,7 +215,7 @@ public class RevocationChecks {
             CertID ci = new CertID(HASH_OID, new DEROctetString(nameHash), new DEROctetString(keyHash), tbs.getSerialNumber());
             Request r = new Request(ci, null);
             TBSRequest tbsr = new TBSRequest(null, new DERSequence(new ASN1Encodable[] {
-                r
+                    r
             }), (Extensions) null);
             OCSPRequest ocr = new OCSPRequest(tbsr, null);
             URL u = new URL(url);
@@ -325,8 +325,7 @@ public class RevocationChecks {
                         pw.outputEvent("OCSPwarning", "hash ocsp response does not match");
                     } else {
                         if (Arrays.equals(keyHash, cid.getIssuerKeyHash().getOctets()) //
-                                &&
-                                Arrays.equals(nameHash, cid.getIssuerNameHash().getOctets()) //
+                                && Arrays.equals(nameHash, cid.getIssuerNameHash().getOctets()) //
                                 && cid.getSerialNumber().equals(tbs.getSerialNumber())) {
                             // Our response was found !! :)
                             CertStatus cs = rs.getCertStatus();
@@ -335,7 +334,8 @@ public class RevocationChecks {
                             } else if (cs.getTagNo() == 1) {
                                 RevokedInfo ri = RevokedInfo.getInstance(cs.getStatus());
                                 try {
-                                    status = "revoked at " + ri.getRevocationTime().getDate() + " because " + ri.getRevocationReason().toString();
+                                    CRLReason reason = ri.getRevocationReason();
+                                    status = "revoked at " + ri.getRevocationTime().getDate() + " because " + (reason == null ? "null" : reason.toString());
                                 } catch (ParseException e) {
                                     e.printStackTrace();
                                 }
