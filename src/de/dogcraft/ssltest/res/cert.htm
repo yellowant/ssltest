@@ -38,8 +38,8 @@
 			</div>
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">
-					<li class="active"><a href="/">Server Test</a></li>
-					<li><a href="cert">Certificate Test</a></li>
+					<li><a href="/">Server Test</a></li>
+					<li class="active"><a href="cert">Certificate Test</a></li>
 					<li><a href="trust">Trusted Roots</a></li>
 					<li><a href="about">About</a></li>
 				</ul>
@@ -48,25 +48,8 @@
 	</div>
 	<div class="container" id="container" role="main">
 		<div class="jumbotron">
-			<h1>Test a server!</h1>
-			<p>You can test every type of server that talks TLS or StartTLS. You may e.g. enter:</p>
-			<ul>
-				<li>In the 'domain' field: <code>smtp://example.com:587</code> and leave the 'port' field empty</li>
-				<li>In the 'domain' field: <code>example.com</code> and in the 'port' field <code>smtp-587</code>
-				<li>In the 'domain' field: <code>example.com</code> and in the 'port' field <code>xmpp-server-5269</code></li>
-				<li>In the 'domain' field: <code>example.com</code> and in the 'port' field <code>xmpp-5222</code></li>
-				<li>In the 'domain' field: <code>imap://example.com</code> and leave the 'port' field empty</li>
-				<li>In the 'domain' field: <code>example.com</code> and in the 'port' field <code>imap-143</code></li>
-				<li>...or any plain TLS talking server/service</li>
-			</ul>
-			<form method="POST" id="reqform">
-				<div class="input-group space-below">
-					<span class="input-group-addon">@</span>
-					<input type="text" class="form-control" name="domain" id="domain" placeholder="Domain" />
-					<input type="text" class="form-control" name="port" id="port" placeholder="Port - leave blank for 443" />
-				</div>
-				<input type="submit" value="Check!" class="btn btn-primary btn-lg">
-			</form>
+			<h1>Test a certificate!</h1>
+			<div id='check' class="drag-and-drop">Drag certificate here to check</div>
 		</div>
 		<div id="output"></div>
 	</div>

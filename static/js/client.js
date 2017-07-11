@@ -8,12 +8,8 @@ function abbrevHash(hash) {
 
 document.addEventListener('DOMContentLoaded', function() {
 	var reqform = document.getElementById("reqform");
-	var c = undefined;
-	reqform.onsubmit = function() {
-		events();
-		return false;
-	};
-	(function(){
+	if(reqform === null){
+		(function(){
 		// file drag hover
 		function FileDragHover(e) {
 			e.stopPropagation();
@@ -33,10 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
 			reader.onload = function(){
 				var v = new XMLHttpRequest();
 				v.onload = function(){
-					if(c === undefined){
-						c = new CertsModule(document.getElementById("output"),"base");
+					console.log(v);
+					if(v.status === 200){
+						if(c === undefined){
+							c = new CertsModule(document.getElementById("output"),"base");
+						}
+						c.reference(v.response);
+					}else{
+						alert("Error while processing your certificate.");
 					}
-					c.reference(v.response);
 				}
 				v.open("POST", "/certstatus");
 				v.send(reader.result);
@@ -50,6 +51,13 @@ document.addEventListener('DOMContentLoaded', function() {
 		filedrag.addEventListener("dragleave", FileDragHover, false);
 		filedrag.addEventListener("drop", FileSelectHandler, false);
 		})();
+		return;
+	}
+	var c = undefined;
+	reqform.onsubmit = function() {
+		events();
+		return false;
+	};
 
 	if (window.location.hash !== undefined) {
 		var hash = window.location.hash;

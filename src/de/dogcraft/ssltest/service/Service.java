@@ -75,6 +75,10 @@ public class Service extends HttpServlet {
             resp.setContentType("text/html");
             resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
             copyStream(Service.class.getResourceAsStream("../res/about.htm"), resp.getOutputStream());
+        } else if (path.equals("/cert")) {
+            resp.setContentType("text/html");
+            resp.setDateHeader("Last-Modified", ManagementFactory.getRuntimeMXBean().getStartTime());
+            copyStream(Service.class.getResourceAsStream("../res/cert.htm"), resp.getOutputStream());
         } else if (path.equals("/server.event")) {
             resp.addHeader("Cache-Control", "max-age=0");
             if (req.getParameter("domain") != null) {

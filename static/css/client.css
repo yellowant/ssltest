@@ -345,3 +345,13 @@ span.error-sign{
 .node a text{
 	text-anchor: middle;
 }
+.drag-and-drop {
+  height: 200px;
+  border-width: 2px;
+  margin-bottom: 20px;
+  color: #ccc;
+  border-style: dashed;
+  border-color: #ccc;
+  line-height: 200px;
+  text-align: center
+}

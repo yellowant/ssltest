@@ -23,8 +23,14 @@
             src="https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.51/bcprov-jdk15on-1.51.jar"
             dest="build-files/bcprov-jdk15on-151.jar" />
         <get skipexisting="true"
-            src="https://d3js.org/d3.v3.min.js"
-            dest="static/js" />
+            src="https://github.com/d3/d3/releases/download/v3.5.17/d3.zip"
+            dest="build-files/d3.zip" /><!-- static/js -->
+        <unzip src="build-files/d3.zip" dest="static/js">
+            <patternset>
+                <include name="d3.min.js" />
+            </patternset>
+        </unzip>
+    	<move file="static/js/d3.min.js" tofile="static/js/d3.v3.min.js"/>
         <jar destfile="libs/bcprov-jdk15on-151.jar">
             <zipfileset src="build-files/bcprov-jdk15on-151.jar"
                 excludes="META-INF/BCKEY.*" />
@@ -42,6 +48,19 @@
             </patternset>
         </unzip>
     </target>
+	<target name="validate-cond" depends="dependencies">
+		<condition property="validateSuccess">
+			<and>
+				<checksum file="libs/postgresql-9.4.1207.jar" algorithm="SHA-512" property="2161b1b2cd32110ee86687d946dbeae0693e198a7ae2db7037c2a9334d43319ac88110b493a104973ecea5c3eed279ef228b62897a9d841fa666a052925cfe44"/>
+				<checksum file="build-files/jetty.zip" algorithm="SHA-512" property="95f30383899493d00ad5586f0a12e11ba2a3fd8b01be0953190ffa2f77d1dd248533c3d740d1d1d75f1b5c6184d14d9c8ca3faa1cf1d7639d23779345e856ea4"/>
+				<checksum file="build-files/bcprov-jdk15on-151.jar" algorithm="SHA-512" property="1d377e5e7567dd1d2565c4e5cc6610e5b059089819a361d0fe2eba5f58b1667eb390a17201ef48c2d43ad7df5b56f8f13bdadc74dc309a9ea581564a0eedc309"/>
+				<checksum file="build-files/d3.zip" algorithm="SHA-512" property="dc2edea2e59d6d91ba06f811217879499482d73b8b260999a3a06dadc7637806174fce60fcd9e11a938ccc2d25d7aaaaf9f87c481c59de086afd76b00895681f"/>
+			</and>
+		</condition>
+	</target>
+	<target name="validated-dependencies" depends="validate-cond" unless="${validateSuccess}">
+		<fail message="build dependencies are wrong."/>
+	</target>
     <target name="init">
         <mkdir dir="bin" />
         <copy includeemptydirs="false" todir="bin">
@@ -59,7 +78,7 @@
         <delete dir="libs" />
         <delete file="ssltest.jar" />
     </target>
-    <target depends="init,dependencies" name="build">
+    <target depends="init,validated-dependencies" name="build">
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin"
             includeantruntime="false" source="${source}" target="${target}">
             <compilerarg value="-XDignore.symbol.file" />
